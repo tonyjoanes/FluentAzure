@@ -1,0 +1,14 @@
+C:\dev\FluentAzure\src\FluentAzure\bin\Debug\net8.0\FluentAzure.deps.json
+C:\dev\FluentAzure\src\FluentAzure\bin\Debug\net8.0\FluentAzure.dll
+C:\dev\FluentAzure\src\FluentAzure\bin\Debug\net8.0\FluentAzure.pdb
+C:\dev\FluentAzure\src\FluentAzure\bin\Debug\net8.0\.xml
+C:\dev\FluentAzure\src\FluentAzure\obj\Debug\net8.0\FluentAzure.GeneratedMSBuildEditorConfig.editorconfig
+C:\dev\FluentAzure\src\FluentAzure\obj\Debug\net8.0\FluentAzure.AssemblyInfoInputs.cache
+C:\dev\FluentAzure\src\FluentAzure\obj\Debug\net8.0\FluentAzure.AssemblyInfo.cs
+C:\dev\FluentAzure\src\FluentAzure\obj\Debug\net8.0\FluentAzure.csproj.CoreCompileInputs.cache
+C:\dev\FluentAzure\src\FluentAzure\obj\Debug\net8.0\FluentAzure.sourcelink.json
+C:\dev\FluentAzure\src\FluentAzure\obj\Debug\net8.0\FluentAzure.dll
+C:\dev\FluentAzure\src\FluentAzure\obj\Debug\net8.0\refint\FluentAzure.dll
+C:\dev\FluentAzure\src\FluentAzure\obj\Debug\net8.0\FluentAzure.pdb
+C:\dev\FluentAzure\src\FluentAzure\obj\Debug\net8.0\ref\FluentAzure.dll
+C:\dev\FluentAzure\src\FluentAzure\obj\Debug\net8.0\FluentAzure.csproj.AssemblyReference.cache

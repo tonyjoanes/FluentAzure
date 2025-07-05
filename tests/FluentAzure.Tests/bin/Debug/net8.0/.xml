@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FluentAzure.Tests</name>
+    </assembly>
+    <members>
+        <member name="T:FluentAzure.Tests.ConfigurationBinderTests">
+            <summary>
+            Tests for the ConfigurationBinder class.
+            </summary>
+        </member>
+        <member name="T:FluentAzure.Tests.ConfigurationBuilderTests">
+            <summary>
+            Tests for the ConfigurationBuilder class.
+            </summary>
+        </member>
+        <member name="T:FluentAzure.Tests.ConfigurationSourceTests">
+            <summary>
+            Tests for configuration source implementations.
+            </summary>
+        </member>
+        <member name="T:FluentAzure.Tests.IntegrationTests">
+            <summary>
+            Integration tests for the complete FluentAzure configuration pipeline.
+            </summary>
+        </member>
+        <member name="T:FluentAzure.Tests.IntegrationTests.AppConfiguration">
+            <summary>
+            Configuration class for strongly-typed binding tests.
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "T:FluentAzure.Tests.Core.ResultTests" -->
+    </members>
+</doc>

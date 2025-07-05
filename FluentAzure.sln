@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D60B2506-7E5A-476C-A1D7-4DAA803B38D4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentAzure", "src\FluentAzure\FluentAzure.csproj", "{79E00B32-E55B-4B44-84CB-BC9FFE0033D0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{5DE0E3F2-11E9-409D-969F-9E23F367DC47}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentAzure.Tests", "tests\FluentAzure.Tests\FluentAzure.Tests.csproj", "{DF806BF1-81D3-42AB-A9C4-B843427E397C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{79E00B32-E55B-4B44-84CB-BC9FFE0033D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79E00B32-E55B-4B44-84CB-BC9FFE0033D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79E00B32-E55B-4B44-84CB-BC9FFE0033D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79E00B32-E55B-4B44-84CB-BC9FFE0033D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF806BF1-81D3-42AB-A9C4-B843427E397C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF806BF1-81D3-42AB-A9C4-B843427E397C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF806BF1-81D3-42AB-A9C4-B843427E397C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF806BF1-81D3-42AB-A9C4-B843427E397C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{79E00B32-E55B-4B44-84CB-BC9FFE0033D0} = {D60B2506-7E5A-476C-A1D7-4DAA803B38D4}
+		{DF806BF1-81D3-42AB-A9C4-B843427E397C} = {5DE0E3F2-11E9-409D-969F-9E23F367DC47}
+	EndGlobalSection
+EndGlobal

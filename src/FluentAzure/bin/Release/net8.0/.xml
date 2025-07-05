@@ -1,0 +1,238 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FluentAzure</name>
+    </assembly>
+    <members>
+        <member name="T:FluentAzure.Core.Result`1">
+            <summary>
+            Represents the result of an operation that can either succeed with a value or fail with errors.
+            This is an immutable, thread-safe implementation of the Result monad pattern.
+            </summary>
+            <typeparam name="T">The type of the success value</typeparam>
+        </member>
+        <member name="M:FluentAzure.Core.Result`1.#ctor(`0)">
+            <summary>
+            Initializes a new successful result with the specified value.
+            </summary>
+            <param name="value">The success value</param>
+        </member>
+        <member name="M:FluentAzure.Core.Result`1.#ctor(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Initializes a new failed result with the specified errors.
+            </summary>
+            <param name="errors">The collection of error messages</param>
+        </member>
+        <member name="P:FluentAzure.Core.Result`1.IsSuccess">
+            <summary>
+            Gets a value indicating whether the result represents a success.
+            </summary>
+        </member>
+        <member name="P:FluentAzure.Core.Result`1.IsFailure">
+            <summary>
+            Gets a value indicating whether the result represents a failure.
+            </summary>
+        </member>
+        <member name="P:FluentAzure.Core.Result`1.Value">
+            <summary>
+            Gets the success value. Only valid when <see cref="P:FluentAzure.Core.Result`1.IsSuccess"/> is true.
+            </summary>
+            <exception cref="T:System.InvalidOperationException">Thrown when called on a failed result</exception>
+        </member>
+        <member name="P:FluentAzure.Core.Result`1.Errors">
+            <summary>
+            Gets the collection of error messages. Only valid when <see cref="P:FluentAzure.Core.Result`1.IsFailure"/> is true.
+            </summary>
+            <exception cref="T:System.InvalidOperationException">Thrown when called on a successful result</exception>
+        </member>
+        <member name="M:FluentAzure.Core.Result`1.Success(`0)">
+            <summary>
+            Creates a successful result with the specified value.
+            </summary>
+            <param name="value">The success value</param>
+            <returns>A successful result containing the specified value</returns>
+        </member>
+        <member name="M:FluentAzure.Core.Result`1.Error(System.String)">
+            <summary>
+            Creates a failed result with the specified error message.
+            </summary>
+            <param name="error">The error message</param>
+            <returns>A failed result containing the specified error</returns>
+        </member>
+        <member name="M:FluentAzure.Core.Result`1.Error(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Creates a failed result with the specified error messages.
+            </summary>
+            <param name="errors">The collection of error messages</param>
+            <returns>A failed result containing the specified errors</returns>
+        </member>
+        <member name="M:FluentAzure.Core.Result`1.Error(System.String[])">
+            <summary>
+            Creates a failed result with the specified error messages.
+            </summary>
+            <param name="errors">The error messages</param>
+            <returns>A failed result containing the specified errors</returns>
+        </member>
+        <member name="M:FluentAzure.Core.Result`1.Map``1(System.Func{`0,``0})">
+            <summary>
+            Transforms the success value using the specified function.
+            If the result is a failure, the errors are preserved.
+            </summary>
+            <typeparam name="TResult">The type of the transformed value</typeparam>
+            <param name="transform">The transformation function</param>
+            <returns>A new result with the transformed value or the original errors</returns>
+        </member>
+        <member name="M:FluentAzure.Core.Result`1.Bind``1(System.Func{`0,FluentAzure.Core.Result{``0}})">
+            <summary>
+            Transforms the success value using the specified function that returns a Result.
+            If the result is a failure, the errors are preserved.
+            This is the monadic bind operation.
+            </summary>
+            <typeparam name="TResult">The type of the transformed value</typeparam>
+            <param name="transform">The transformation function that returns a Result</param>
+            <returns>A new result with the transformed value or accumulated errors</returns>
+        </member>
+        <member name="M:FluentAzure.Core.Result`1.Match``1(System.Func{`0,``0},System.Func{System.Collections.Generic.IReadOnlyList{System.String},``0})">
+            <summary>
+            Executes one of two functions based on whether the result is a success or failure.
+            </summary>
+            <typeparam name="TResult">The type of the result</typeparam>
+            <param name="onSuccess">The function to execute if the result is a success</param>
+            <param name="onFailure">The function to execute if the result is a failure</param>
+            <returns>The result of the executed function</returns>
+        </member>
+        <member name="M:FluentAzure.Core.Result`1.Match(System.Action{`0},System.Action{System.Collections.Generic.IReadOnlyList{System.String}})">
+            <summary>
+            Executes one of two actions based on whether the result is a success or failure.
+            </summary>
+            <param name="onSuccess">The action to execute if the result is a success</param>
+            <param name="onFailure">The action to execute if the result is a failure</param>
+        </member>
+        <member name="M:FluentAzure.Core.Result`1.Combine``2(FluentAzure.Core.Result{``0},System.Func{`0,``0,``1})">
+            <summary>
+            Combines this result with another result. If both are successful, combines their values using the specified function.
+            If either is a failure, combines all errors.
+            </summary>
+            <typeparam name="TOther">The type of the other result's value</typeparam>
+            <typeparam name="TResult">The type of the combined result</typeparam>
+            <param name="other">The other result to combine with</param>
+            <param name="combiner">The function to combine successful values</param>
+            <returns>A result with the combined value or all accumulated errors</returns>
+        </member>
+        <member name="M:FluentAzure.Core.Result`1.op_Implicit(`0)~FluentAzure.Core.Result{`0}">
+            <summary>
+            Implicitly converts a value to a successful result.
+            </summary>
+            <param name="value">The value to convert</param>
+        </member>
+        <member name="M:FluentAzure.Core.Result`1.op_Implicit(System.String)~FluentAzure.Core.Result{`0}">
+            <summary>
+            Implicitly converts an error message to a failed result.
+            </summary>
+            <param name="error">The error message to convert</param>
+        </member>
+        <member name="M:FluentAzure.Core.Result`1.op_Implicit(System.String[])~FluentAzure.Core.Result{`0}">
+            <summary>
+            Implicitly converts an array of error messages to a failed result.
+            </summary>
+            <param name="errors">The error messages to convert</param>
+        </member>
+        <member name="M:FluentAzure.Core.Result`1.ToString">
+            <summary>
+            Returns a string representation of the result.
+            </summary>
+            <returns>A string representation of the result</returns>
+        </member>
+        <member name="M:FluentAzure.Core.Result`1.Equals(System.Object)">
+            <summary>
+            Determines whether the specified object is equal to this result.
+            </summary>
+            <param name="obj">The object to compare with this result</param>
+            <returns>true if the specified object is equal to this result; otherwise, false</returns>
+        </member>
+        <member name="M:FluentAzure.Core.Result`1.Equals(FluentAzure.Core.Result{`0})">
+            <summary>
+            Determines whether the specified result is equal to this result.
+            </summary>
+            <param name="other">The result to compare with this result</param>
+            <returns>true if the specified result is equal to this result; otherwise, false</returns>
+        </member>
+        <member name="M:FluentAzure.Core.Result`1.GetHashCode">
+            <summary>
+            Returns the hash code for this result.
+            </summary>
+            <returns>A hash code for this result</returns>
+        </member>
+        <member name="M:FluentAzure.Core.Result`1.op_Equality(FluentAzure.Core.Result{`0},FluentAzure.Core.Result{`0})">
+            <summary>
+            Determines whether two results are equal.
+            </summary>
+            <param name="left">The first result to compare</param>
+            <param name="right">The second result to compare</param>
+            <returns>true if the results are equal; otherwise, false</returns>
+        </member>
+        <member name="M:FluentAzure.Core.Result`1.op_Inequality(FluentAzure.Core.Result{`0},FluentAzure.Core.Result{`0})">
+            <summary>
+            Determines whether two results are not equal.
+            </summary>
+            <param name="left">The first result to compare</param>
+            <param name="right">The second result to compare</param>
+            <returns>true if the results are not equal; otherwise, false</returns>
+        </member>
+        <member name="T:FluentAzure.Core.Result">
+            <summary>
+            Provides utility methods for working with Results.
+            </summary>
+        </member>
+        <member name="M:FluentAzure.Core.Result.Success``1(``0)">
+            <summary>
+            Creates a successful result with the specified value.
+            </summary>
+            <typeparam name="T">The type of the success value</typeparam>
+            <param name="value">The success value</param>
+            <returns>A successful result containing the specified value</returns>
+        </member>
+        <member name="M:FluentAzure.Core.Result.Error``1(System.String)">
+            <summary>
+            Creates a failed result with the specified error message.
+            </summary>
+            <typeparam name="T">The type of the success value</typeparam>
+            <param name="error">The error message</param>
+            <returns>A failed result containing the specified error</returns>
+        </member>
+        <member name="M:FluentAzure.Core.Result.Error``1(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Creates a failed result with the specified error messages.
+            </summary>
+            <typeparam name="T">The type of the success value</typeparam>
+            <param name="errors">The collection of error messages</param>
+            <returns>A failed result containing the specified errors</returns>
+        </member>
+        <member name="M:FluentAzure.Core.Result.Error``1(System.String[])">
+            <summary>
+            Creates a failed result with the specified error messages.
+            </summary>
+            <typeparam name="T">The type of the success value</typeparam>
+            <param name="errors">The error messages</param>
+            <returns>A failed result containing the specified errors</returns>
+        </member>
+        <member name="M:FluentAzure.Core.Result.Combine``1(System.Collections.Generic.IEnumerable{FluentAzure.Core.Result{``0}})">
+            <summary>
+            Combines multiple results into a single result. If all are successful, returns a successful result with all values.
+            If any are failures, returns a failed result with all accumulated errors.
+            </summary>
+            <typeparam name="T">The type of the result values</typeparam>
+            <param name="results">The results to combine</param>
+            <returns>A result containing all values or all accumulated errors</returns>
+        </member>
+        <member name="M:FluentAzure.Core.Result.Combine``1(FluentAzure.Core.Result{``0}[])">
+            <summary>
+            Combines multiple results into a single result. If all are successful, returns a successful result with all values.
+            If any are failures, returns a failed result with all accumulated errors.
+            </summary>
+            <typeparam name="T">The type of the result values</typeparam>
+            <param name="results">The results to combine</param>
+            <returns>A result containing all values or all accumulated errors</returns>
+        </member>
+    </members>
+</doc>
