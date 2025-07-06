@@ -38,7 +38,11 @@ public class EnvironmentSource : IConfigurationSource
         }
         catch (Exception ex)
         {
-            return Task.FromResult(Result<Dictionary<string, string>>.Error($"Failed to load environment variables: {ex.Message}"));
+            return Task.FromResult(
+                Result<Dictionary<string, string>>.Error(
+                    $"Failed to load environment variables: {ex.Message}"
+                )
+            );
         }
     }
 
@@ -73,7 +77,10 @@ public class EnvironmentSource : IConfigurationSource
         catch (Exception ex)
         {
             // Log error but don't fail completely - we'll handle this in LoadAsync
-            throw new InvalidOperationException($"Failed to load environment variables: {ex.Message}", ex);
+            throw new InvalidOperationException(
+                $"Failed to load environment variables: {ex.Message}",
+                ex
+            );
         }
     }
 }

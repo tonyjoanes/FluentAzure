@@ -1,8 +1,5 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using FluentAzure.Sources;
 using FluentAzure.Binding;
+using FluentAzure.Sources;
 
 namespace FluentAzure.Core;
 
@@ -45,6 +42,18 @@ public class ConfigurationBuilder
     {
         ArgumentException.ThrowIfNullOrEmpty(filePath);
         _sources.Add(new JsonFileSource(filePath, priority, optional));
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a custom configuration source to the pipeline.
+    /// </summary>
+    /// <param name="source">The configuration source to add.</param>
+    /// <returns>The configuration builder for method chaining.</returns>
+    public ConfigurationBuilder AddSource(IConfigurationSource source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        _sources.Add(source);
         return this;
     }
 
@@ -140,12 +149,12 @@ public class ConfigurationBuilder
         ArgumentException.ThrowIfNullOrEmpty(key);
         ArgumentNullException.ThrowIfNull(transform);
 
-        _transformations.Add(async config =>
+        _transformations.Add(config =>
         {
             if (!config.TryGetValue(key, out var value))
             {
                 // Key doesn't exist, nothing to transform
-                return Result<Dictionary<string, string>>.Success(config);
+                return Task.FromResult(Result<Dictionary<string, string>>.Success(config));
             }
 
             var transformResult = transform(value);
@@ -153,11 +162,11 @@ public class ConfigurationBuilder
             {
                 var newConfig = new Dictionary<string, string>(config);
                 newConfig[key] = transformResult.Value;
-                return Result<Dictionary<string, string>>.Success(newConfig);
+                return Task.FromResult(Result<Dictionary<string, string>>.Success(newConfig));
             }
             else
             {
-                return Result<Dictionary<string, string>>.Error(transformResult.Errors);
+                return Task.FromResult(Result<Dictionary<string, string>>.Error(transformResult.Errors));
             }
         });
         return this;

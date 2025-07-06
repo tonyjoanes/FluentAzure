@@ -1,171 +1,467 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Azure.Core;
+using Azure.Identity;
 using FluentAzure.Core;
+using FluentAzure.Extensions;
+using FluentAzure.Sources;
+using Microsoft.Extensions.Logging;
 
-// Simple demonstration of the FluentAzure Configuration Pipeline Builder
+namespace Demo;
+
+/// <summary>
+/// Demo program showcasing the enhanced Azure Key Vault configuration source.
+/// </summary>
 public class Program
 {
     public static async Task Main(string[] args)
     {
-        Console.WriteLine("FluentAzure Configuration Pipeline Builder Demo");
-        Console.WriteLine("==============================================");
+        // Create a logger for demonstration
+        using var loggerFactory = LoggerFactory.Create(builder =>
+            builder.AddConsole().SetMinimumLevel(LogLevel.Information)
+        );
+        var logger = loggerFactory.CreateLogger<Program>();
 
-        // Example 1: Simple Configuration from Environment Variables
-        Console.WriteLine("\n1. Simple Environment Configuration:");
+        Console.WriteLine("🔐 FluentAzure - Enhanced Key Vault Configuration Source Demo");
+        Console.WriteLine(new string('-', 40));
+
+        // Example 1: Basic Key Vault usage
+        await DemoBasicKeyVault(logger);
+
+        // Example 2: Advanced Key Vault configuration
+        await DemoAdvancedKeyVault(logger);
+
+        // Example 3: Different authentication methods
+        await DemoAuthenticationMethods(logger);
+
+        // Example 4: Secret versioning and caching
+        await DemoVersioningAndCaching(logger);
+
+        // Example 5: Error handling and partial success
+        await DemoErrorHandling(logger);
+
+        // Example 6: Key mapping and filtering
+        await DemoKeyMappingAndFiltering(logger);
+
+        // Example 7: Enhanced Configuration Binding
+        await DemoEnhancedBinding();
+
+        Console.WriteLine("\n✅ Demo completed successfully!");
+        Console.WriteLine("Press any key to exit...");
+        Console.ReadKey();
+    }
+
+    /// <summary>
+    /// Demonstrates basic Key Vault usage with default settings.
+    /// </summary>
+    private static async Task DemoBasicKeyVault(ILogger logger)
+    {
+        Console.WriteLine("\n📋 Example 1: Basic Key Vault Usage");
+        Console.WriteLine(new string('-', 40));
+
         try
         {
-            var config = await FluentAzure
-                .Core.FluentAzure.Configuration()
+            // Replace with your actual Key Vault URL
+            const string vaultUrl = "https://your-keyvault.vault.azure.net/";
+
+            var config = await FluentAzure.Core.FluentAzure.Configuration()
                 .FromEnvironment()
-                .Required("PATH") // PATH should exist on all systems
-                .Optional("MY_APP_SETTING", "default-value")
+                .FromKeyVault(vaultUrl)
                 .BuildAsync();
 
             config.Match(
                 success =>
                 {
-                    Console.WriteLine($"✅ Configuration loaded successfully!");
-                    Console.WriteLine($"   PATH exists: {success.ContainsKey("PATH")}");
-                    Console.WriteLine(
-                        $"   MY_APP_SETTING: {success.GetValueOrDefault("MY_APP_SETTING", "not found")}"
-                    );
+                    logger.LogInformation("✅ Configuration loaded successfully");
+                    logger.LogInformation("Found {Count} configuration values", success.Count);
+
+                    // Display some sample values (be careful not to log sensitive data in production)
+                    foreach (var kvp in success.Take(3))
+                    {
+                        logger.LogInformation(
+                            "Key: {Key}, Value: {Value}",
+                            kvp.Key,
+                            kvp.Value.Length > 20 ? kvp.Value[..20] + "..." : kvp.Value
+                        );
+                    }
                 },
                 errors =>
                 {
-                    Console.WriteLine($"❌ Configuration failed:");
+                    logger.LogWarning("⚠️ Configuration loading failed with errors:");
                     foreach (var error in errors)
                     {
-                        Console.WriteLine($"   - {error}");
+                        logger.LogWarning("  - {Error}", error);
                     }
                 }
             );
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Exception: {ex.Message}");
+            logger.LogError(ex, "❌ Basic Key Vault demo failed");
         }
+    }
 
-        // Example 2: Configuration with JSON File (Optional)
-        Console.WriteLine("\n2. JSON File Configuration (Optional):");
+    /// <summary>
+    /// Demonstrates advanced Key Vault configuration with custom settings.
+    /// </summary>
+    private static async Task DemoAdvancedKeyVault(ILogger logger)
+    {
+        Console.WriteLine("\n📋 Example 2: Advanced Key Vault Configuration");
+        Console.WriteLine(new string('-', 40));
+
         try
         {
-            var jsonConfig = await FluentAzure
-                .Core.FluentAzure.Configuration()
-                .FromJsonFile("appsettings.json", optional: true)
+            const string vaultUrl = "https://your-keyvault.vault.azure.net/";
+
+            var config = await FluentAzure.Core.FluentAzure.Configuration()
                 .FromEnvironment()
-                .Optional("ConnectionString", "DefaultConnectionString")
+                .FromKeyVault(
+                    vaultUrl,
+                    options =>
+                    {
+                        options.CacheDuration = TimeSpan.FromMinutes(10);
+                        options.MaxRetryAttempts = 5;
+                        options.BaseRetryDelay = TimeSpan.FromSeconds(2);
+                        options.MaxRetryDelay = TimeSpan.FromMinutes(1);
+                        options.ContinueOnSecretFailure = true;
+                        options.OperationTimeout = TimeSpan.FromSeconds(45);
+                    },
+                    logger
+                )
                 .BuildAsync();
 
-            jsonConfig.Match(
+            config.Match(
                 success =>
                 {
-                    Console.WriteLine($"✅ JSON + Environment configuration loaded!");
-                    Console.WriteLine($"   Keys found: {success.Count}");
-                    Console.WriteLine(
-                        $"   ConnectionString: {success.GetValueOrDefault("ConnectionString", "not found")}"
-                    );
+                    logger.LogInformation("✅ Advanced configuration loaded successfully");
+                    logger.LogInformation("Configuration contains {Count} values", success.Count);
                 },
                 errors =>
                 {
-                    Console.WriteLine($"❌ Configuration failed:");
+                    logger.LogWarning("⚠️ Advanced configuration had errors:");
                     foreach (var error in errors)
                     {
-                        Console.WriteLine($"   - {error}");
+                        logger.LogWarning("  - {Error}", error);
                     }
                 }
             );
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Exception: {ex.Message}");
+            logger.LogError(ex, "❌ Advanced Key Vault demo failed");
         }
+    }
 
-        // Example 3: Configuration with Validation
-        Console.WriteLine("\n3. Configuration with Validation:");
+    /// <summary>
+    /// Demonstrates different authentication methods.
+    /// </summary>
+    private static async Task DemoAuthenticationMethods(ILogger logger)
+    {
+        Console.WriteLine("\n📋 Example 3: Authentication Methods");
+        Console.WriteLine(new string('-', 40));
+
+        const string vaultUrl = "https://your-keyvault.vault.azure.net/";
+
+        // Method 1: Default Azure Credential (recommended for most scenarios)
+        logger.LogInformation("🔑 Using DefaultAzureCredential");
+        await DemoWithCredential(vaultUrl, logger, "Default", () => new DefaultAzureCredential());
+
+        // Method 2: Managed Identity
+        logger.LogInformation("🔑 Using ManagedIdentityCredential");
+        await DemoWithCredential(
+            vaultUrl,
+            logger,
+            "Managed Identity",
+            () => new ManagedIdentityCredential()
+        );
+
+        // Method 3: Service Principal (for production environments)
+        logger.LogInformation("🔑 Using Service Principal");
+        // Note: In production, these would come from secure configuration
+        var tenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
+        var clientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
+        var clientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET");
+
+        if (
+            !string.IsNullOrEmpty(tenantId)
+            && !string.IsNullOrEmpty(clientId)
+            && !string.IsNullOrEmpty(clientSecret)
+        )
+        {
+            await DemoWithCredential(
+                vaultUrl,
+                logger,
+                "Service Principal",
+                () => new ClientSecretCredential(tenantId, clientId, clientSecret)
+            );
+        }
+        else
+        {
+            logger.LogInformation("⚠️ Service Principal credentials not configured");
+        }
+    }
+
+    /// <summary>
+    /// Helper method to demonstrate authentication with different credentials.
+    /// </summary>
+    private static async Task DemoWithCredential(
+        string vaultUrl,
+        ILogger logger,
+        string credentialType,
+        Func<TokenCredential> credentialFactory
+    )
+    {
         try
         {
-            var validatedConfig = await FluentAzure
-                .Core.FluentAzure.Configuration()
-                .FromEnvironment()
-                .Optional("PORT", "8080")
-                .Validate(config =>
-                {
-                    if (
-                        config.TryGetValue("PORT", out var portStr)
-                        && int.TryParse(portStr, out var port)
-                        && (port < 1 || port > 65535)
+            var credential = credentialFactory();
+            var config = await FluentAzure.Core.FluentAzure.Configuration()
+                .FromKeyVault(vaultUrl, credential)
+                .BuildAsync();
+
+            config.Match(
+                success =>
+                    logger.LogInformation(
+                        "✅ {CredentialType} authentication successful",
+                        credentialType
+                    ),
+                errors =>
+                    logger.LogWarning(
+                        "⚠️ {CredentialType} authentication failed: {Error}",
+                        credentialType,
+                        errors.FirstOrDefault()
                     )
-                    {
-                        return "PORT must be between 1 and 65535";
-                    }
-                    return null; // Validation passed
-                })
-                .BuildAsync();
-
-            validatedConfig.Match(
-                success =>
-                {
-                    Console.WriteLine($"✅ Validated configuration loaded!");
-                    Console.WriteLine($"   PORT: {success.GetValueOrDefault("PORT", "not found")}");
-                },
-                errors =>
-                {
-                    Console.WriteLine($"❌ Validation failed:");
-                    foreach (var error in errors)
-                    {
-                        Console.WriteLine($"   - {error}");
-                    }
-                }
             );
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Exception: {ex.Message}");
+            logger.LogError(ex, "❌ {CredentialType} authentication error", credentialType);
         }
+    }
 
-        // Example 4: Strongly-Typed Configuration Binding
-        Console.WriteLine("\n4. Strongly-Typed Configuration:");
+    /// <summary>
+    /// Demonstrates secret versioning and caching capabilities.
+    /// </summary>
+    private static async Task DemoVersioningAndCaching(ILogger logger)
+    {
+        Console.WriteLine("\n📋 Example 4: Secret Versioning and Caching");
+        Console.WriteLine(new string('-', 40));
+
         try
         {
-            var appConfig = await FluentAzure
-                .Core.FluentAzure.Configuration()
-                .FromEnvironment()
-                .Optional("AppName", "FluentAzure Demo")
-                .Optional("Debug", "true")
-                .Optional("MaxConnections", "100")
-                .BuildAsync<AppSettings>();
+            const string vaultUrl = "https://your-keyvault.vault.azure.net/";
 
-            appConfig.Match(
+            // Create a Key Vault source with caching
+            var kvSource = new KeyVaultSource(
+                vaultUrl,
+                new KeyVaultConfiguration
+                {
+                    CacheDuration = TimeSpan.FromMinutes(5),
+                    SecretVersion = null, // Get latest version
+                },
+                logger: logger
+            );
+
+            // Load configuration
+            var loadResult = await kvSource.LoadAsync();
+
+            loadResult.Match(
                 success =>
                 {
-                    Console.WriteLine($"✅ Strongly-typed configuration loaded!");
-                    Console.WriteLine($"   AppName: {success.AppName}");
-                    Console.WriteLine($"   Debug: {success.Debug}");
-                    Console.WriteLine($"   MaxConnections: {success.MaxConnections}");
+                    logger.LogInformation("✅ Secrets loaded with caching enabled");
+
+                    // Show cache statistics
+                    var stats = kvSource.CacheStatistics;
+                    logger.LogInformation(
+                        "Cache statistics: {Stats}",
+                        string.Join(", ", stats.Select(s => $"{s.Key}: {s.Value}"))
+                    );
+                },
+                errors =>
+                    logger.LogWarning(
+                        "⚠️ Secret loading failed: {Errors}",
+                        string.Join(", ", errors)
+                    )
+            );
+
+            // Demonstrate getting a specific secret with version
+            var specificSecret = await kvSource.GetSecretAsync("MySecret", "version123");
+            if (specificSecret != null)
+            {
+                logger.LogInformation("✅ Retrieved specific secret version");
+            }
+            else
+            {
+                logger.LogInformation("ℹ️ Specific secret version not found");
+            }
+
+            // Demonstrate cache clearing
+            kvSource.ClearCache();
+            logger.LogInformation("🧹 Cache cleared");
+
+            // Dispose of the source
+            kvSource.Dispose();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "❌ Versioning and caching demo failed");
+        }
+    }
+
+    /// <summary>
+    /// Demonstrates error handling and partial success scenarios.
+    /// </summary>
+    private static async Task DemoErrorHandling(ILogger logger)
+    {
+        Console.WriteLine("\n📋 Example 5: Error Handling and Partial Success");
+        Console.WriteLine(new string('-', 40));
+
+        try
+        {
+            const string vaultUrl = "https://your-keyvault.vault.azure.net/";
+
+            var config = await FluentAzure.Core.FluentAzure.Configuration()
+                .FromKeyVault(
+                    vaultUrl,
+                    options =>
+                    {
+                        options.ContinueOnSecretFailure = true; // Allow partial success
+                        options.MaxRetryAttempts = 2;
+                        options.BaseRetryDelay = TimeSpan.FromSeconds(1);
+                    }
+                )
+                .BuildAsync();
+
+            config.Match(
+                success =>
+                {
+                    logger.LogInformation("✅ Configuration loaded with partial success");
+                    logger.LogInformation(
+                        "Successfully loaded {Count} configuration values",
+                        success.Count
+                    );
                 },
                 errors =>
                 {
-                    Console.WriteLine($"❌ Binding failed:");
+                    logger.LogWarning("⚠️ Configuration loading failed completely");
                     foreach (var error in errors)
                     {
-                        Console.WriteLine($"   - {error}");
+                        logger.LogWarning("  - {Error}", error);
                     }
                 }
             );
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Exception: {ex.Message}");
+            logger.LogError(ex, "❌ Error handling demo failed");
         }
+    }
 
-        Console.WriteLine("\n🎉 Demo completed!");
+    /// <summary>
+    /// Demonstrates key mapping and filtering capabilities.
+    /// </summary>
+    private static async Task DemoKeyMappingAndFiltering(ILogger logger)
+    {
+        Console.WriteLine("\n📋 Example 6: Key Mapping and Filtering");
+        Console.WriteLine(new string('-', 40));
+
+        try
+        {
+            const string vaultUrl = "https://your-keyvault.vault.azure.net/";
+
+            // Example with prefix filtering
+            var configWithPrefix = await FluentAzure.Core.FluentAzure.Configuration()
+                .FromKeyVaultWithPrefix(vaultUrl, "MyApp-")
+                .BuildAsync();
+
+            configWithPrefix.Match(
+                success =>
+                    logger.LogInformation(
+                        "✅ Configuration with prefix filter loaded: {Count} values",
+                        success.Count
+                    ),
+                errors =>
+                    logger.LogWarning(
+                        "⚠️ Prefix filtering failed: {Errors}",
+                        string.Join(", ", errors)
+                    )
+            );
+
+            // Example with custom key mapping
+            var configWithMapping = await FluentAzure.Core.FluentAzure.Configuration()
+                .FromKeyVault(
+                    vaultUrl,
+                    secretName =>
+                    {
+                        // Custom mapping: Convert MyApp-Database-ConnectionString to MyApp:Database:ConnectionString
+                        return secretName.Replace("-", ":");
+                    }
+                )
+                .BuildAsync();
+
+            configWithMapping.Match(
+                success =>
+                    logger.LogInformation(
+                        "✅ Configuration with custom key mapping loaded: {Count} values",
+                        success.Count
+                    ),
+                errors =>
+                    logger.LogWarning(
+                        "⚠️ Custom key mapping failed: {Errors}",
+                        string.Join(", ", errors)
+                    )
+            );
+
+            // Example with caching settings
+            var configWithCaching = await FluentAzure.Core.FluentAzure.Configuration()
+                .FromKeyVaultWithCaching(vaultUrl, TimeSpan.FromMinutes(15))
+                .BuildAsync();
+
+            configWithCaching.Match(
+                success =>
+                    logger.LogInformation(
+                        "✅ Configuration with custom caching loaded: {Count} values",
+                        success.Count
+                    ),
+                errors =>
+                    logger.LogWarning(
+                        "⚠️ Custom caching failed: {Errors}",
+                        string.Join(", ", errors)
+                    )
+            );
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "❌ Key mapping and filtering demo failed");
+        }
+    }
+
+    /// <summary>
+    /// Demonstrates the enhanced configuration binding system.
+    /// </summary>
+    private static async Task DemoEnhancedBinding()
+    {
+        Console.WriteLine("\n🔗 Enhanced Configuration Binding Demo");
+        Console.WriteLine(new string('=', 60));
+
+        // Run all enhanced binding examples
+        await EnhancedBindingExamples.DemoBasicBinding();
+        await EnhancedBindingExamples.DemoRecordBinding();
+        await EnhancedBindingExamples.DemoCollectionBinding();
+        await EnhancedBindingExamples.DemoDictionaryBinding();
+        await EnhancedBindingExamples.DemoJsonBinding();
+        await EnhancedBindingExamples.DemoValidationErrors();
+        await EnhancedBindingExamples.DemoCustomValidation();
+        await EnhancedBindingExamples.DemoBindingWithoutValidation();
     }
 }
 
-// Simple configuration class for demonstration
-public class AppSettings
+/// <summary>
+/// String extension for creating separators.
+/// </summary>
+public static class StringExtensions
 {
-    public string AppName { get; set; } = "";
-    public bool Debug { get; set; }
-    public int MaxConnections { get; set; }
+    public static string Repeat(this string str, int count)
+    {
+        return new string(str.ToCharArray().SelectMany(c => Enumerable.Repeat(c, count)).ToArray());
+    }
 }

@@ -58,13 +58,19 @@ public readonly struct Result<T>
     /// Gets the success value. Only valid when <see cref="IsSuccess"/> is true.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown when called on a failed result</exception>
-    public T Value => _isSuccess ? _value! : throw new InvalidOperationException("Cannot access value of a failed result");
+    public T Value =>
+        _isSuccess
+            ? _value!
+            : throw new InvalidOperationException("Cannot access value of a failed result");
 
     /// <summary>
     /// Gets the collection of error messages. Only valid when <see cref="IsFailure"/> is true.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown when called on a successful result</exception>
-    public IReadOnlyList<string> Errors => _isSuccess ? throw new InvalidOperationException("Cannot access errors of a successful result") : _errors;
+    public IReadOnlyList<string> Errors =>
+        _isSuccess
+            ? throw new InvalidOperationException("Cannot access errors of a successful result")
+            : _errors;
 
     /// <summary>
     /// Creates a successful result with the specified value.
@@ -122,9 +128,7 @@ public readonly struct Result<T>
     {
         ArgumentNullException.ThrowIfNull(transform);
 
-        return _isSuccess
-            ? transform(_value!)
-            : Result<TResult>.Error(_errors);
+        return _isSuccess ? transform(_value!) : Result<TResult>.Error(_errors);
     }
 
     /// <summary>
@@ -134,14 +138,15 @@ public readonly struct Result<T>
     /// <param name="onSuccess">The function to execute if the result is a success</param>
     /// <param name="onFailure">The function to execute if the result is a failure</param>
     /// <returns>The result of the executed function</returns>
-    public TResult Match<TResult>(Func<T, TResult> onSuccess, Func<IReadOnlyList<string>, TResult> onFailure)
+    public TResult Match<TResult>(
+        Func<T, TResult> onSuccess,
+        Func<IReadOnlyList<string>, TResult> onFailure
+    )
     {
         ArgumentNullException.ThrowIfNull(onSuccess);
         ArgumentNullException.ThrowIfNull(onFailure);
 
-        return _isSuccess
-            ? onSuccess(_value!)
-            : onFailure(_errors);
+        return _isSuccess ? onSuccess(_value!) : onFailure(_errors);
     }
 
     /// <summary>
@@ -169,7 +174,10 @@ public readonly struct Result<T>
     /// <param name="other">The other result to combine with</param>
     /// <param name="combiner">The function to combine successful values</param>
     /// <returns>A result with the combined value or all accumulated errors</returns>
-    public Result<TResult> Combine<TOther, TResult>(Result<TOther> other, Func<T, TOther, TResult> combiner)
+    public Result<TResult> Combine<TOther, TResult>(
+        Result<TOther> other,
+        Func<T, TOther, TResult> combiner
+    )
     {
         ArgumentNullException.ThrowIfNull(combiner);
 
@@ -178,7 +186,7 @@ public readonly struct Result<T>
             (true, true) => Result<TResult>.Success(combiner(_value!, other._value!)),
             (true, false) => Result<TResult>.Error(other._errors),
             (false, true) => Result<TResult>.Error(_errors),
-            (false, false) => Result<TResult>.Error(_errors.Concat(other._errors))
+            (false, false) => Result<TResult>.Error(_errors.Concat(other._errors)),
         };
     }
 
@@ -206,9 +214,7 @@ public readonly struct Result<T>
     /// <returns>A string representation of the result</returns>
     public override string ToString()
     {
-        return _isSuccess
-            ? $"Success({_value})"
-            : $"Error({string.Join(", ", _errors)})";
+        return _isSuccess ? $"Success({_value})" : $"Error({string.Join(", ", _errors)})";
     }
 
     /// <summary>
