@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<doc>
-    <assembly>
-        <name>FluentAzure.Tests</name>
-    </assembly>
-    <members>
-        <!-- Badly formed XML comment ignored for member "T:FluentAzure.Tests.Core.ResultTests" -->
-    </members>
-</doc>

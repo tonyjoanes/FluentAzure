@@ -1,0 +1,22 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 80%
+        threshold: 1%
+    patch:
+      default:
+        target: 80%
+        threshold: 1%
+
+comment:
+  layout: "reach,diff,flags,tree,reach"
+  behavior: new
+
+ignore:
+  - "tests/**/*"
+  - "examples/**/*"
+  - "**/*.Designer.cs"
+  - "**/bin/**/*"
+  - "**/obj/**/*"
+  - "**/*.AssemblyInfo.cs"

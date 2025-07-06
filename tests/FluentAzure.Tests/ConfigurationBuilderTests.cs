@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using FluentAssertions;
-using FluentAzure;
 using FluentAzure.Core;
-using Xunit;
 
 namespace FluentAzure.Tests;
 
@@ -17,7 +12,7 @@ public class ConfigurationBuilderTests
     public void Configuration_ShouldReturnNewBuilderInstance()
     {
         // Act
-        var builder = FluentAzure.Configuration();
+        var builder = FluentAzure.Core.FluentAzure.Configuration();
 
         // Assert
         builder.Should().NotBeNull();
@@ -230,9 +225,7 @@ public class ConfigurationBuilderTests
         result.IsFailure.Should().BeTrue();
         result
             .Errors.Should()
-            .Contain(error =>
-                error.Contains("Required key 'MissingKey' was not found")
-            );
+            .Contain(error => error.Contains("Required key 'MissingKey' was not found"));
     }
 
     [Fact]
@@ -429,9 +422,7 @@ public class ConfigurationBuilderTests
         result.IsFailure.Should().BeTrue();
         result
             .Errors.Should()
-            .Contain(error =>
-                error.Contains("Required key 'MissingKey' was not found")
-            );
+            .Contain(error => error.Contains("Required key 'MissingKey' was not found"));
     }
 
     [Fact]

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using FluentAzure;
+using FluentAzure.Core;
 
 // Simple demonstration of the FluentAzure Configuration Pipeline Builder
 public class Program
@@ -15,7 +15,7 @@ public class Program
         try
         {
             var config = await FluentAzure
-                .FluentAzure.Configuration()
+                .Core.FluentAzure.Configuration()
                 .FromEnvironment()
                 .Required("PATH") // PATH should exist on all systems
                 .Optional("MY_APP_SETTING", "default-value")
@@ -50,7 +50,7 @@ public class Program
         try
         {
             var jsonConfig = await FluentAzure
-                .FluentAzure.Configuration()
+                .Core.FluentAzure.Configuration()
                 .FromJsonFile("appsettings.json", optional: true)
                 .FromEnvironment()
                 .Optional("ConnectionString", "DefaultConnectionString")
@@ -85,7 +85,7 @@ public class Program
         try
         {
             var validatedConfig = await FluentAzure
-                .FluentAzure.Configuration()
+                .Core.FluentAzure.Configuration()
                 .FromEnvironment()
                 .Optional("PORT", "8080")
                 .Validate(config =>
@@ -128,7 +128,7 @@ public class Program
         try
         {
             var appConfig = await FluentAzure
-                .FluentAzure.Configuration()
+                .Core.FluentAzure.Configuration()
                 .FromEnvironment()
                 .Optional("AppName", "FluentAzure Demo")
                 .Optional("Debug", "true")

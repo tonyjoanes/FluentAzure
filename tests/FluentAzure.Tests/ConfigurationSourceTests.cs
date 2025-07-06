@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
 using FluentAssertions;
-using FluentAzure;
-using Xunit;
+using FluentAzure.Sources;
 
 namespace FluentAzure.Tests;
 
@@ -129,7 +124,11 @@ public class ConfigurationSourceTests
 
     public class JsonFileSourceTests : IDisposable
     {
-        private readonly string _testDirectory = Path.Combine(Path.GetTempPath(), "FluentAzureTests", Guid.NewGuid().ToString());
+        private readonly string _testDirectory = Path.Combine(
+            Path.GetTempPath(),
+            "FluentAzureTests",
+            Guid.NewGuid().ToString()
+        );
 
         public JsonFileSourceTests()
         {
@@ -162,8 +161,10 @@ public class ConfigurationSourceTests
         public void Constructor_WithNullFilePath_ShouldThrowArgumentNullException()
         {
             // Act & Assert
-            FluentActions.Invoking(() => new JsonFileSource(null!))
-                         .Should().Throw<ArgumentNullException>();
+            FluentActions
+                .Invoking(() => new JsonFileSource(null!))
+                .Should()
+                .Throw<ArgumentNullException>();
         }
 
         [Fact]
@@ -171,16 +172,16 @@ public class ConfigurationSourceTests
         {
             // Arrange
             var jsonContent = """
-            {
-                "ConnectionString": "Server=localhost;Database=test",
-                "Logging": {
-                    "Level": "Information",
-                    "Providers": ["Console", "File"]
-                },
-                "Port": 8080,
-                "Debug": true
-            }
-            """;
+                {
+                    "ConnectionString": "Server=localhost;Database=test",
+                    "Logging": {
+                        "Level": "Information",
+                        "Providers": ["Console", "File"]
+                    },
+                    "Port": 8080,
+                    "Debug": true
+                }
+                """;
             var filePath = Path.Combine(_testDirectory, "valid.json");
             await File.WriteAllTextAsync(filePath, jsonContent);
             var source = new JsonFileSource(filePath);
@@ -292,13 +293,13 @@ public class ConfigurationSourceTests
         {
             // Arrange
             var jsonContent = """
-            {
-                "Items": [
-                    { "Name": "Item1", "Value": 100 },
-                    { "Name": "Item2", "Value": 200 }
-                ]
-            }
-            """;
+                {
+                    "Items": [
+                        { "Name": "Item1", "Value": 100 },
+                        { "Name": "Item2", "Value": 200 }
+                    ]
+                }
+                """;
             var filePath = Path.Combine(_testDirectory, "arrays.json");
             await File.WriteAllTextAsync(filePath, jsonContent);
             var source = new JsonFileSource(filePath);
@@ -320,12 +321,12 @@ public class ConfigurationSourceTests
         {
             // Arrange
             var jsonContent = """
-            {
-                "NullValue": null,
-                "EmptyString": "",
-                "ValidValue": "test"
-            }
-            """;
+                {
+                    "NullValue": null,
+                    "EmptyString": "",
+                    "ValidValue": "test"
+                }
+                """;
             var filePath = Path.Combine(_testDirectory, "nulls.json");
             await File.WriteAllTextAsync(filePath, jsonContent);
             var source = new JsonFileSource(filePath);
