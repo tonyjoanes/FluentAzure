@@ -1,5 +1,5 @@
-using FluentAzure.Extensions;
 using FluentAzure.Core;
+using FluentAzure.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -24,12 +24,8 @@ public class ServiceCollectionExtensionsTests
         Environment.SetEnvironmentVariable("Enabled", "true");
 
         // Act
-        services.AddFluentAzure<TestConfig>(
-            config => config
-                .FromEnvironment()
-                .Required("Name")
-                .Required("Value")
-                .Required("Enabled")
+        services.AddFluentAzure<TestConfig>(config =>
+            config.FromEnvironment().Required("Name").Required("Value").Required("Enabled")
         );
 
         var serviceProvider = services.BuildServiceProvider();
@@ -54,11 +50,8 @@ public class ServiceCollectionExtensionsTests
 
         // Act
         services.AddFluentAzure<TestConfig>(
-            config => config
-                .FromEnvironment()
-                .Required("Name")
-                .Required("Value")
-                .Required("Enabled"),
+            config =>
+                config.FromEnvironment().Required("Name").Required("Value").Required("Enabled"),
             settings =>
             {
                 settings.Name = $"Modified_{settings.Name}";
@@ -87,11 +80,8 @@ public class ServiceCollectionExtensionsTests
 
         // Act & Assert
         Assert.Throws<InvalidOperationException>(() =>
-            services.AddFluentAzure<TestConfig>(
-                config => config
-                    .FromEnvironment()
-                    .Required("Name")
-                    .Required("Value")
+            services.AddFluentAzure<TestConfig>(config =>
+                config.FromEnvironment().Required("Name").Required("Value")
             )
         );
     }
@@ -104,10 +94,7 @@ public class ServiceCollectionExtensionsTests
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
-            ServiceCollectionExtensions.AddFluentAzure<TestConfig>(
-                services!,
-                config => config
-            )
+            ServiceCollectionExtensions.AddFluentAzure<TestConfig>(services!, config => config)
         );
     }
 
@@ -119,11 +106,7 @@ public class ServiceCollectionExtensionsTests
         Func<ConfigurationBuilder, ConfigurationBuilder>? configure = null;
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() =>
-            services.AddFluentAzure<TestConfig>(
-                configure!
-            )
-        );
+        Assert.Throws<ArgumentNullException>(() => services.AddFluentAzure<TestConfig>(configure!));
     }
 
     [Fact]
@@ -135,10 +118,7 @@ public class ServiceCollectionExtensionsTests
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
-            services.AddFluentAzure<TestConfig>(
-                config => config,
-                factory!
-            )
+            services.AddFluentAzure<TestConfig>(config => config, factory!)
         );
     }
 }

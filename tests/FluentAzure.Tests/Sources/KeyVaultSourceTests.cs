@@ -176,14 +176,14 @@ public class KeyVaultSourceTests
     }
 
     [Fact]
-    public void LoadAsync_WhenDisposed_ShouldReturnError()
+    public async Task LoadAsync_WhenDisposed_ShouldReturnError()
     {
         // Arrange
         var source = new MockKeyVaultSource(TestVaultUrl, new Dictionary<string, string>());
         source.Dispose();
 
         // Act
-        var result = source.LoadAsync().Result;
+        var result = await source.LoadAsync();
 
         // Assert
         result.IsFailure.Should().BeTrue();
@@ -191,14 +191,14 @@ public class KeyVaultSourceTests
     }
 
     [Fact]
-    public void GetSecretAsync_WhenDisposed_ShouldReturnNull()
+    public async Task GetSecretAsync_WhenDisposed_ShouldReturnNull()
     {
         // Arrange
         var source = new MockKeyVaultSource(TestVaultUrl, new Dictionary<string, string>());
         source.Dispose();
 
         // Act
-        var result = source.GetSecretAsync("test-secret").Result;
+        var result = await source.GetSecretAsync("test-secret");
 
         // Assert
         result.Should().BeNull();
@@ -218,13 +218,13 @@ public class KeyVaultSourceTests
     }
 
     [Fact]
-    public void ReloadAsync_ShouldReload()
+    public async Task ReloadAsync_ShouldReload()
     {
         // Arrange
         var source = new MockKeyVaultSource(TestVaultUrl, new Dictionary<string, string>(), logger: _logger);
 
         // Act
-        var result = source.ReloadAsync().Result;
+        var result = await source.ReloadAsync();
 
         // Assert
         result.Should().NotBeNull();
@@ -379,7 +379,7 @@ public class KeyVaultSourceTests
     }
 
     [Fact]
-    public void KeyVaultSource_ThreadSafety_ShouldHandleConcurrentAccess()
+    public async Task KeyVaultSource_ThreadSafety_ShouldHandleConcurrentAccess()
     {
         // Arrange
         var source = new MockKeyVaultSource(TestVaultUrl, new Dictionary<string, string>());
@@ -400,7 +400,7 @@ public class KeyVaultSourceTests
 
         // Assert
         var aggregateTask = Task.WhenAll(tasks);
-        aggregateTask.Wait(TimeSpan.FromSeconds(10));
+        await aggregateTask.WaitAsync(TimeSpan.FromSeconds(10));
         aggregateTask.IsCompletedSuccessfully.Should().BeTrue();
     }
 

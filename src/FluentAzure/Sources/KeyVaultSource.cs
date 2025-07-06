@@ -59,11 +59,11 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
     /// <param name="logger">Optional logger for debugging and monitoring.</param>
     /// <param name="initializeClient">Whether to initialize the real SecretClient.</param>
     protected KeyVaultSource(
-        string vaultUrl,
-        KeyVaultConfiguration configuration,
-        int priority,
-        ILogger? logger,
-        bool initializeClient)
+    string vaultUrl,
+    KeyVaultConfiguration configuration,
+    int priority,
+    ILogger? logger,
+    bool initializeClient)
     {
         _vaultUrl = vaultUrl ?? throw new ArgumentNullException(nameof(vaultUrl));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
@@ -85,6 +85,11 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
             };
 
             _client = new SecretClient(new Uri(vaultUrl), credential, options);
+        }
+        else
+        {
+            // Ensure _client is initialized even if initializeClient is false
+            _client = null!;
         }
 
         // Initialize cache

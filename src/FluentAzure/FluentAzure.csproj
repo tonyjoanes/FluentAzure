@@ -16,6 +16,11 @@
     <RepositoryUrl>https://github.com/tonyjoanes/FluentAzure</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/tonyjoanes/FluentAzure</PackageProjectUrl>
+    <NoWarn>1591</NoWarn>
+    <!-- Suppress missing XML comment warnings -->
+    <GenerateDocumentationFile>
+      false
+    </GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <!-- Azure Configuration Packages -->

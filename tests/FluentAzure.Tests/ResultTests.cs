@@ -5,7 +5,7 @@ using FluentAzure.Core;
 namespace FluentAzure.Tests.Core;
 
 /// <summary>
-/// Comprehensive tests for the Result<T> monad implementation.
+/// Comprehensive tests for the Result&lt;T&gt; monad implementation.
 /// Tests cover all functionality including success/error scenarios, Map, Bind, Match, operators, and thread safety.
 /// </summary>
 public class ResultTests
