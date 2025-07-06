@@ -179,20 +179,16 @@ public static class EnhancedConfigurationBinder
     private static T? CreateInstance<T>(BindingOptions options, List<BindingError> errors) where T : class
     {
         var type = typeof(T);
-        Console.WriteLine($"[DEBUG] CreateInstance<T> for {type.FullName}");
         try
         {
             if (IsRecordType(type))
             {
-                Console.WriteLine($"[DEBUG] Creating record instance for {type.FullName}");
                 return (T?)CreateRecordInstance(type, options, errors);
             }
             if (HasInitOnlyProperties(type))
             {
-                Console.WriteLine($"[DEBUG] Creating init-only instance for {type.FullName}");
                 return (T?)CreateInitOnlyInstance(type, options, errors);
             }
-            Console.WriteLine($"[DEBUG] Using Activator.CreateInstance for {type.FullName}");
             return Activator.CreateInstance<T>();
         }
         catch (Exception ex)
@@ -816,7 +812,6 @@ public static class EnhancedConfigurationBinder
         // Heuristic: records have a protected virtual property called EqualityContract
         var equalityContract = type.GetProperty("EqualityContract", BindingFlags.NonPublic | BindingFlags.Instance);
         var isRecord = equalityContract != null && equalityContract.PropertyType == typeof(Type);
-        Console.WriteLine($"[DEBUG] IsRecordType for {type.FullName}: hasEqualityContract={equalityContract != null}, isRecord={isRecord}");
         return isRecord;
     }
 

@@ -102,11 +102,6 @@ public class EnhancedConfigurationBinderParameterTests
         var result = EnhancedConfigurationBinder.Bind<TestRecord>(config);
 
         // Assert
-        if (!result.IsSuccess)
-        {
-            foreach (var err in result.Errors)
-                Console.WriteLine($"[DIAG] {err}");
-        }
         result.IsSuccess.Should().BeTrue();
         if (result.IsSuccess)
         {
