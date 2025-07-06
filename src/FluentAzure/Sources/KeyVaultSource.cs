@@ -23,7 +23,7 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
     private readonly List<string> _loadErrors = new();
     private volatile bool _isLoaded;
     private readonly object _loadLock = new();
-    private bool _disposed;
+    protected bool _disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="KeyVaultSource"/> class.
@@ -46,26 +46,46 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
         KeyVaultConfiguration configuration,
         int priority = 200,
         ILogger? logger = null
-    )
+    ) : this(vaultUrl, configuration, priority, logger, true)
+    {
+    }
+
+    /// <summary>
+    /// Protected constructor for testing and mocking purposes.
+    /// </summary>
+    /// <param name="vaultUrl">The URL of the Azure Key Vault.</param>
+    /// <param name="configuration">The Key Vault configuration options.</param>
+    /// <param name="priority">The priority of this configuration source.</param>
+    /// <param name="logger">Optional logger for debugging and monitoring.</param>
+    /// <param name="initializeClient">Whether to initialize the real SecretClient.</param>
+    protected KeyVaultSource(
+        string vaultUrl,
+        KeyVaultConfiguration configuration,
+        int priority,
+        ILogger? logger,
+        bool initializeClient)
     {
         _vaultUrl = vaultUrl ?? throw new ArgumentNullException(nameof(vaultUrl));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _logger = logger;
         Priority = priority;
 
-        // Initialize the Secret Client with proper credentials and options
-        var credential = _configuration.Credential ?? new DefaultAzureCredential();
-        var options = new SecretClientOptions
+        if (initializeClient)
         {
-            Retry =
+            // Initialize the Secret Client with proper credentials and options
+            var credential = _configuration.Credential ?? new DefaultAzureCredential();
+            var options = new SecretClientOptions
             {
-                Delay = _configuration.BaseRetryDelay,
-                MaxDelay = _configuration.MaxRetryDelay,
-                MaxRetries = _configuration.MaxRetryAttempts,
-            },
-        };
+                Retry =
+                {
+                    Delay = _configuration.BaseRetryDelay,
+                    MaxDelay = _configuration.MaxRetryDelay,
+                    MaxRetries = _configuration.MaxRetryAttempts,
+                },
+            };
 
-        _client = new SecretClient(new Uri(vaultUrl), credential, options);
+            _client = new SecretClient(new Uri(vaultUrl), credential, options);
+        }
 
         // Initialize cache
         _cache = new KeyVaultSecretCache(_configuration.CacheDuration, _logger);
@@ -73,7 +93,10 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
         // Initialize retry pipeline with exponential backoff
         _retryPipeline = CreateRetryPipeline();
 
-        _logger?.LogInformation("KeyVaultSource initialized for vault: {VaultUrl}", _vaultUrl);
+        if (initializeClient)
+        {
+            _logger?.LogInformation("KeyVaultSource initialized for vault: {VaultUrl}", _vaultUrl);
+        }
     }
 
     /// <inheritdoc />
@@ -93,7 +116,7 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
     public IReadOnlyList<string> LoadErrors => _loadErrors.AsReadOnly();
 
     /// <inheritdoc />
-    public async Task<Result<Dictionary<string, string>>> LoadAsync()
+    public virtual async Task<Result<Dictionary<string, string>>> LoadAsync()
     {
         if (_disposed)
         {
@@ -212,13 +235,13 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
     }
 
     /// <inheritdoc />
-    public bool ContainsKey(string key)
+    public virtual bool ContainsKey(string key)
     {
         return _values.ContainsKey(key);
     }
 
     /// <inheritdoc />
-    public string? GetValue(string key)
+    public virtual string? GetValue(string key)
     {
         // First check in-memory values
         if (_values.TryGetValue(key, out var value))
@@ -257,7 +280,7 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
     /// <param name="secretName">The name of the secret.</param>
     /// <param name="version">The version of the secret. If null, gets the latest version.</param>
     /// <returns>The secret value if found; otherwise, null.</returns>
-    public async Task<string?> GetSecretAsync(string secretName, string? version = null)
+    public virtual async Task<string?> GetSecretAsync(string secretName, string? version = null)
     {
         if (_disposed)
         {

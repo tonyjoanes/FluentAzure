@@ -23,7 +23,7 @@ public class KeyVaultSourceTests
     public void Constructor_WithValidUrl_ShouldCreateInstance()
     {
         // Arrange & Act
-        var source = new KeyVaultSource(TestVaultUrl);
+        var source = new MockKeyVaultSource(TestVaultUrl, new Dictionary<string, string>());
 
         // Assert
         source.Should().NotBeNull();
@@ -35,7 +35,7 @@ public class KeyVaultSourceTests
     public void Constructor_WithNullUrl_ShouldThrowArgumentNullException()
     {
         // Arrange & Act & Assert
-        var action = () => new KeyVaultSource(null!);
+        var action = () => new MockKeyVaultSource(null!, new Dictionary<string, string>());
         action.Should().Throw<ArgumentNullException>();
     }
 
@@ -43,7 +43,7 @@ public class KeyVaultSourceTests
     public void Constructor_WithNullConfiguration_ShouldThrowArgumentNullException()
     {
         // Arrange & Act & Assert
-        var action = () => new KeyVaultSource(TestVaultUrl, null!);
+        var action = () => new MockKeyVaultSource(TestVaultUrl, null!, new Dictionary<string, string>());
         action.Should().Throw<ArgumentNullException>();
     }
 
@@ -60,7 +60,7 @@ public class KeyVaultSourceTests
         };
 
         // Act
-        var source = new KeyVaultSource(TestVaultUrl, configuration, logger: _logger);
+        var source = new MockKeyVaultSource(TestVaultUrl, configuration, new Dictionary<string, string>(), logger: _logger);
 
         // Assert
         source.Should().NotBeNull();
@@ -105,7 +105,7 @@ public class KeyVaultSourceTests
     public void ContainsKey_WithNonExistentKey_ShouldReturnFalse()
     {
         // Arrange
-        var source = new KeyVaultSource(TestVaultUrl);
+        var source = new MockKeyVaultSource(TestVaultUrl, new Dictionary<string, string>());
 
         // Act
         var result = source.ContainsKey("non-existent-key");
@@ -118,7 +118,7 @@ public class KeyVaultSourceTests
     public void GetValue_WithNonExistentKey_ShouldReturnNull()
     {
         // Arrange
-        var source = new KeyVaultSource(TestVaultUrl);
+        var source = new MockKeyVaultSource(TestVaultUrl, new Dictionary<string, string>());
 
         // Act
         var result = source.GetValue("non-existent-key");
@@ -131,7 +131,7 @@ public class KeyVaultSourceTests
     public void CacheStatistics_InitialState_ShouldBeEmpty()
     {
         // Arrange
-        var source = new KeyVaultSource(TestVaultUrl);
+        var source = new MockKeyVaultSource(TestVaultUrl, new Dictionary<string, string>());
 
         // Act
         var stats = source.CacheStatistics;
@@ -148,7 +148,7 @@ public class KeyVaultSourceTests
     public void Dispose_ShouldDisposeResourcesGracefully()
     {
         // Arrange
-        var source = new KeyVaultSource(TestVaultUrl);
+        var source = new MockKeyVaultSource(TestVaultUrl, new Dictionary<string, string>());
 
         // Act & Assert
         var action = () => source.Dispose();
@@ -179,7 +179,7 @@ public class KeyVaultSourceTests
     public void LoadAsync_WhenDisposed_ShouldReturnError()
     {
         // Arrange
-        var source = new KeyVaultSource(TestVaultUrl);
+        var source = new MockKeyVaultSource(TestVaultUrl, new Dictionary<string, string>());
         source.Dispose();
 
         // Act
@@ -194,7 +194,7 @@ public class KeyVaultSourceTests
     public void GetSecretAsync_WhenDisposed_ShouldReturnNull()
     {
         // Arrange
-        var source = new KeyVaultSource(TestVaultUrl);
+        var source = new MockKeyVaultSource(TestVaultUrl, new Dictionary<string, string>());
         source.Dispose();
 
         // Act
@@ -208,7 +208,7 @@ public class KeyVaultSourceTests
     public void ClearCache_ShouldClearCache()
     {
         // Arrange
-        var source = new KeyVaultSource(TestVaultUrl, logger: _logger);
+        var source = new MockKeyVaultSource(TestVaultUrl, new Dictionary<string, string>(), logger: _logger);
 
         // Act
         source.ClearCache();
@@ -221,7 +221,7 @@ public class KeyVaultSourceTests
     public void ReloadAsync_ShouldReload()
     {
         // Arrange
-        var source = new KeyVaultSource(TestVaultUrl, logger: _logger);
+        var source = new MockKeyVaultSource(TestVaultUrl, new Dictionary<string, string>(), logger: _logger);
 
         // Act
         var result = source.ReloadAsync().Result;
@@ -237,7 +237,7 @@ public class KeyVaultSourceTests
         var config = new KeyVaultConfiguration { Credential = new ManagedIdentityCredential() };
 
         // Act
-        var source = new KeyVaultSource(TestVaultUrl, config);
+        var source = new MockKeyVaultSource(TestVaultUrl, config, new Dictionary<string, string>());
 
         // Assert
         source.Should().NotBeNull();
@@ -254,7 +254,7 @@ public class KeyVaultSourceTests
         };
 
         // Act
-        var source = new KeyVaultSource(TestVaultUrl, config);
+        var source = new MockKeyVaultSource(TestVaultUrl, config, new Dictionary<string, string>());
 
         // Assert
         source.Should().NotBeNull();
@@ -267,7 +267,7 @@ public class KeyVaultSourceTests
         var config = new KeyVaultConfiguration { SecretNamePrefix = "MyApp-" };
 
         // Act
-        var source = new KeyVaultSource(TestVaultUrl, config);
+        var source = new MockKeyVaultSource(TestVaultUrl, config, new Dictionary<string, string>());
 
         // Assert
         source.Should().NotBeNull();
@@ -280,7 +280,7 @@ public class KeyVaultSourceTests
         var config = new KeyVaultConfiguration { SecretVersion = "version-123" };
 
         // Act
-        var source = new KeyVaultSource(TestVaultUrl, config);
+        var source = new MockKeyVaultSource(TestVaultUrl, config, new Dictionary<string, string>());
 
         // Assert
         source.Should().NotBeNull();
@@ -293,7 +293,7 @@ public class KeyVaultSourceTests
         var config = new KeyVaultConfiguration { ContinueOnSecretFailure = false };
 
         // Act
-        var source = new KeyVaultSource(TestVaultUrl, config);
+        var source = new MockKeyVaultSource(TestVaultUrl, config, new Dictionary<string, string>());
 
         // Assert
         source.Should().NotBeNull();
@@ -306,7 +306,7 @@ public class KeyVaultSourceTests
         var config = new KeyVaultConfiguration { OperationTimeout = TimeSpan.FromMinutes(2) };
 
         // Act
-        var source = new KeyVaultSource(TestVaultUrl, config);
+        var source = new MockKeyVaultSource(TestVaultUrl, config, new Dictionary<string, string>());
 
         // Assert
         source.Should().NotBeNull();
@@ -319,7 +319,7 @@ public class KeyVaultSourceTests
         var config = new KeyVaultConfiguration { CacheDuration = TimeSpan.Zero };
 
         // Act
-        var source = new KeyVaultSource(TestVaultUrl, config);
+        var source = new MockKeyVaultSource(TestVaultUrl, config, new Dictionary<string, string>());
 
         // Assert
         source.Should().NotBeNull();
@@ -338,7 +338,7 @@ public class KeyVaultSourceTests
         };
 
         // Act
-        var source = new KeyVaultSource(TestVaultUrl, config);
+        var source = new MockKeyVaultSource(TestVaultUrl, config, new Dictionary<string, string>());
 
         // Assert
         source.Should().NotBeNull();
@@ -348,7 +348,7 @@ public class KeyVaultSourceTests
     public void KeyVaultSource_LoadErrors_ShouldBeAccessible()
     {
         // Arrange
-        var source = new KeyVaultSource(TestVaultUrl);
+        var source = new MockKeyVaultSource(TestVaultUrl, new Dictionary<string, string>());
 
         // Act
         var errors = source.LoadErrors;
@@ -362,7 +362,7 @@ public class KeyVaultSourceTests
     public void KeyVaultSource_Priority_ShouldBeConfigurable()
     {
         // Arrange & Act
-        var source = new KeyVaultSource(TestVaultUrl, priority: 150);
+        var source = new MockKeyVaultSource(TestVaultUrl, new Dictionary<string, string>(), priority: 150);
 
         // Assert
         source.Priority.Should().Be(150);
@@ -372,7 +372,7 @@ public class KeyVaultSourceTests
     public void KeyVaultSource_Name_ShouldIncludeHostName()
     {
         // Arrange & Act
-        var source = new KeyVaultSource("https://my-custom-vault.vault.azure.net/");
+        var source = new MockKeyVaultSource("https://my-custom-vault.vault.azure.net/", new Dictionary<string, string>());
 
         // Assert
         source.Name.Should().Be("KeyVault(my-custom-vault.vault.azure.net)");
@@ -382,7 +382,7 @@ public class KeyVaultSourceTests
     public void KeyVaultSource_ThreadSafety_ShouldHandleConcurrentAccess()
     {
         // Arrange
-        var source = new KeyVaultSource(TestVaultUrl);
+        var source = new MockKeyVaultSource(TestVaultUrl, new Dictionary<string, string>());
         var tasks = new List<Task>();
 
         // Act
@@ -409,7 +409,7 @@ public class KeyVaultSourceTests
     {
         // This test would require access to the internal cache class
         // In a real scenario, we might want to make it more testable
-        var source = new KeyVaultSource(TestVaultUrl);
+        var source = new MockKeyVaultSource(TestVaultUrl, new Dictionary<string, string>());
         var stats = source.CacheStatistics;
 
         stats.Should().NotBeNull();
@@ -425,10 +425,10 @@ public static class KeyVaultSourceTestExtensions
     /// <summary>
     /// Creates a test Key Vault source with in-memory data for testing.
     /// </summary>
-    public static KeyVaultSource CreateTestSource(Dictionary<string, string> testData)
+    public static MockKeyVaultSource CreateTestSource(Dictionary<string, string> testData)
     {
         // In a real implementation, we might use a mock or in-memory implementation
         // For now, we'll create a basic source for testing structure
-        return new KeyVaultSource("https://test-keyvault.vault.azure.net/");
+        return new MockKeyVaultSource("https://test-keyvault.vault.azure.net/", testData);
     }
 }
