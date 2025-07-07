@@ -1,4 +1,6 @@
+using FluentAzure.Core;
 using FluentAzure.Extensions;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FluentAzure.Examples;
@@ -42,15 +44,16 @@ public static class ServiceCollectionExample
         var services = new ServiceCollection();
 
         // Basic usage - binds AppSettings and registers it as a singleton
-        services.AddFluentAzure<AppSettings>(config => config
-            .FromEnvironment()
-            .FromJsonFile("appsettings.json")
-            .Required("AppName")
-            .Required("Database:ConnectionString")
-            .Required("Api:ApiKey")
-            .Optional("Debug", "false")
-            .Optional("Database:TimeoutSeconds", "30")
-            .Optional("Api:TimeoutSeconds", "60")
+        services.AddFluentAzure<AppSettings>(config =>
+            config
+                .FromEnvironment()
+                .FromJsonFile("appsettings.json")
+                .Required("AppName")
+                .Required("Database:ConnectionString")
+                .Required("Api:ApiKey")
+                .Optional("Debug", "false")
+                .Optional("Database:TimeoutSeconds", "30")
+                .Optional("Api:TimeoutSeconds", "60")
         );
 
         var serviceProvider = services.BuildServiceProvider();
@@ -62,34 +65,31 @@ public static class ServiceCollectionExample
     }
 
     /// <summary>
-    /// Demonstrates usage with custom service lifetime.
+    /// Demonstrates usage with factory method.
     /// </summary>
-    public static void WithCustomLifetime()
+    public static void WithFactoryMethod()
     {
         var services = new ServiceCollection();
 
-        // Register with scoped lifetime instead of singleton
+        // Register with factory method (note: always registers as singleton)
         services.AddFluentAzure<AppSettings>(
-            config => config
-                .FromEnvironment()
-                .FromJsonFile("appsettings.json")
-                .Required("AppName")
-                .Required("Database:ConnectionString"),
-            ServiceLifetime.Scoped
+            config =>
+                config
+                    .FromEnvironment()
+                    .FromJsonFile("appsettings.json")
+                    .Required("AppName")
+                    .Required("Database:ConnectionString"),
+            settings =>
+            {
+                // You can add custom logic here if needed
+                return settings;
+            }
         );
 
         var serviceProvider = services.BuildServiceProvider();
+        var appSettings = serviceProvider.GetRequiredService<AppSettings>();
 
-        // Each scope will get its own instance
-        using var scope1 = serviceProvider.CreateScope();
-        using var scope2 = serviceProvider.CreateScope();
-
-        var settings1 = scope1.ServiceProvider.GetRequiredService<AppSettings>();
-        var settings2 = scope2.ServiceProvider.GetRequiredService<AppSettings>();
-
-        // These are different instances due to scoped lifetime
-        Console.WriteLine($"Instance 1: {settings1.GetHashCode()}");
-        Console.WriteLine($"Instance 2: {settings2.GetHashCode()}");
+        Console.WriteLine($"Factory method configured: {appSettings.AppName}");
     }
 
     /// <summary>
@@ -100,14 +100,15 @@ public static class ServiceCollectionExample
         var services = new ServiceCollection();
 
         // Configure with Key Vault for sensitive data
-        services.AddFluentAzure<AppSettings>(config => config
-            .FromEnvironment()
-            .FromJsonFile("appsettings.json")
-            .FromKeyVault("https://your-keyvault.vault.azure.net/")
-            .Required("AppName")
-            .Required("Database:ConnectionString") // This could come from Key Vault
-            .Required("Api:ApiKey") // This could come from Key Vault
-            .Optional("Debug", "false")
+        services.AddFluentAzure<AppSettings>(config =>
+            config
+                .FromEnvironment()
+                .FromJsonFile("appsettings.json")
+                .FromKeyVault("https://your-keyvault.vault.azure.net/")
+                .Required("AppName")
+                .Required("Database:ConnectionString") // This could come from Key Vault
+                .Required("Api:ApiKey") // This could come from Key Vault
+                .Optional("Debug", "false")
         );
 
         var serviceProvider = services.BuildServiceProvider();
@@ -125,11 +126,12 @@ public static class ServiceCollectionExample
 
         // Use factory to modify configuration after binding
         services.AddFluentAzure<AppSettings>(
-            config => config
-                .FromEnvironment()
-                .FromJsonFile("appsettings.json")
-                .Required("AppName")
-                .Required("Database:ConnectionString"),
+            config =>
+                config
+                    .FromEnvironment()
+                    .FromJsonFile("appsettings.json")
+                    .Required("AppName")
+                    .Required("Database:ConnectionString"),
             settings =>
             {
                 // Post-process the configuration
@@ -163,23 +165,32 @@ public static class ServiceCollectionExample
         var builder = WebApplication.CreateBuilder();
 
         // Add FluentAzure configuration
-        builder.Services.AddFluentAzure<AppSettings>(config => config
-            .FromEnvironment()
-            .FromJsonFile("appsettings.json")
-            .FromJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
-            .FromKeyVault("https://your-keyvault.vault.azure.net/")
-            .Required("AppName")
-            .Required("Database:ConnectionString")
-            .Required("Api:ApiKey")
-            .Optional("Debug", "false")
-            .Validate("Database:TimeoutSeconds", timeout =>
-            {
-                if (int.TryParse(timeout, out var seconds) && seconds > 0 && seconds <= 300)
-                {
-                    return Result<string>.Success(timeout);
-                }
-                return Result<string>.Error("Database timeout must be between 1-300 seconds");
-            })
+        builder.Services.AddFluentAzure<AppSettings>(config =>
+            config
+                .FromEnvironment()
+                .FromJsonFile("appsettings.json")
+                .FromJsonFile(
+                    $"appsettings.{builder.Environment.EnvironmentName}.json",
+                    optional: true
+                )
+                .FromKeyVault("https://your-keyvault.vault.azure.net/")
+                .Required("AppName")
+                .Required("Database:ConnectionString")
+                .Required("Api:ApiKey")
+                .Optional("Debug", "false")
+                .Validate(
+                    "Database:TimeoutSeconds",
+                    timeout =>
+                    {
+                        if (int.TryParse(timeout, out var seconds) && seconds > 0 && seconds <= 300)
+                        {
+                            return Result<string>.Success(timeout);
+                        }
+                        return Result<string>.Error(
+                            "Database timeout must be between 1-300 seconds"
+                        );
+                    }
+                )
         );
 
         // Now you can inject AppSettings into your controllers/services

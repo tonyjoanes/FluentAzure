@@ -49,7 +49,9 @@ public class JsonFileSource : IConfigurationSource
                 }
                 else
                 {
-                    return Result<Dictionary<string, string>>.Error($"Required JSON configuration file '{_filePath}' was not found");
+                    return Result<Dictionary<string, string>>.Error(
+                        $"Required JSON configuration file '{_filePath}' was not found"
+                    );
                 }
             }
 
@@ -67,11 +69,15 @@ public class JsonFileSource : IConfigurationSource
         }
         catch (JsonException ex)
         {
-            return Result<Dictionary<string, string>>.Error($"Failed to parse JSON configuration file '{_filePath}': {ex.Message}");
+            return Result<Dictionary<string, string>>.Error(
+                $"Failed to parse JSON configuration file '{_filePath}': {ex.Message}"
+            );
         }
         catch (Exception ex)
         {
-            return Result<Dictionary<string, string>>.Error($"Failed to load JSON configuration file '{_filePath}': {ex.Message}");
+            return Result<Dictionary<string, string>>.Error(
+                $"Failed to load JSON configuration file '{_filePath}': {ex.Message}"
+            );
         }
     }
 
@@ -87,7 +93,10 @@ public class JsonFileSource : IConfigurationSource
         return _values?.TryGetValue(key, out var value) == true ? value : null;
     }
 
-    private static Dictionary<string, string> FlattenJsonDocument(JsonElement element, string prefix = "")
+    private static Dictionary<string, string> FlattenJsonDocument(
+        JsonElement element,
+        string prefix = ""
+    )
     {
         var result = new Dictionary<string, string>();
 
@@ -96,7 +105,9 @@ public class JsonFileSource : IConfigurationSource
             case JsonValueKind.Object:
                 foreach (var property in element.EnumerateObject())
                 {
-                    var key = string.IsNullOrEmpty(prefix) ? property.Name : $"{prefix}__{property.Name}";
+                    var key = string.IsNullOrEmpty(prefix)
+                        ? property.Name
+                        : $"{prefix}__{property.Name}";
                     var childValues = FlattenJsonDocument(property.Value, key);
                     foreach (var childValue in childValues)
                     {

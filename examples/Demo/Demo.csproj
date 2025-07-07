@@ -2,6 +2,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\FluentAzure\FluentAzure.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>

@@ -176,7 +176,8 @@ public static class EnhancedConfigurationBinder
         }
     }
 
-    private static T? CreateInstance<T>(BindingOptions options, List<BindingError> errors) where T : class
+    private static T? CreateInstance<T>(BindingOptions options, List<BindingError> errors)
+        where T : class
     {
         var type = typeof(T);
         try
@@ -193,7 +194,12 @@ public static class EnhancedConfigurationBinder
         }
         catch (Exception ex)
         {
-            errors.Add(new BindingError($"Failed to create instance of type '{type.Name}': {ex.Message}", ""));
+            errors.Add(
+                new BindingError(
+                    $"Failed to create instance of type '{type.Name}': {ex.Message}",
+                    ""
+                )
+            );
             return null;
         }
     }
@@ -436,7 +442,7 @@ public static class EnhancedConfigurationBinder
                             CaseSensitive = options.CaseSensitive,
                             JsonOptions = options.JsonOptions,
                             IgnoreMissingOptional = options.IgnoreMissingOptional,
-                            Configuration = configuration
+                            Configuration = configuration,
                         };
                     }
                     var element = CreateInstance(elementType, elementOptions, errors);
@@ -810,7 +816,10 @@ public static class EnhancedConfigurationBinder
     private static bool IsRecordType(Type type)
     {
         // Heuristic: records have a protected virtual property called EqualityContract
-        var equalityContract = type.GetProperty("EqualityContract", BindingFlags.NonPublic | BindingFlags.Instance);
+        var equalityContract = type.GetProperty(
+            "EqualityContract",
+            BindingFlags.NonPublic | BindingFlags.Instance
+        );
         var isRecord = equalityContract != null && equalityContract.PropertyType == typeof(Type);
         return isRecord;
     }
@@ -836,7 +845,8 @@ public static class EnhancedConfigurationBinder
     private static object? CreateRecordInstance(
         Type type,
         BindingOptions options,
-        List<BindingError> errors)
+        List<BindingError> errors
+    )
     {
         try
         {
@@ -845,7 +855,9 @@ public static class EnhancedConfigurationBinder
             {
                 return Activator.CreateInstance(type);
             }
-            var constructors = type.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            var constructors = type.GetConstructors(
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance
+            );
             foreach (var ctor in constructors)
             {
                 var parameters = ctor.GetParameters();
@@ -856,7 +868,8 @@ public static class EnhancedConfigurationBinder
                 {
                     var param = parameters[i];
                     string paramName = param.Name ?? string.Empty;
-                    string[] possibleKeys = new[] {
+                    string[] possibleKeys = new[]
+                    {
                         paramName,
                         paramName.ToLowerInvariant(),
                         paramName.ToUpperInvariant(),
@@ -873,15 +886,18 @@ public static class EnhancedConfigurationBinder
                         {
                             var keyVariant = key.Replace(":", sep).Replace("_", sep);
                             // Try exact, lower, upper
-                            if (config.TryGetValue(keyVariant, out value) ||
-                                config.TryGetValue(keyVariant.ToLowerInvariant(), out value) ||
-                                config.TryGetValue(keyVariant.ToUpperInvariant(), out value))
+                            if (
+                                config.TryGetValue(keyVariant, out value)
+                                || config.TryGetValue(keyVariant.ToLowerInvariant(), out value)
+                                || config.TryGetValue(keyVariant.ToUpperInvariant(), out value)
+                            )
                             {
                                 found = true;
                                 break;
                             }
                         }
-                        if (found) break;
+                        if (found)
+                            break;
                     }
                     if (found && value != null)
                     {
@@ -894,7 +910,12 @@ public static class EnhancedConfigurationBinder
                     else
                     {
                         allBound = false;
-                        errors.Add(new BindingError($"Could not bind record parameter '{paramName}' for type '{type.Name}'", paramName));
+                        errors.Add(
+                            new BindingError(
+                                $"Could not bind record parameter '{paramName}' for type '{type.Name}'",
+                                paramName
+                            )
+                        );
                         break;
                     }
                 }
@@ -903,13 +924,25 @@ public static class EnhancedConfigurationBinder
                     return ctor.Invoke(args);
                 }
             }
-            var allCtors = constructors.Select(c => $"({string.Join(", ", c.GetParameters().Select(p => p.ParameterType.Name + " " + p.Name))})");
-            errors.Add(new BindingError($"Cannot create instance of type '{type.FullName}' - no suitable constructor found. Available constructors: {string.Join("; ", allCtors)}", ""));
+            var allCtors = constructors.Select(c =>
+                $"({string.Join(", ", c.GetParameters().Select(p => p.ParameterType.Name + " " + p.Name))})"
+            );
+            errors.Add(
+                new BindingError(
+                    $"Cannot create instance of type '{type.FullName}' - no suitable constructor found. Available constructors: {string.Join("; ", allCtors)}",
+                    ""
+                )
+            );
             return null;
         }
         catch (Exception ex)
         {
-            errors.Add(new BindingError($"Exception creating record instance: {ex.Message}", ex.StackTrace ?? ""));
+            errors.Add(
+                new BindingError(
+                    $"Exception creating record instance: {ex.Message}",
+                    ex.StackTrace ?? ""
+                )
+            );
             return null;
         }
     }
@@ -956,7 +989,11 @@ public static class EnhancedConfigurationBinder
     }
 
     // Add this helper method to support non-generic CreateInstance
-    private static object? CreateInstance(Type type, BindingOptions options, List<BindingError> errors)
+    private static object? CreateInstance(
+        Type type,
+        BindingOptions options,
+        List<BindingError> errors
+    )
     {
         if (IsRecordType(type))
         {
@@ -974,7 +1011,12 @@ public static class EnhancedConfigurationBinder
             }
             catch (Exception ex)
             {
-                errors.Add(new BindingError($"Failed to create instance of type '{type.Name}': {ex.Message}", ""));
+                errors.Add(
+                    new BindingError(
+                        $"Failed to create instance of type '{type.Name}': {ex.Message}",
+                        ""
+                    )
+                );
                 return null;
             }
         }

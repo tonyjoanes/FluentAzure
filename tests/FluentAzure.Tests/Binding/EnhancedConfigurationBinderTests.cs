@@ -2,10 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using FluentAssertions;
 using FluentAzure.Binding;
-using FluentAzure.Core;
-using Xunit;
-using static FluentAzure.Tests.Binding.EnhancedConfigurationBinderParameterTests;
-using FluentAzure.Tests.Binding;
 
 namespace FluentAzure.Tests.Binding;
 
@@ -23,7 +19,7 @@ public class EnhancedConfigurationBinderTests
             ["Name"] = "Test App",
             ["Version"] = "1.0.0",
             ["MaxConnections"] = "100",
-            ["EnableFeature"] = "true"
+            ["EnableFeature"] = "true",
         };
 
         // Act
@@ -48,7 +44,7 @@ public class EnhancedConfigurationBinderTests
             ["Database:Port"] = "5432",
             ["Database:Name"] = "testdb",
             ["Api:BaseUrl"] = "https://api.example.com",
-            ["Api:Timeout"] = "30"
+            ["Api:Timeout"] = "30",
         };
 
         // Act
@@ -74,14 +70,21 @@ public class EnhancedConfigurationBinderTests
             ["Version"] = "2.0.0",
             ["Environment"] = "Development",
             ["MaxConnections"] = "50",
-            ["EnableFeature"] = "false"
+            ["EnableFeature"] = "false",
         };
 
         // Print all constructors for TestRecord
-        var ctors = typeof(TestRecord).GetConstructors(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var ctors = typeof(TestRecord).GetConstructors(
+            System.Reflection.BindingFlags.Public
+                | System.Reflection.BindingFlags.NonPublic
+                | System.Reflection.BindingFlags.Instance
+        );
         foreach (var ctor in ctors)
         {
-            var paramList = string.Join(", ", ctor.GetParameters().Select(p => p.ParameterType.Name + " " + p.Name));
+            var paramList = string.Join(
+                ", ",
+                ctor.GetParameters().Select(p => p.ParameterType.Name + " " + p.Name)
+            );
             Console.WriteLine($"TestRecord constructor: ({paramList})");
         }
 
@@ -111,7 +114,7 @@ public class EnhancedConfigurationBinderTests
             ["Items__0__Name"] = "Item 1",
             ["Items__0__Value"] = "100",
             ["Items__1__Name"] = "Item 2",
-            ["Items__1__Value"] = "200"
+            ["Items__1__Value"] = "200",
         };
 
         // Act
@@ -135,7 +138,7 @@ public class EnhancedConfigurationBinderTests
         {
             ["Email"] = "invalid-email",
             ["Age"] = "150",
-            ["RequiredField"] = ""
+            ["RequiredField"] = "",
         };
 
         // Act
@@ -156,7 +159,7 @@ public class EnhancedConfigurationBinderTests
         var config = new Dictionary<string, string>
         {
             ["Email"] = "invalid-email",
-            ["Age"] = "150"
+            ["Age"] = "150",
         };
 
         var options = new BindingOptions { EnableValidation = false };
@@ -180,7 +183,7 @@ public class EnhancedConfigurationBinderTests
             ["Name"] = "Test App",
             ["Version"] = "1.0.0",
             ["Database:Host"] = "localhost",
-            ["Database:Port"] = "5432"
+            ["Database:Port"] = "5432",
         };
 
         // Act
@@ -200,15 +203,12 @@ public class EnhancedConfigurationBinderTests
         var config = new Dictionary<string, string>
         {
             ["name"] = "Test App",
-            ["version"] = "1.0.0"
+            ["version"] = "1.0.0",
         };
 
         var options = new BindingOptions
         {
-            JsonOptions = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }
+            JsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true },
         };
 
         // Act
@@ -228,7 +228,7 @@ public class EnhancedConfigurationBinderTests
         var config = new Dictionary<string, string>
         {
             ["Name"] = "Correct Case",
-            ["name"] = "Wrong Case"
+            ["name"] = "Wrong Case",
         };
 
         var options = new BindingOptions { CaseSensitive = true };
@@ -246,10 +246,7 @@ public class EnhancedConfigurationBinderTests
     public void Bind_WithMissingRequiredProperty_ShouldFail()
     {
         // Arrange
-        var config = new Dictionary<string, string>
-        {
-            ["OptionalField"] = "value"
-        };
+        var config = new Dictionary<string, string> { ["OptionalField"] = "value" };
 
         // Act
         var result = EnhancedConfigurationBinder.Bind<RequiredConfig>(config);
@@ -263,11 +260,7 @@ public class EnhancedConfigurationBinderTests
     public void Bind_WithInitOnlyProperties_ShouldSucceed()
     {
         // Arrange
-        var config = new Dictionary<string, string>
-        {
-            ["Name"] = "Init Only",
-            ["Value"] = "42"
-        };
+        var config = new Dictionary<string, string> { ["Name"] = "Init Only", ["Value"] = "42" };
 
         // Act
         var result = EnhancedConfigurationBinder.Bind<InitOnlyConfig>(config);
@@ -289,7 +282,7 @@ public class EnhancedConfigurationBinderTests
             ["User:Profile:LastName"] = "Doe",
             ["User:Profile:Age"] = "30",
             ["User:Settings:Theme"] = "dark",
-            ["User:Settings:Language"] = "en-US"
+            ["User:Settings:Language"] = "en-US",
         };
 
         // Act
@@ -309,11 +302,7 @@ public class EnhancedConfigurationBinderTests
     public void Bind_WithEnumValues_ShouldSucceed()
     {
         // Arrange
-        var config = new Dictionary<string, string>
-        {
-            ["Status"] = "Active",
-            ["Type"] = "Admin"
-        };
+        var config = new Dictionary<string, string> { ["Status"] = "Active", ["Type"] = "Admin" };
 
         // Act
         var result = EnhancedConfigurationBinder.Bind<EnumConfig>(config);
@@ -334,7 +323,7 @@ public class EnhancedConfigurationBinderTests
             ["RequiredInt"] = "42",
             ["OptionalInt"] = "100",
             ["RequiredString"] = "required",
-            ["OptionalString"] = "optional"
+            ["OptionalString"] = "optional",
         };
 
         // Act
@@ -358,7 +347,7 @@ public class EnhancedConfigurationBinderTests
             ["RequiredInt"] = "42",
             ["OptionalInt"] = "",
             ["RequiredString"] = "required",
-            ["OptionalString"] = ""
+            ["OptionalString"] = "",
         };
 
         // Act
@@ -380,7 +369,7 @@ public class EnhancedConfigurationBinderTests
         var config = new Dictionary<string, string>
         {
             ["IntValue"] = "not-a-number",
-            ["BoolValue"] = "not-a-boolean"
+            ["BoolValue"] = "not-a-boolean",
         };
 
         // Act
@@ -399,7 +388,7 @@ public class EnhancedConfigurationBinderTests
         var config = new Dictionary<string, string>
         {
             ["Name"] = "Updated Name",
-            ["Version"] = "2.0.0"
+            ["Version"] = "2.0.0",
         };
 
         var instance = new TestConfig { Name = "Original Name", Version = "1.0.0" };
@@ -517,7 +506,7 @@ public enum UserType
 {
     User,
     Admin,
-    Moderator
+    Moderator,
 }
 
 public class NullableConfig

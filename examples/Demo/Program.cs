@@ -62,9 +62,10 @@ public class Program
         try
         {
             // Replace with your actual Key Vault URL
-            const string vaultUrl = "https://your-keyvault.vault.azure.net/";
+            const string vaultUrl = "https://fluentazure.vault.azure.net/";
 
-            var config = await FluentAzure.Core.FluentAzure.Configuration()
+            var config = await FluentAzure
+                .Core.FluentAzure.Configuration()
                 .FromEnvironment()
                 .FromKeyVault(vaultUrl)
                 .BuildAsync();
@@ -111,9 +112,10 @@ public class Program
 
         try
         {
-            const string vaultUrl = "https://your-keyvault.vault.azure.net/";
+            const string vaultUrl = "https://fluentazure.vault.azure.net/";
 
-            var config = await FluentAzure.Core.FluentAzure.Configuration()
+            var config = await FluentAzure
+                .Core.FluentAzure.Configuration()
                 .FromEnvironment()
                 .FromKeyVault(
                     vaultUrl,
@@ -160,7 +162,7 @@ public class Program
         Console.WriteLine("\n📋 Example 3: Authentication Methods");
         Console.WriteLine(new string('-', 40));
 
-        const string vaultUrl = "https://your-keyvault.vault.azure.net/";
+        const string vaultUrl = "https://fluentazure.vault.azure.net/";
 
         // Method 1: Default Azure Credential (recommended for most scenarios)
         logger.LogInformation("🔑 Using DefaultAzureCredential");
@@ -214,7 +216,8 @@ public class Program
         try
         {
             var credential = credentialFactory();
-            var config = await FluentAzure.Core.FluentAzure.Configuration()
+            var config = await FluentAzure
+                .Core.FluentAzure.Configuration()
                 .FromKeyVault(vaultUrl, credential)
                 .BuildAsync();
 
@@ -248,7 +251,7 @@ public class Program
 
         try
         {
-            const string vaultUrl = "https://your-keyvault.vault.azure.net/";
+            const string vaultUrl = "https://fluentazure.vault.azure.net/";
 
             // Create a Key Vault source with caching
             var kvSource = new KeyVaultSource(
@@ -317,9 +320,10 @@ public class Program
 
         try
         {
-            const string vaultUrl = "https://your-keyvault.vault.azure.net/";
+            const string vaultUrl = "https://fluentazure.vault.azure.net/";
 
-            var config = await FluentAzure.Core.FluentAzure.Configuration()
+            var config = await FluentAzure
+                .Core.FluentAzure.Configuration()
                 .FromKeyVault(
                     vaultUrl,
                     options =>
@@ -366,10 +370,11 @@ public class Program
 
         try
         {
-            const string vaultUrl = "https://your-keyvault.vault.azure.net/";
+            const string vaultUrl = "https://fluentazure.vault.azure.net/";
 
             // Example with prefix filtering
-            var configWithPrefix = await FluentAzure.Core.FluentAzure.Configuration()
+            var configWithPrefix = await FluentAzure
+                .Core.FluentAzure.Configuration()
                 .FromKeyVaultWithPrefix(vaultUrl, "MyApp-")
                 .BuildAsync();
 
@@ -387,7 +392,8 @@ public class Program
             );
 
             // Example with custom key mapping
-            var configWithMapping = await FluentAzure.Core.FluentAzure.Configuration()
+            var configWithMapping = await FluentAzure
+                .Core.FluentAzure.Configuration()
                 .FromKeyVault(
                     vaultUrl,
                     secretName =>
@@ -412,7 +418,8 @@ public class Program
             );
 
             // Example with caching settings
-            var configWithCaching = await FluentAzure.Core.FluentAzure.Configuration()
+            var configWithCaching = await FluentAzure
+                .Core.FluentAzure.Configuration()
                 .FromKeyVaultWithCaching(vaultUrl, TimeSpan.FromMinutes(15))
                 .BuildAsync();
 

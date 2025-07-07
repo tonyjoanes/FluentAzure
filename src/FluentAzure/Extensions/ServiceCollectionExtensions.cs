@@ -1,5 +1,5 @@
-using Microsoft.Extensions.DependencyInjection;
 using FluentAzure.Core;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FluentAzure.Extensions;
 
@@ -20,7 +20,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddFluentAzure<T>(
         this IServiceCollection services,
         Func<ConfigurationBuilder, ConfigurationBuilder> configure
-    ) where T : class, new()
+    )
+        where T : class, new()
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configure);
@@ -53,7 +54,8 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         Func<ConfigurationBuilder, ConfigurationBuilder> configure,
         Func<T, T> factory
-    ) where T : class, new()
+    )
+        where T : class, new()
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configure);

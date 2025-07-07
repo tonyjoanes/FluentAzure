@@ -46,9 +46,8 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
         KeyVaultConfiguration configuration,
         int priority = 200,
         ILogger? logger = null
-    ) : this(vaultUrl, configuration, priority, logger, true)
-    {
-    }
+    )
+        : this(vaultUrl, configuration, priority, logger, true) { }
 
     /// <summary>
     /// Protected constructor for testing and mocking purposes.
@@ -59,11 +58,12 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
     /// <param name="logger">Optional logger for debugging and monitoring.</param>
     /// <param name="initializeClient">Whether to initialize the real SecretClient.</param>
     protected KeyVaultSource(
-    string vaultUrl,
-    KeyVaultConfiguration configuration,
-    int priority,
-    ILogger? logger,
-    bool initializeClient)
+        string vaultUrl,
+        KeyVaultConfiguration configuration,
+        int priority,
+        ILogger? logger,
+        bool initializeClient
+    )
     {
         _vaultUrl = vaultUrl ?? throw new ArgumentNullException(nameof(vaultUrl));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
