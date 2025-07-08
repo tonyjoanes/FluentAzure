@@ -54,10 +54,28 @@ var host = new HostBuilder()
             );
         });
 
-        // Register services that depend on configuration
-        services.AddSingleton<IDatabaseService, DatabaseService>();
-        services.AddSingleton<IServiceBusService, ServiceBusService>();
-        services.AddSingleton<IStorageService, StorageService>();
+                // Register services that depend on configuration
+        services.AddSingleton<IDatabaseService>(provider =>
+        {
+            var config = provider.GetRequiredService<FunctionConfiguration>();
+            var logger = provider.GetRequiredService<ILogger<DatabaseService>>();
+            return new DatabaseService(config, logger);
+        });
+
+        services.AddSingleton<IServiceBusService>(provider =>
+        {
+            var config = provider.GetRequiredService<FunctionConfiguration>();
+            var logger = provider.GetRequiredService<ILogger<ServiceBusService>>();
+            return new ServiceBusService(logger, config.ServiceBus.ConnectionString);
+        });
+
+        services.AddSingleton<IStorageService>(provider =>
+        {
+            var config = provider.GetRequiredService<FunctionConfiguration>();
+            var logger = provider.GetRequiredService<ILogger<StorageService>>();
+            return new StorageService(logger, config.Storage.ConnectionString);
+        });
+
         services.AddSingleton<ITelemetryService, TelemetryService>();
     })
     .Build();

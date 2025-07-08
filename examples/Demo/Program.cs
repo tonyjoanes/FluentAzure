@@ -1,15 +1,9 @@
-﻿using System;
-using System.Threading.Tasks;
-using Azure.Core;
-using Azure.Identity;
-using FluentAzure;
+﻿using FluentAzure;
+using FluentAzure.Core;
 using FluentAzure.Extensions;
-using FluentAzure.Sources;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System.Linq;
-using System.IO;
-using static FluentAzure.FluentConfig; // Enable direct usage of Config()
+
+// FluentConfig() is available via GlobalUsings.cs
 
 namespace FluentAzure.Examples;
 
@@ -72,19 +66,23 @@ public static class Program
     {
         // Set up some environment variables for testing
         Environment.SetEnvironmentVariable("App__Name", "MyAwesomeApp");
-        Environment.SetEnvironmentVariable("Database__ConnectionString", "Server=localhost;Database=test");
+        Environment.SetEnvironmentVariable(
+            "Database__ConnectionString",
+            "Server=localhost;Database=test"
+        );
 
         try
         {
             // Ultra clean API - just FluentConfig()!
-            var result = await FluentConfig()  // Ultra clean!
+            var buildResult = await FluentConfig() // Ultra clean!
                 .FromEnvironment()
                 .Required("App:Name")
                 .Required("Database:ConnectionString")
                 .Optional("Debug", "true")
                 .Optional("Version", "1.0.0")
-                .BuildAsync()
-                .Bind<AppSettings>();
+                .BuildAsync();
+
+            var result = buildResult.Bind<AppSettings>();
 
             if (result.IsSuccess)
             {
@@ -111,7 +109,9 @@ public static class Program
     {
         // Create a temporary JSON file for testing
         var tempFile = Path.GetTempFileName();
-        await File.WriteAllTextAsync(tempFile, """
+        await File.WriteAllTextAsync(
+            tempFile,
+            """
             {
                 "Api": {
                     "BaseUrl": "https://api.example.com",
@@ -121,32 +121,40 @@ public static class Program
                     "MaxConnections": 100
                 }
             }
-            """);
+            """
+        );
 
         try
         {
             // Ultra clean API
-            var result = await FluentConfig()  // Ultra clean!
+            var buildResult = await FluentConfig() // Ultra clean!
                 .FromJsonFile(tempFile)
                 .FromEnvironment()
                 .Required("Api:BaseUrl")
                 .Required("Api:TimeoutSeconds")
                 .Optional("Database:MaxConnections", "50")
-                .Validate("Api:TimeoutSeconds", timeout =>
-                {
-                    if (int.TryParse(timeout, out var seconds) && seconds > 0 && seconds <= 300)
+                .Validate(
+                    "Api:TimeoutSeconds",
+                    timeout =>
                     {
-                        return Result<string>.Success(timeout);
+                        if (int.TryParse(timeout, out var seconds) && seconds > 0 && seconds <= 300)
+                        {
+                            return Result<string>.Success(timeout);
+                        }
+                        return Result<string>.Error("API timeout must be between 1-300 seconds");
                     }
-                    return Result<string>.Error("API timeout must be between 1-300 seconds");
-                })
-                .Transform("Api:BaseUrl", url =>
-                {
-                    // Ensure URL ends with trailing slash
-                    return Result<string>.Success(url.EndsWith("/") ? url : url + "/");
-                })
-                .BuildAsync()
-                .Bind<AppSettings>();
+                )
+                .Transform(
+                    "Api:BaseUrl",
+                    url =>
+                    {
+                        // Ensure URL ends with trailing slash
+                        return Result<string>.Success(url.EndsWith("/") ? url : url + "/");
+                    }
+                )
+                .BuildAsync();
+
+            var result = buildResult.Bind<AppSettings>();
 
             if (result.IsSuccess)
             {
@@ -192,20 +200,24 @@ public static class Program
     {
         // Set up some environment variables for testing
         Environment.SetEnvironmentVariable("App__Name", "TraditionalApp");
-        Environment.SetEnvironmentVariable("Database__ConnectionString", "Server=localhost;Database=traditional");
+        Environment.SetEnvironmentVariable(
+            "Database__ConnectionString",
+            "Server=localhost;Database=traditional"
+        );
 
         try
         {
             // Traditional approach for comparison
-            var result = await FluentAzure
-                .AzureConfig()  // Still clean, but requires FluentAzure prefix
+            var buildResult = await FluentAzure
+                .FluentConfig() // Still clean, but requires FluentAzure prefix
                 .FromEnvironment()
                 .Required("App:Name")
                 .Required("Database:ConnectionString")
                 .Optional("Debug", "true")
                 .Optional("Version", "1.0.0")
-                .BuildAsync()
-                .Bind<AppSettings>();
+                .BuildAsync();
+
+            var result = buildResult.Bind<AppSettings>();
 
             if (result.IsSuccess)
             {

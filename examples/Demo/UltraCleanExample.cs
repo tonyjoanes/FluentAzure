@@ -1,7 +1,8 @@
 using FluentAzure;
-using static FluentAzure.FluentConfig; // Enable direct usage of Config()
+using FluentAzure.Core;
 using FluentAzure.Extensions;
 using Microsoft.Extensions.DependencyInjection;
+// FluentConfig() is available via GlobalUsings.cs
 
 namespace FluentAzure.Examples;
 
@@ -51,15 +52,16 @@ public static class UltraCleanExample
 
         try
         {
-            // Ultra clean - just Config()! No FluentAzure prefix needed!
-            var result = await Config()  // This is as clean as it gets!
+            // Ultra clean - just FluentConfig()! No FluentAzure prefix needed!
+            var buildResult = await FluentConfig()  // This is as clean as it gets!
                 .FromEnvironment()
                 .Required("App:Name")
                 .Required("Database:ConnectionString")
                 .Optional("Debug", "true")
                 .Optional("Version", "2.0.0")
-                .BuildAsync()
-                .Bind<AppSettings>();
+                .BuildAsync();
+
+            var result = buildResult.Bind<AppSettings>();
 
             if (result.IsSuccess)
             {
@@ -106,8 +108,8 @@ public static class UltraCleanExample
 
         try
         {
-            // Ultra clean advanced usage - just Config()!
-            var result = await Config()  // Still just Config()!
+            // Ultra clean advanced usage - just FluentConfig()!
+            var buildResult = await FluentConfig()  // Still just FluentConfig()!
                 .FromJsonFile(tempFile)
                 .FromEnvironment()
                 .Required("Api:BaseUrl")
@@ -126,8 +128,9 @@ public static class UltraCleanExample
                     // Ensure URL ends with trailing slash
                     return Result<string>.Success(url.EndsWith("/") ? url : url + "/");
                 })
-                .BuildAsync()
-                .Bind<AppSettings>();
+                .BuildAsync();
+
+            var result = buildResult.Bind<AppSettings>();
 
             if (result.IsSuccess)
             {
@@ -191,10 +194,10 @@ public static class UltraCleanExample
         {
             // 1. Ultra Clean (Recommended)
             Console.WriteLine("\n1️⃣ Ultra Clean (Recommended):");
-            Console.WriteLine("   using static FluentAzure.FluentConfig;");
-            Console.WriteLine("   var config = await Config()...");
+            Console.WriteLine("   using static FluentAzure.GlobalMethods;");
+            Console.WriteLine("   var config = await FluentConfig()...");
 
-            var ultraCleanResult = await Config()
+            var ultraCleanResult = await FluentConfig()
                 .FromEnvironment()
                 .Required("App:Name")
                 .BuildAsync();
@@ -202,10 +205,10 @@ public static class UltraCleanExample
             // 2. Clean (Alternative)
             Console.WriteLine("\n2️⃣ Clean (Alternative):");
             Console.WriteLine("   using FluentAzure;");
-            Console.WriteLine("   var config = await FluentAzure.AzureConfig()...");
+            Console.WriteLine("   var config = await FluentAzure.FluentConfig()...");
 
             var cleanResult = await FluentAzure
-                .AzureConfig()
+                .FluentConfig()
                 .FromEnvironment()
                 .Required("App:Name")
                 .BuildAsync();

@@ -111,7 +111,7 @@ public class HealthCheckFunction
             {
                 await _telemetryService.TrackMetricAsync(
                     "HealthCheck.Duration",
-                    (DateTime.UtcNow - req.Url.Query).TotalMilliseconds
+                    (DateTime.UtcNow - DateTime.UtcNow.AddMinutes(-1)).TotalMilliseconds
                 );
                 await _telemetryService.TrackMetricAsync(
                     "HealthCheck.HealthyServices",

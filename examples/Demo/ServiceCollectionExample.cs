@@ -1,4 +1,5 @@
 ﻿using FluentAzure;
+using FluentAzure.Core;
 using FluentAzure.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -77,14 +78,17 @@ public static class ServiceCollectionExample
                     .Required("Database:ConnectionString")
                     .Required("Api:ApiKey")
                     .Optional("Debug", "false")
-                    .Validate("Database:TimeoutSeconds", timeout =>
-                    {
-                        if (int.TryParse(timeout, out var seconds) && seconds > 0)
+                    .Validate(
+                        "Database:TimeoutSeconds",
+                        timeout =>
                         {
-                            return Result<string>.Success(timeout);
+                            if (int.TryParse(timeout, out var seconds) && seconds > 0)
+                            {
+                                return Result<string>.Success(timeout);
+                            }
+                            return Result<string>.Error("Timeout must be a positive integer");
                         }
-                        return Result<string>.Error("Timeout must be a positive integer");
-                    }),
+                    ),
             config =>
             {
                 // Post-processing: ensure API URL ends with trailing slash
