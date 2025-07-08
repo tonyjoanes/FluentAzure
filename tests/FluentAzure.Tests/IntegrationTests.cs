@@ -54,7 +54,7 @@ public class IntegrationTests : IDisposable
         {
             // Act - First build just the dictionary to see what we're getting
             var dictResult = await FluentAzure
-                .Core.FluentAzure.Configuration()
+                .Configuration()
                 .FromJsonFile(appSettingsPath, priority: 100)
                 .FromEnvironment(priority: 200) // Higher priority, will override JSON
                 .Required("App__Name")
@@ -85,7 +85,7 @@ public class IntegrationTests : IDisposable
 
             // Now build the strongly-typed version
             var result = await FluentAzure
-                .Core.FluentAzure.Configuration()
+                .Configuration()
                 .FromJsonFile(appSettingsPath, priority: 100)
                 .FromEnvironment(priority: 200) // Higher priority, will override JSON
                 .Required("App__Name")
@@ -152,7 +152,7 @@ public class IntegrationTests : IDisposable
 
         // Act
         var result = await FluentAzure
-            .Core.FluentAzure.Configuration()
+            .Configuration()
             .FromJsonFile(appSettingsPath)
             .Required("Port")
             .Required("MaxConnections")
@@ -208,7 +208,7 @@ public class IntegrationTests : IDisposable
         {
             // Act
             var result = await FluentAzure
-                .Core.FluentAzure.Configuration()
+                .Configuration()
                 .FromEnvironment()
                 .Required("API_URL")
                 .Transform(
@@ -255,7 +255,7 @@ public class IntegrationTests : IDisposable
 
         // Act
         var result = await FluentAzure
-            .Core.FluentAzure.Configuration()
+            .Configuration()
             .FromJsonFile(appSettingsPath)
             .Required("App__Name")
             .Required("Database__ConnectionString")
@@ -308,7 +308,7 @@ public class IntegrationTests : IDisposable
         try
         {
             // Act
-            var result = await FluentAzure.Core.FluentAzure
+            var result = await FluentAzure
                 .Configuration()
                 .FromJsonFile(lowPriorityPath, priority: 100)
                 .FromJsonFile(highPriorityPath, priority: 200)
@@ -357,7 +357,7 @@ public class IntegrationTests : IDisposable
 
         // Act
         var result = await FluentAzure
-            .Core.FluentAzure.Configuration()
+            .Configuration()
             .FromJsonFile(complexPath)
             .BuildAsync();
 
@@ -386,7 +386,7 @@ public class IntegrationTests : IDisposable
         try
         {
             // Act
-            var result = await FluentAzure.Core.FluentAzure
+            var result = await FluentAzure
                 .Configuration()
                 .FromEnvironment()
                 .Required("TEST_VALUE")
@@ -410,7 +410,7 @@ public class IntegrationTests : IDisposable
     public async Task Integration_EmptyConfiguration_ShouldReturnEmptyResult()
     {
         // Act
-        var result = await FluentAzure.Core.FluentAzure.Configuration().BuildAsync();
+        var result = await FluentAzure.Configuration().BuildAsync();
 
         // Assert
         result.Should().NotBeNull();
@@ -422,7 +422,7 @@ public class IntegrationTests : IDisposable
     public async Task Integration_OnlyOptionalKeys_ShouldIncludeDefaults()
     {
         // Act
-        var result = await FluentAzure.Core.FluentAzure
+        var result = await FluentAzure
             .Configuration()
             .Optional("MissingKey1", "default1")
             .Optional("MissingKey2", "default2")

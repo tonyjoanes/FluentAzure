@@ -12,7 +12,7 @@ public class ConfigurationBuilderTests
     public void Configuration_ShouldReturnNewBuilderInstance()
     {
         // Act
-        var builder = FluentAzure.Core.FluentAzure.Configuration();
+        var builder = FluentAzure.Configuration();
 
         // Assert
         builder.Should().NotBeNull();
