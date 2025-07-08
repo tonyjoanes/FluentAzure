@@ -3,7 +3,7 @@
 on:
   push:
     branches: [ main ]
-    tags: [ 'v*' ]  # Trigger on version tags for releases
+    tags: [ 'v*' ]  # Trigger on version tags for release
   pull_request:
     branches: [ main ]
 
