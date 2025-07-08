@@ -166,7 +166,9 @@ public class ConfigurationBuilder
             }
             else
             {
-                return Task.FromResult(Result<Dictionary<string, string>>.Error(transformResult.Errors));
+                return Task.FromResult(
+                    Result<Dictionary<string, string>>.Error(transformResult.Errors)
+                );
             }
         });
         return this;

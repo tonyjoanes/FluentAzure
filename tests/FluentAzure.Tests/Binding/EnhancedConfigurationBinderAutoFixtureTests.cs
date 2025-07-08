@@ -4,8 +4,8 @@ using AutoFixture.Xunit2;
 using FluentAssertions;
 using FluentAzure.Binding;
 using FluentAzure.Core;
-using Xunit;
 using FluentAzure.Tests.Binding;
+using Xunit;
 using static FluentAzure.Tests.Binding.EnhancedConfigurationBinderParameterTests;
 
 namespace FluentAzure.Tests.Binding;

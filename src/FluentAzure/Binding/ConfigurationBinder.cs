@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using FluentAzure.Core;
 
 namespace FluentAzure.Binding;
