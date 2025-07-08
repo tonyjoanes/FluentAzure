@@ -1,9 +1,6 @@
-using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
 using FluentAzure.Core;
 using FluentAzure.Sources;
 using Microsoft.Extensions.Logging;
-using Polly;
 
 namespace FluentAzure.Tests.Sources;
 
@@ -16,12 +13,13 @@ public class MockKeyVaultSource : KeyVaultSource
     private readonly Dictionary<string, string> _mockSecrets;
     private readonly bool _shouldFail;
 
-        public MockKeyVaultSource(
+    public MockKeyVaultSource(
         string vaultUrl,
         Dictionary<string, string> mockSecrets,
         bool shouldFail = false,
         int priority = 200,
-        ILogger? logger = null)
+        ILogger? logger = null
+    )
         : base(vaultUrl, new KeyVaultConfiguration(), priority, logger, false)
     {
         _mockSecrets = mockSecrets ?? new Dictionary<string, string>();
@@ -34,14 +32,15 @@ public class MockKeyVaultSource : KeyVaultSource
         Dictionary<string, string> mockSecrets,
         bool shouldFail = false,
         int priority = 200,
-        ILogger? logger = null)
+        ILogger? logger = null
+    )
         : base(vaultUrl, configuration, priority, logger, false)
     {
         _mockSecrets = mockSecrets ?? new Dictionary<string, string>();
         _shouldFail = shouldFail;
     }
 
-        /// <summary>
+    /// <summary>
     /// Override the LoadAsync method to return mock data instead of connecting to Azure
     /// </summary>
     public override async Task<Result<Dictionary<string, string>>> LoadAsync()

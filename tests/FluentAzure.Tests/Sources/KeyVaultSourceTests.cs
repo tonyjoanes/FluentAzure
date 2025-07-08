@@ -16,7 +16,9 @@ public class KeyVaultSourceTests
 
     public KeyVaultSourceTests()
     {
-        _logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<KeyVaultSourceTests>();
+        _logger = LoggerFactory
+            .Create(builder => builder.AddConsole())
+            .CreateLogger<KeyVaultSourceTests>();
     }
 
     [Fact]
@@ -43,7 +45,8 @@ public class KeyVaultSourceTests
     public void Constructor_WithNullConfiguration_ShouldThrowArgumentNullException()
     {
         // Arrange & Act & Assert
-        var action = () => new MockKeyVaultSource(TestVaultUrl, null!, new Dictionary<string, string>());
+        var action = () =>
+            new MockKeyVaultSource(TestVaultUrl, null!, new Dictionary<string, string>());
         action.Should().Throw<ArgumentNullException>();
     }
 
@@ -60,7 +63,12 @@ public class KeyVaultSourceTests
         };
 
         // Act
-        var source = new MockKeyVaultSource(TestVaultUrl, configuration, new Dictionary<string, string>(), logger: _logger);
+        var source = new MockKeyVaultSource(
+            TestVaultUrl,
+            configuration,
+            new Dictionary<string, string>(),
+            logger: _logger
+        );
 
         // Assert
         source.Should().NotBeNull();
@@ -208,7 +216,11 @@ public class KeyVaultSourceTests
     public void ClearCache_ShouldClearCache()
     {
         // Arrange
-        var source = new MockKeyVaultSource(TestVaultUrl, new Dictionary<string, string>(), logger: _logger);
+        var source = new MockKeyVaultSource(
+            TestVaultUrl,
+            new Dictionary<string, string>(),
+            logger: _logger
+        );
 
         // Act
         source.ClearCache();
@@ -221,7 +233,11 @@ public class KeyVaultSourceTests
     public async Task ReloadAsync_ShouldReload()
     {
         // Arrange
-        var source = new MockKeyVaultSource(TestVaultUrl, new Dictionary<string, string>(), logger: _logger);
+        var source = new MockKeyVaultSource(
+            TestVaultUrl,
+            new Dictionary<string, string>(),
+            logger: _logger
+        );
 
         // Act
         var result = await source.ReloadAsync();
@@ -362,7 +378,11 @@ public class KeyVaultSourceTests
     public void KeyVaultSource_Priority_ShouldBeConfigurable()
     {
         // Arrange & Act
-        var source = new MockKeyVaultSource(TestVaultUrl, new Dictionary<string, string>(), priority: 150);
+        var source = new MockKeyVaultSource(
+            TestVaultUrl,
+            new Dictionary<string, string>(),
+            priority: 150
+        );
 
         // Assert
         source.Priority.Should().Be(150);
@@ -372,7 +392,10 @@ public class KeyVaultSourceTests
     public void KeyVaultSource_Name_ShouldIncludeHostName()
     {
         // Arrange & Act
-        var source = new MockKeyVaultSource("https://my-custom-vault.vault.azure.net/", new Dictionary<string, string>());
+        var source = new MockKeyVaultSource(
+            "https://my-custom-vault.vault.azure.net/",
+            new Dictionary<string, string>()
+        );
 
         // Assert
         source.Name.Should().Be("KeyVault(my-custom-vault.vault.azure.net)");

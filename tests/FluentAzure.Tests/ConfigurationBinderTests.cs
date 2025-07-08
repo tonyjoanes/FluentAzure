@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
 using FluentAssertions;
-using FluentAzure.Core;
 using FluentAzure.Binding;
-using Xunit;
 
 namespace FluentAzure.Tests;
 
