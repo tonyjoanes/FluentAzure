@@ -1,0 +1,27 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "KeyVaultUrl": "https://your-keyvault.vault.azure.net/",
+    "DatabaseConnectionString": "Server=localhost;Database=FunctionExample;Trusted_Connection=true;",
+    "ServiceBusConnectionString": "Endpoint=sb://yournamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=yoursharedaccesskey",
+    "StorageConnectionString": "DefaultEndpointsProtocol=https;AccountName=yourstorageaccount;AccountKey=yourstoragekey;EndpointSuffix=core.windows.net",
+    "MaxRetryCount": "3",
+    "TimeoutSeconds": "30",
+    "EnableTelemetry": "true",
+    "InstrumentationKey": "your-app-insights-instrumentation-key",
+    "MaxConcurrentCalls": "16",
+    "MaxAutoRenewDurationMinutes": "5",
+    "MaxConcurrency": "8",
+    "MaxRetries": "3",
+    "BaseDelayMilliseconds": "1000",
+    "BackoffMultiplier": "2.0",
+    "EnableExponentialBackoff": "true",
+    "RequireHttps": "true",
+    "TokenExpirationHours": "1",
+    "EnableAuditLogging": "true",
+    "MinPasswordLength": "12",
+    "RequireSpecialCharacters": "true"
+  }
+}
