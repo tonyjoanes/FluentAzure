@@ -3,7 +3,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [ main ]
-    tags: [ 'v*' ]  # Trigger on version tags for release
+    tags: [ 'v*' ]  # Trigger on version tags for releases
   pull_request:
     branches: [ main ]
 
@@ -110,11 +110,11 @@ jobs:
     - name: Check for vulnerabilities
       run: |
         if grep -q "has the following vulnerable packages" security-audit.log; then
-          echo "âŒ Vulnerable packages found!"
+          echo "❌ Vulnerable packages found!"
           cat security-audit.log
           exit 1
         else
-          echo "âœ… No vulnerable packages found"
+          echo "✅ No vulnerable packages found"
         fi
 
     # Upload security audit results as artifact
