@@ -58,10 +58,10 @@ public class IntegrationTests : IDisposable
             var result = await FluentConfig()
                 .FromJsonFile(appSettingsPath)
                 .FromEnvironment()
-                .Required("App:Name")
-                .Required("Database:ConnectionString")
-                .Optional("Features:EnableLogging", "false")
-                .Optional("Features:MaxUsers", "500")
+                .Required("App__Name")
+                .Required("Database__ConnectionString")
+                .Optional("Features__EnableLogging", "false")
+                .Optional("Features__MaxUsers", "500")
                 .BuildAsync();
 
             // Assert
@@ -70,21 +70,21 @@ public class IntegrationTests : IDisposable
             result.Value.Should().NotBeNull();
 
             var config = result.Value!;
-            config.Should().ContainKey("App:Name");
-            config.Should().ContainKey("Database:ConnectionString");
-            config.Should().ContainKey("Database:TimeoutSeconds");
-            config.Should().ContainKey("Features:EnableLogging");
-            config.Should().ContainKey("Features:MaxUsers");
+            config.Should().ContainKey("App__Name");
+            config.Should().ContainKey("Database__ConnectionString");
+            config.Should().ContainKey("Database__TimeoutSeconds");
+            config.Should().ContainKey("Features__EnableLogging");
+            config.Should().ContainKey("Features__MaxUsers");
             config.Should().ContainKey("NewFeature");
 
             // Environment variables should override JSON values
-            config["App:Name"].Should().Be("TestApp-Production");
-            config["Database:TimeoutSeconds"].Should().Be("60");
+            config["App__Name"].Should().Be("TestApp-Production");
+            config["Database__TimeoutSeconds"].Should().Be("60");
             config["NewFeature"].Should().Be("true");
 
-            // Optional values should be set
-            config["Features:EnableLogging"].Should().Be("false");
-            config["Features:MaxUsers"].Should().Be("500");
+            // JSON values should be present (not overridden by Optional defaults)
+            config["Features__EnableLogging"].Should().Be("true"); // JSON has true (lowercase)
+            config["Features__MaxUsers"].Should().Be("1000"); // JSON has 1000
         }
         finally
         {
