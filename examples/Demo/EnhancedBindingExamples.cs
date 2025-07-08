@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using FluentAzure.Binding;
 using FluentAzure.Core;
@@ -16,7 +16,7 @@ public static class EnhancedBindingExamples
     /// </summary>
     public static async Task DemoBasicBinding()
     {
-        Console.WriteLine("\n📋 Enhanced Binding Example 1: Basic Binding with Validation");
+        Console.WriteLine("\nðŸ“‹ Enhanced Binding Example 1: Basic Binding with Validation");
         Console.WriteLine(new string('-', 50));
 
         var config = new Dictionary<string, string>
@@ -40,7 +40,7 @@ public static class EnhancedBindingExamples
         result.Match(
             success =>
             {
-                Console.WriteLine("✅ Configuration bound successfully!");
+                Console.WriteLine("âœ… Configuration bound successfully!");
                 Console.WriteLine(
                     $"Database: {success.Database.Host}:{success.Database.Port}/{success.Database.Name}"
                 );
@@ -51,7 +51,7 @@ public static class EnhancedBindingExamples
             },
             errors =>
             {
-                Console.WriteLine("❌ Binding failed:");
+                Console.WriteLine("âŒ Binding failed:");
                 foreach (var error in errors)
                 {
                     Console.WriteLine($"  - {error}");
@@ -65,7 +65,7 @@ public static class EnhancedBindingExamples
     /// </summary>
     public static async Task DemoRecordBinding()
     {
-        Console.WriteLine("\n📋 Enhanced Binding Example 2: Record Type Binding");
+        Console.WriteLine("\nðŸ“‹ Enhanced Binding Example 2: Record Type Binding");
         Console.WriteLine(new string('-', 50));
 
         var config = new Dictionary<string, string>
@@ -84,7 +84,7 @@ public static class EnhancedBindingExamples
         result.Match(
             success =>
             {
-                Console.WriteLine("✅ Record bound successfully!");
+                Console.WriteLine("âœ… Record bound successfully!");
                 Console.WriteLine($"App: {success.Name} v{success.Version}");
                 Console.WriteLine($"Environment: {success.Environment}");
                 Console.WriteLine($"Max Connections: {success.MaxConnections}");
@@ -92,7 +92,7 @@ public static class EnhancedBindingExamples
             },
             errors =>
             {
-                Console.WriteLine("❌ Record binding failed:");
+                Console.WriteLine("âŒ Record binding failed:");
                 foreach (var error in errors)
                 {
                     Console.WriteLine($"  - {error}");
@@ -106,7 +106,7 @@ public static class EnhancedBindingExamples
     /// </summary>
     public static async Task DemoCollectionBinding()
     {
-        Console.WriteLine("\n📋 Enhanced Binding Example 3: Collection Binding");
+        Console.WriteLine("\nðŸ“‹ Enhanced Binding Example 3: Collection Binding");
         Console.WriteLine(new string('-', 50));
 
         var config = new Dictionary<string, string>
@@ -129,7 +129,7 @@ public static class EnhancedBindingExamples
         result.Match(
             success =>
             {
-                Console.WriteLine("✅ Collection bound successfully!");
+                Console.WriteLine("âœ… Collection bound successfully!");
                 Console.WriteLine($"Found {success.Count} endpoints:");
                 foreach (var endpoint in success)
                 {
@@ -140,7 +140,7 @@ public static class EnhancedBindingExamples
             },
             errors =>
             {
-                Console.WriteLine("❌ Collection binding failed:");
+                Console.WriteLine("âŒ Collection binding failed:");
                 foreach (var error in errors)
                 {
                     Console.WriteLine($"  - {error}");
@@ -154,7 +154,7 @@ public static class EnhancedBindingExamples
     /// </summary>
     public static async Task DemoDictionaryBinding()
     {
-        Console.WriteLine("\n📋 Enhanced Binding Example 4: Dictionary Binding");
+        Console.WriteLine("\nðŸ“‹ Enhanced Binding Example 4: Dictionary Binding");
         Console.WriteLine(new string('-', 50));
 
         var config = new Dictionary<string, string>
@@ -174,7 +174,7 @@ public static class EnhancedBindingExamples
         result.Match(
             success =>
             {
-                Console.WriteLine("✅ Dictionary bound successfully!");
+                Console.WriteLine("âœ… Dictionary bound successfully!");
                 Console.WriteLine($"Found {success.Count} services:");
                 foreach (var service in success)
                 {
@@ -185,7 +185,7 @@ public static class EnhancedBindingExamples
             },
             errors =>
             {
-                Console.WriteLine("❌ Dictionary binding failed:");
+                Console.WriteLine("âŒ Dictionary binding failed:");
                 foreach (var error in errors)
                 {
                     Console.WriteLine($"  - {error}");
@@ -199,7 +199,7 @@ public static class EnhancedBindingExamples
     /// </summary>
     public static async Task DemoJsonBinding()
     {
-        Console.WriteLine("\n📋 Enhanced Binding Example 5: JSON Binding with Custom Options");
+        Console.WriteLine("\nðŸ“‹ Enhanced Binding Example 5: JSON Binding with Custom Options");
         Console.WriteLine(new string('-', 50));
 
         var config = new Dictionary<string, string>
@@ -229,7 +229,7 @@ public static class EnhancedBindingExamples
         result.Match(
             success =>
             {
-                Console.WriteLine("✅ JSON binding successful!");
+                Console.WriteLine("âœ… JSON binding successful!");
                 Console.WriteLine($"User: {success.FirstName} {success.LastName}");
                 Console.WriteLine($"Email: {success.Email}, Age: {success.Age}");
                 Console.WriteLine($"Active: {success.IsActive}");
@@ -242,7 +242,7 @@ public static class EnhancedBindingExamples
             },
             errors =>
             {
-                Console.WriteLine("❌ JSON binding failed:");
+                Console.WriteLine("âŒ JSON binding failed:");
                 foreach (var error in errors)
                 {
                     Console.WriteLine($"  - {error}");
@@ -256,7 +256,7 @@ public static class EnhancedBindingExamples
     /// </summary>
     public static async Task DemoValidationErrors()
     {
-        Console.WriteLine("\n📋 Enhanced Binding Example 6: Validation Errors");
+        Console.WriteLine("\nðŸ“‹ Enhanced Binding Example 6: Validation Errors");
         Console.WriteLine(new string('-', 50));
 
         var config = new Dictionary<string, string>
@@ -274,11 +274,11 @@ public static class EnhancedBindingExamples
         result.Match(
             success =>
             {
-                Console.WriteLine("✅ Validation passed (unexpected)!");
+                Console.WriteLine("âœ… Validation passed (unexpected)!");
             },
             errors =>
             {
-                Console.WriteLine("❌ Validation failed (expected):");
+                Console.WriteLine("âŒ Validation failed (expected):");
                 foreach (var error in errors)
                 {
                     Console.WriteLine($"  - {error}");
@@ -292,7 +292,7 @@ public static class EnhancedBindingExamples
     /// </summary>
     public static async Task DemoCustomValidation()
     {
-        Console.WriteLine("\n📋 Enhanced Binding Example 7: Custom Validation");
+        Console.WriteLine("\nðŸ“‹ Enhanced Binding Example 7: Custom Validation");
         Console.WriteLine(new string('-', 50));
 
         var config = new Dictionary<string, string>
@@ -327,11 +327,11 @@ public static class EnhancedBindingExamples
         result.Match(
             success =>
             {
-                Console.WriteLine("✅ Custom validation passed!");
+                Console.WriteLine("âœ… Custom validation passed!");
             },
             errors =>
             {
-                Console.WriteLine("❌ Custom validation failed:");
+                Console.WriteLine("âŒ Custom validation failed:");
                 foreach (var error in errors)
                 {
                     Console.WriteLine($"  - {error}");
@@ -345,7 +345,7 @@ public static class EnhancedBindingExamples
     /// </summary>
     public static async Task DemoBindingWithoutValidation()
     {
-        Console.WriteLine("\n📋 Enhanced Binding Example 8: Binding Without Validation");
+        Console.WriteLine("\nðŸ“‹ Enhanced Binding Example 8: Binding Without Validation");
         Console.WriteLine(new string('-', 50));
 
         var config = new Dictionary<string, string>
@@ -362,14 +362,14 @@ public static class EnhancedBindingExamples
         result.Match(
             success =>
             {
-                Console.WriteLine("✅ Binding without validation successful!");
+                Console.WriteLine("âœ… Binding without validation successful!");
                 Console.WriteLine($"Name: {success.Name}");
                 Console.WriteLine($"Version: {success.Version}");
                 Console.WriteLine($"Max Connections: {success.MaxConnections}");
             },
             errors =>
             {
-                Console.WriteLine("❌ Binding failed:");
+                Console.WriteLine("âŒ Binding failed:");
                 foreach (var error in errors)
                 {
                     Console.WriteLine($"  - {error}");

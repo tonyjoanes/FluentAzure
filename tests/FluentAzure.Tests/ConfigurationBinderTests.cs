@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using FluentAzure.Binding;
 
 namespace FluentAzure.Tests;

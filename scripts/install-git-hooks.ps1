@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 
 <#
 .SYNOPSIS
@@ -14,11 +14,11 @@ $ScriptPath = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $ProjectRoot = Split-Path -Parent $ScriptPath
 $GitHooksDir = Join-Path $ProjectRoot ".git/hooks"
 
-Write-Host "🔧 Installing Git pre-commit hooks for FluentAzure..." -ForegroundColor Cyan
+Write-Host "ðŸ”§ Installing Git pre-commit hooks for FluentAzure..." -ForegroundColor Cyan
 
 # Check if .git directory exists
 if (-not (Test-Path ".git")) {
-    Write-Host "❌ Error: Not in a Git repository. Run 'git init' first." -ForegroundColor Red
+    Write-Host "âŒ Error: Not in a Git repository. Run 'git init' first." -ForegroundColor Red
     exit 1
 }
 
@@ -33,7 +33,7 @@ $PreCommitHook = @"
 # FluentAzure pre-commit hook
 # Runs code formatting and style checks before allowing commits
 
-echo "🔍 Running FluentAzure pre-commit checks..."
+echo "ðŸ” Running FluentAzure pre-commit checks..."
 
 # Determine which script to run based on OS
 if command -v pwsh >/dev/null 2>&1; then
@@ -51,8 +51,8 @@ exit_code=$?
 
 if [ $exit_code -ne 0 ]; then
     echo ""
-    echo "❌ Pre-commit checks failed!"
-    echo "💡 To fix formatting issues, run:"
+    echo "âŒ Pre-commit checks failed!"
+    echo "ðŸ’¡ To fix formatting issues, run:"
     echo "   Windows: .\scripts\format.ps1"
     echo "   Linux/Mac: ./scripts/format.sh"
     echo ""
@@ -60,7 +60,7 @@ if [ $exit_code -ne 0 ]; then
     exit 1
 fi
 
-echo "✅ Pre-commit checks passed!"
+echo "âœ… Pre-commit checks passed!"
 "@
 
 # Write pre-commit hook
@@ -72,20 +72,20 @@ if ($IsLinux -or $IsMacOS) {
     chmod +x $PreCommitPath
 }
 
-Write-Host "✅ Pre-commit hook installed successfully!" -ForegroundColor Green
-Write-Host "🎯 The hook will run automatically before each commit." -ForegroundColor Blue
-Write-Host "💡 To bypass the hook (not recommended), use: git commit --no-verify" -ForegroundColor Yellow
+Write-Host "âœ… Pre-commit hook installed successfully!" -ForegroundColor Green
+Write-Host "ðŸŽ¯ The hook will run automatically before each commit." -ForegroundColor Blue
+Write-Host "ðŸ’¡ To bypass the hook (not recommended), use: git commit --no-verify" -ForegroundColor Yellow
 
 # Test the hook
-Write-Host "`n🧪 Testing the pre-commit hook..." -ForegroundColor Cyan
+Write-Host "`nðŸ§ª Testing the pre-commit hook..." -ForegroundColor Cyan
 try {
     if ($IsWindows) {
         & pwsh -File "./scripts/format.ps1" -Check
     } else {
         & ./scripts/format.sh --check
     }
-    Write-Host "✅ Pre-commit hook test passed!" -ForegroundColor Green
+    Write-Host "âœ… Pre-commit hook test passed!" -ForegroundColor Green
 } catch {
-    Write-Host "⚠️  Pre-commit hook test failed. Please fix any issues before committing." -ForegroundColor Yellow
+    Write-Host "âš ï¸  Pre-commit hook test failed. Please fix any issues before committing." -ForegroundColor Yellow
     Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
 } 

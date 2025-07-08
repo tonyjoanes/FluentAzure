@@ -1,4 +1,4 @@
-using Azure.Core;
+﻿using Azure.Core;
 using Azure.Identity;
 using FluentAzure.Core;
 using FluentAzure.Sources;

@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.Json;
 using AzureFunctions.Example.Configuration;
 using AzureFunctions.Example.Services;

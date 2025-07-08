@@ -1,4 +1,4 @@
-# FluentAzure
+﻿# FluentAzure
 
 A fluent, functional, and type-safe NuGet package for Azure configuration and secrets management.
 
@@ -7,7 +7,7 @@ A fluent, functional, and type-safe NuGet package for Azure configuration and se
 ![Fluent](https://img.shields.io/badge/Style-Fluent%20%7C%20Functional-purple.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-## 🎯 Problem This Solves
+## ðŸŽ¯ Problem This Solves
 
 Azure developers constantly struggle with:
 - **Multiple configuration sources** (Environment variables, Key Vault, App Configuration, JSON files)
@@ -16,7 +16,7 @@ Azure developers constantly struggle with:
 - **Imperative, verbose code** for simple configuration scenarios
 - **Poor testing experience** for configuration-dependent code
 
-## 🚀 Solution: Functional Configuration Pipeline
+## ðŸš€ Solution: Functional Configuration Pipeline
 
 Instead of this imperative mess:
 ```csharp
@@ -53,67 +53,67 @@ var config = await FluentAzure
     );
 ```
 
-## 📁 Project Structure for Cursor IDE
+## ðŸ“ Project Structure for Cursor IDE
 
 ```
 FluentAzure/
-├── src/
-│   └── FluentAzure/
-│       ├── Core/                          # Core fluent abstractions
-│       │   ├── FluentAzure.cs             # Main entry point
-│       │   ├── ConfigurationBuilder.cs    # Fluent builder
-│       │   ├── ConfigurationResult.cs     # Result<T> monad
-│       │   ├── ConfigurationError.cs      # Error types
-│       │   └── ConfigurationValue.cs      # Strongly-typed values
-│       ├── Sources/                       # Configuration sources
-│       │   ├── IConfigurationSource.cs    # Source abstraction
-│       │   ├── EnvironmentSource.cs       # Environment variables
-│       │   ├── KeyVaultSource.cs          # Azure Key Vault
-│       │   ├── AppConfigurationSource.cs  # Azure App Configuration
-│       │   ├── JsonFileSource.cs          # JSON file support
-│       │   └── InMemorySource.cs          # For testing
-│       ├── Transforms/                    # Value transformations
-│       │   ├── ITransform.cs              # Transform abstraction
-│       │   ├── EncryptionTransforms.cs    # Encrypt/decrypt values
-│       │   ├── ValidationTransforms.cs    # Validation rules
-│       │   └── TypeConversionTransforms.cs # String to T conversion
-│       ├── Extensions/                    # DI and framework integration
-│       │   ├── ServiceCollectionExtensions.cs
-│       │   ├── HostBuilderExtensions.cs
-│       │   └── WebApplicationExtensions.cs
-│       └── FluentAzure.csproj
-├── tests/
-│   ├── FluentAzure.Tests/
-│   │   ├── Core/
-│   │   │   ├── FluentAzureTests.cs
-│   │   │   ├── ConfigurationBuilderTests.cs
-│   │   │   └── ConfigurationResultTests.cs
-│   │   ├── Sources/
-│   │   │   ├── EnvironmentSourceTests.cs
-│   │   │   ├── KeyVaultSourceTests.cs
-│   │   │   └── AppConfigurationSourceTests.cs
-│   │   └── Integration/
-│   │       ├── EndToEndTests.cs
-│   │       └── PerformanceTests.cs
-│   └── FluentAzure.Tests.csproj
-├── examples/
-│   ├── WebApi.Example/                    # ASP.NET Core Web API example
-│   ├── FunctionApp.Example/               # Azure Functions example
-│   ├── Console.Example/                   # Console app example
-│   └── Worker.Example/                    # Background service example
-├── docs/
-│   ├── getting-started.md
-│   ├── advanced-scenarios.md
-│   ├── api-reference.md
-│   └── migration-guide.md
-├── .editorconfig                          # Code style for Cursor
-├── .gitignore
-├── Directory.Build.props                  # Shared MSBuild properties
-├── azure-pipelines.yml                   # CI/CD pipeline
-└── README.md
+â”œâ”€â”€ src/
+â”‚   â””â”€â”€ FluentAzure/
+â”‚       â”œâ”€â”€ Core/                          # Core fluent abstractions
+â”‚       â”‚   â”œâ”€â”€ FluentAzure.cs             # Main entry point
+â”‚       â”‚   â”œâ”€â”€ ConfigurationBuilder.cs    # Fluent builder
+â”‚       â”‚   â”œâ”€â”€ ConfigurationResult.cs     # Result<T> monad
+â”‚       â”‚   â”œâ”€â”€ ConfigurationError.cs      # Error types
+â”‚       â”‚   â””â”€â”€ ConfigurationValue.cs      # Strongly-typed values
+â”‚       â”œâ”€â”€ Sources/                       # Configuration sources
+â”‚       â”‚   â”œâ”€â”€ IConfigurationSource.cs    # Source abstraction
+â”‚       â”‚   â”œâ”€â”€ EnvironmentSource.cs       # Environment variables
+â”‚       â”‚   â”œâ”€â”€ KeyVaultSource.cs          # Azure Key Vault
+â”‚       â”‚   â”œâ”€â”€ AppConfigurationSource.cs  # Azure App Configuration
+â”‚       â”‚   â”œâ”€â”€ JsonFileSource.cs          # JSON file support
+â”‚       â”‚   â””â”€â”€ InMemorySource.cs          # For testing
+â”‚       â”œâ”€â”€ Transforms/                    # Value transformations
+â”‚       â”‚   â”œâ”€â”€ ITransform.cs              # Transform abstraction
+â”‚       â”‚   â”œâ”€â”€ EncryptionTransforms.cs    # Encrypt/decrypt values
+â”‚       â”‚   â”œâ”€â”€ ValidationTransforms.cs    # Validation rules
+â”‚       â”‚   â””â”€â”€ TypeConversionTransforms.cs # String to T conversion
+â”‚       â”œâ”€â”€ Extensions/                    # DI and framework integration
+â”‚       â”‚   â”œâ”€â”€ ServiceCollectionExtensions.cs
+â”‚       â”‚   â”œâ”€â”€ HostBuilderExtensions.cs
+â”‚       â”‚   â””â”€â”€ WebApplicationExtensions.cs
+â”‚       â””â”€â”€ FluentAzure.csproj
+â”œâ”€â”€ tests/
+â”‚   â”œâ”€â”€ FluentAzure.Tests/
+â”‚   â”‚   â”œâ”€â”€ Core/
+â”‚   â”‚   â”‚   â”œâ”€â”€ FluentAzureTests.cs
+â”‚   â”‚   â”‚   â”œâ”€â”€ ConfigurationBuilderTests.cs
+â”‚   â”‚   â”‚   â””â”€â”€ ConfigurationResultTests.cs
+â”‚   â”‚   â”œâ”€â”€ Sources/
+â”‚   â”‚   â”‚   â”œâ”€â”€ EnvironmentSourceTests.cs
+â”‚   â”‚   â”‚   â”œâ”€â”€ KeyVaultSourceTests.cs
+â”‚   â”‚   â”‚   â””â”€â”€ AppConfigurationSourceTests.cs
+â”‚   â”‚   â””â”€â”€ Integration/
+â”‚   â”‚       â”œâ”€â”€ EndToEndTests.cs
+â”‚   â”‚       â””â”€â”€ PerformanceTests.cs
+â”‚   â””â”€â”€ FluentAzure.Tests.csproj
+â”œâ”€â”€ examples/
+â”‚   â”œâ”€â”€ WebApi.Example/                    # ASP.NET Core Web API example
+â”‚   â”œâ”€â”€ FunctionApp.Example/               # Azure Functions example
+â”‚   â”œâ”€â”€ Console.Example/                   # Console app example
+â”‚   â””â”€â”€ Worker.Example/                    # Background service example
+â”œâ”€â”€ docs/
+â”‚   â”œâ”€â”€ getting-started.md
+â”‚   â”œâ”€â”€ advanced-scenarios.md
+â”‚   â”œâ”€â”€ api-reference.md
+â”‚   â””â”€â”€ migration-guide.md
+â”œâ”€â”€ .editorconfig                          # Code style for Cursor
+â”œâ”€â”€ .gitignore
+â”œâ”€â”€ Directory.Build.props                  # Shared MSBuild properties
+â”œâ”€â”€ azure-pipelines.yml                   # CI/CD pipeline
+â””â”€â”€ README.md
 ```
 
-## 🛠️ Cursor IDE Setup Instructions
+## ðŸ› ï¸ Cursor IDE Setup Instructions
 
 ### 1. Initialize the Project
 ```bash
@@ -254,17 +254,17 @@ Create a configuration binding system that:
 #### **Unit Tests Structure**
 ```
 tests/
-├── Core/
-│   ├── ResultTests.cs              # Test the Result<T> monad
-│   ├── ConfigurationPipelineTests.cs # Test pipeline builder
-│   └── ErrorAccumulationTests.cs   # Test error handling
-├── Sources/
-│   ├── EnvironmentSourceTests.cs   # Mock environment variables
-│   ├── KeyVaultSourceTests.cs      # Mock Key Vault responses
-│   └── JsonFileSourceTests.cs      # Test file parsing
-└── Integration/
-    ├── EndToEndTests.cs            # Full pipeline tests
-    └── PerformanceTests.cs         # Load testing
+â”œâ”€â”€ Core/
+â”‚   â”œâ”€â”€ ResultTests.cs              # Test the Result<T> monad
+â”‚   â”œâ”€â”€ ConfigurationPipelineTests.cs # Test pipeline builder
+â”‚   â””â”€â”€ ErrorAccumulationTests.cs   # Test error handling
+â”œâ”€â”€ Sources/
+â”‚   â”œâ”€â”€ EnvironmentSourceTests.cs   # Mock environment variables
+â”‚   â”œâ”€â”€ KeyVaultSourceTests.cs      # Mock Key Vault responses
+â”‚   â””â”€â”€ JsonFileSourceTests.cs      # Test file parsing
+â””â”€â”€ Integration/
+    â”œâ”€â”€ EndToEndTests.cs            # Full pipeline tests
+    â””â”€â”€ PerformanceTests.cs         # Load testing
 ```
 
 #### **Cursor AI Prompts for Testing**
@@ -327,7 +327,7 @@ public class ApiController : ControllerBase
 }
 ```
 
-## 🚀 Getting Started
+## ðŸš€ Getting Started
 
 ### Prerequisites
 - .NET 8.0 SDK
@@ -348,14 +348,14 @@ public class ApiController : ControllerBase
 - Semantic versioning
 - Comprehensive documentation
 
-## 🎯 Success Metrics
+## ðŸŽ¯ Success Metrics
 
 - **Developer Experience**: Reduce configuration boilerplate by 70%
 - **Type Safety**: Eliminate runtime configuration errors
 - **Performance**: Cache Key Vault calls, < 100ms config load
 - **Adoption**: Target 1000+ NuGet downloads in first month
 
-## 📚 Resources
+## ðŸ“š Resources
 
 - [Functional Programming in C#](https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-9#records)
 - [Azure Key Vault Developer Guide](https://docs.microsoft.com/en-us/azure/key-vault/)
@@ -364,4 +364,4 @@ public class ApiController : ControllerBase
 
 ---
 
-**Ready to revolutionize Azure configuration management? Let's build something awesome! 🚀**
+**Ready to revolutionize Azure configuration management? Let's build something awesome! ðŸš€**

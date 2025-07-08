@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 # FluentAzure Code Formatting & Style Check Script for Linux/Mac
 # Usage: ./scripts/format.sh [--check] [--severity info|warn|error]
@@ -33,12 +33,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 cd "$PROJECT_ROOT"
 
-echo "🔍 FluentAzure Code Formatting & Style Check"
+echo "ðŸ” FluentAzure Code Formatting & Style Check"
 echo "Project Root: $PROJECT_ROOT"
 
 # Step 1: Format code
 echo ""
-echo "📝 Step 1: Formatting code..."
+echo "ðŸ“ Step 1: Formatting code..."
 
 if [ "$CHECK_MODE" = true ]; then
     echo "Running in check mode (no changes will be made)..."
@@ -49,54 +49,54 @@ else
 fi
 
 if [ $? -ne 0 ]; then
-    echo "❌ Code formatting failed!"
+    echo "âŒ Code formatting failed!"
     exit 1
 fi
-echo "✅ Code formatting completed successfully!"
+echo "âœ… Code formatting completed successfully!"
 
 # Step 2: Build the project
 echo ""
-echo "🔨 Step 2: Building project..."
+echo "ðŸ”¨ Step 2: Building project..."
 
 dotnet build --configuration Release --no-restore
 if [ $? -ne 0 ]; then
-    echo "❌ Build failed!"
+    echo "âŒ Build failed!"
     exit 1
 fi
-echo "✅ Build completed successfully!"
+echo "âœ… Build completed successfully!"
 
 # Step 3: Run tests
 echo ""
-echo "🧪 Step 3: Running tests..."
+echo "ðŸ§ª Step 3: Running tests..."
 
 dotnet test --configuration Release --no-build --logger "console;verbosity=normal"
 if [ $? -ne 0 ]; then
-    echo "❌ Tests failed!"
+    echo "âŒ Tests failed!"
     exit 1
 fi
-echo "✅ All tests passed!"
+echo "âœ… All tests passed!"
 
 # Step 4: Code analysis summary
 echo ""
-echo "📊 Step 4: Code analysis summary..."
+echo "ðŸ“Š Step 4: Code analysis summary..."
 
 BUILD_OUTPUT=$(dotnet build --configuration Release --verbosity minimal 2>&1)
 WARNINGS=$(echo "$BUILD_OUTPUT" | grep -i "warning" || true)
 ERRORS=$(echo "$BUILD_OUTPUT" | grep -i "error" || true)
 
 if [ -n "$ERRORS" ]; then
-    echo "❌ Found errors:"
+    echo "âŒ Found errors:"
     echo "$ERRORS"
     exit 1
 fi
 
 if [ -n "$WARNINGS" ]; then
-    echo "⚠️  Found warnings:"
+    echo "âš ï¸  Found warnings:"
     echo "$WARNINGS"
 else
-    echo "✅ No warnings found!"
+    echo "âœ… No warnings found!"
 fi
 
 echo ""
-echo "🎉 Code formatting and style check completed successfully!"
-echo "Project is ready for commit! 🚀"
+echo "ðŸŽ‰ Code formatting and style check completed successfully!"
+echo "Project is ready for commit! ðŸš€"

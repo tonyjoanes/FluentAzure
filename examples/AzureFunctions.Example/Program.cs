@@ -1,4 +1,4 @@
-using AzureFunctions.Example.Configuration;
+﻿using AzureFunctions.Example.Configuration;
 using AzureFunctions.Example.Services;
 using FluentAzure.Core;
 using FluentAzure.Extensions;
@@ -33,7 +33,7 @@ var host = new HostBuilder()
             return configResult.Match(
                 success =>
                 {
-                    logger.LogInformation("✅ Configuration loaded successfully");
+                    logger.LogInformation("âœ… Configuration loaded successfully");
                     logger.LogInformation("Database: {Database}", success.Database.Host);
                     logger.LogInformation(
                         "Service Bus: {ServiceBus}",
@@ -45,7 +45,7 @@ var host = new HostBuilder()
                 errors =>
                 {
                     logger.LogError(
-                        "❌ Configuration failed to load: {Errors}",
+                        "âŒ Configuration failed to load: {Errors}",
                         string.Join(", ", errors)
                     );
                     throw new InvalidOperationException(

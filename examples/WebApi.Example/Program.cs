@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using FluentAzure.Core;
 using FluentAzure.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -169,7 +169,7 @@ app.MapControllers();
 
 // Log configuration summary
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
-logger.LogInformation("🚀 Web API started with configuration:");
+logger.LogInformation("ðŸš€ Web API started with configuration:");
 logger.LogInformation("Database: {Database}", config.Database.Name);
 logger.LogInformation("Storage: {Storage}", config.Storage.AccountName);
 logger.LogInformation("Service Bus: {ServiceBus}", config.ServiceBus.Namespace);

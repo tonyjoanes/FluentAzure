@@ -1,4 +1,4 @@
-using FluentAzure.Core;
+﻿using FluentAzure.Core;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FluentAzure.Extensions;

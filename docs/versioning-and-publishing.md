@@ -1,4 +1,4 @@
-# Versioning and Publishing Guide
+﻿# Versioning and Publishing Guide
 
 This document explains how the automated versioning, packaging, and publishing system works for FluentAzure.
 
@@ -32,7 +32,7 @@ Examples:
 1. **NuGet API Key**: Add `NUGET_API_KEY` to your GitHub repository secrets
    - Go to [NuGet.org](https://www.nuget.org/account/apikeys)
    - Create a new API key
-   - Add it to your repository: Settings → Secrets and variables → Actions → New repository secret
+   - Add it to your repository: Settings â†’ Secrets and variables â†’ Actions â†’ New repository secret
 
 2. **Codecov Token** (optional): Add `CODECOV_TOKEN` for coverage reporting
 

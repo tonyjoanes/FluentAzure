@@ -1,4 +1,4 @@
-using Azure.Identity;
+﻿using Azure.Identity;
 using FluentAssertions;
 using FluentAzure.Sources;
 using Microsoft.Extensions.Logging;

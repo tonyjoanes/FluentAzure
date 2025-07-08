@@ -1,4 +1,4 @@
-# Codecov Integration Setup
+﻿# Codecov Integration Setup
 
 This guide explains how to set up Codecov integration for the FluentAzure project.
 

@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+﻿name: CI/CD Pipeline
 
 on:
   push:
@@ -110,11 +110,11 @@ jobs:
     - name: Check for vulnerabilities
       run: |
         if grep -q "has the following vulnerable packages" security-audit.log; then
-          echo "❌ Vulnerable packages found!"
+          echo "âŒ Vulnerable packages found!"
           cat security-audit.log
           exit 1
         else
-          echo "✅ No vulnerable packages found"
+          echo "âœ… No vulnerable packages found"
         fi
 
     # Upload security audit results as artifact

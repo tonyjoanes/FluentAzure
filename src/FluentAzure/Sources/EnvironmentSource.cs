@@ -1,4 +1,4 @@
-using FluentAzure.Core;
+﻿using FluentAzure.Core;
 
 namespace FluentAzure.Sources;
 

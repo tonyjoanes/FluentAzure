@@ -1,33 +1,33 @@
-# FluentAzure Real-World Examples
+﻿# FluentAzure Real-World Examples
 
 This directory contains comprehensive, production-ready examples demonstrating how to use FluentAzure's strongly-typed configuration in real-world scenarios.
 
-## 🚀 Examples Overview
+## ðŸš€ Examples Overview
 
 ### 1. Azure Functions Example
 **Location**: `AzureFunctions.Example/`
 
 A complete Azure Functions v4 application demonstrating:
-- ✅ **Strongly-typed configuration** with validation
-- ✅ **Key Vault integration** for secrets management
-- ✅ **Health check function** with comprehensive service monitoring
-- ✅ **Dependency injection** with configuration-driven services
-- ✅ **Telemetry and logging** with Application Insights
-- ✅ **Error handling** and graceful degradation
+- âœ… **Strongly-typed configuration** with validation
+- âœ… **Key Vault integration** for secrets management
+- âœ… **Health check function** with comprehensive service monitoring
+- âœ… **Dependency injection** with configuration-driven services
+- âœ… **Telemetry and logging** with Application Insights
+- âœ… **Error handling** and graceful degradation
 
 ### 2. Web API Example
 **Location**: `WebApi.Example/`
 
 A full-featured ASP.NET Core Web API demonstrating:
-- ✅ **Enterprise-level configuration** with multiple sources
-- ✅ **JWT authentication** with strongly-typed settings
-- ✅ **Entity Framework** integration with configuration
-- ✅ **Rate limiting** and security features
-- ✅ **File upload** with Azure Storage
-- ✅ **CORS and security** configuration
-- ✅ **Swagger/OpenAPI** documentation
+- âœ… **Enterprise-level configuration** with multiple sources
+- âœ… **JWT authentication** with strongly-typed settings
+- âœ… **Entity Framework** integration with configuration
+- âœ… **Rate limiting** and security features
+- âœ… **File upload** with Azure Storage
+- âœ… **CORS and security** configuration
+- âœ… **Swagger/OpenAPI** documentation
 
-## 🛠️ Getting Started
+## ðŸ› ï¸ Getting Started
 
 ### Prerequisites
 - .NET 8.0 SDK
@@ -74,7 +74,7 @@ dotnet run
 - Rate limiting and security
 - Swagger documentation
 
-## 📋 Configuration Examples
+## ðŸ“‹ Configuration Examples
 
 ### Azure Functions Configuration
 
@@ -110,7 +110,7 @@ var configResult = await FluentAzure
     .Bind<WebApiConfiguration>();
 ```
 
-## 🏗️ Architecture Patterns
+## ðŸ—ï¸ Architecture Patterns
 
 ### 1. Configuration-Driven Services
 
@@ -137,12 +137,12 @@ public class DatabaseService : IDatabaseService
 var config = configResult.Match(
     success =>
     {
-        logger.LogInformation("✅ Configuration loaded successfully");
+        logger.LogInformation("âœ… Configuration loaded successfully");
         return success;
     },
     errors =>
     {
-        logger.LogError("❌ Configuration failed: {Errors}", string.Join(", ", errors));
+        logger.LogError("âŒ Configuration failed: {Errors}", string.Join(", ", errors));
         throw new InvalidOperationException($"Configuration failed: {string.Join(", ", errors)}");
     }
 );
@@ -163,7 +163,7 @@ if (_config.Security.EnableAuditLogging)
 }
 ```
 
-## 🔧 Configuration Sources
+## ðŸ”§ Configuration Sources
 
 ### Environment Variables
 ```bash
@@ -200,7 +200,7 @@ Jwt__Issuer="https://your-api.com"
 }
 ```
 
-## 🧪 Testing the Examples
+## ðŸ§ª Testing the Examples
 
 ### Azure Functions Testing
 
@@ -250,7 +250,7 @@ Jwt__Issuer="https://your-api.com"
         http://localhost:5000/api/users
    ```
 
-## 🔒 Security Features
+## ðŸ”’ Security Features
 
 ### JWT Authentication
 ```csharp
@@ -299,7 +299,7 @@ private bool ValidatePasswordStrength(string password)
 }
 ```
 
-## 📊 Monitoring and Telemetry
+## ðŸ“Š Monitoring and Telemetry
 
 ### Application Insights Integration
 ```csharp
@@ -316,13 +316,13 @@ if (config.Telemetry.EnableTelemetry)
 ### Structured Logging
 ```csharp
 // Configuration-aware logging
-logger.LogInformation("🚀 Web API started with configuration:");
+logger.LogInformation("ðŸš€ Web API started with configuration:");
 logger.LogInformation("Database: {Database}", config.Database.Name);
 logger.LogInformation("Storage: {Storage}", config.Storage.AccountName);
 logger.LogInformation("Service Bus: {ServiceBus}", config.ServiceBus.Namespace);
 ```
 
-## 🚀 Production Deployment
+## ðŸš€ Production Deployment
 
 ### Azure Functions Deployment
 ```bash
@@ -357,7 +357,7 @@ else
 }
 ```
 
-## 🎯 Best Practices Demonstrated
+## ðŸŽ¯ Best Practices Demonstrated
 
 1. **Configuration Validation**: All configuration is validated at startup
 2. **Error Handling**: Graceful handling of configuration errors
@@ -367,7 +367,7 @@ else
 6. **Maintainability**: Clean separation of concerns
 7. **Testability**: Dependency injection for easy testing
 
-## 📚 Additional Resources
+## ðŸ“š Additional Resources
 
 - [FluentAzure Documentation](../docs/)
 - [Azure Functions Documentation](https://docs.microsoft.com/en-us/azure/azure-functions/)
@@ -376,4 +376,4 @@ else
 
 ---
 
-**Ready to build robust, configuration-driven applications? These examples show you how! 🚀** 
+**Ready to build robust, configuration-driven applications? These examples show you how! ðŸš€** 

@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 <#
 .SYNOPSIS
     Create a new release tag for FluentAzure
@@ -38,7 +38,7 @@ param(
 
 # Validate version format
 if ($Version -notmatch '^\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?$') {
-    Write-Host "❌ Invalid version format. Use format: MAJOR.MINOR.PATCH[-PRERELEASE]" -ForegroundColor Red
+    Write-Host "âŒ Invalid version format. Use format: MAJOR.MINOR.PATCH[-PRERELEASE]" -ForegroundColor Red
     Write-Host "Examples: 1.0.0, 2.1.0-alpha.1, 3.0.0-beta.2" -ForegroundColor Yellow
     exit 1
 }
@@ -57,14 +57,14 @@ Write-Host "Message: $Message" -ForegroundColor Cyan
 # Check if tag already exists
 $ExistingTag = git tag -l $TagName
 if ($ExistingTag) {
-    Write-Host "❌ Tag $TagName already exists!" -ForegroundColor Red
+    Write-Host "âŒ Tag $TagName already exists!" -ForegroundColor Red
     exit 1
 }
 
 # Check if working directory is clean
 $Status = git status --porcelain
 if ($Status) {
-    Write-Host "❌ Working directory is not clean. Please commit or stash changes first." -ForegroundColor Red
+    Write-Host "âŒ Working directory is not clean. Please commit or stash changes first." -ForegroundColor Red
     Write-Host "Uncommitted changes:" -ForegroundColor Yellow
     Write-Host $Status
     exit 1
@@ -73,9 +73,9 @@ if ($Status) {
 # Create annotated tag
 try {
     git tag -a $TagName -m $Message
-    Write-Host "✅ Tag $TagName created successfully" -ForegroundColor Green
+    Write-Host "âœ… Tag $TagName created successfully" -ForegroundColor Green
 } catch {
-    Write-Host "❌ Failed to create tag: $_" -ForegroundColor Red
+    Write-Host "âŒ Failed to create tag: $_" -ForegroundColor Red
     exit 1
 }
 
@@ -84,10 +84,10 @@ if ($Push) {
     Write-Host "Pushing tag to remote..." -ForegroundColor Yellow
     try {
         git push origin $TagName
-        Write-Host "✅ Tag pushed successfully" -ForegroundColor Green
-        Write-Host "🚀 GitHub Actions will automatically build and publish the package" -ForegroundColor Cyan
+        Write-Host "âœ… Tag pushed successfully" -ForegroundColor Green
+        Write-Host "ðŸš€ GitHub Actions will automatically build and publish the package" -ForegroundColor Cyan
     } catch {
-        Write-Host "❌ Failed to push tag: $_" -ForegroundColor Red
+        Write-Host "âŒ Failed to push tag: $_" -ForegroundColor Red
         Write-Host "You can push manually with: git push origin $TagName" -ForegroundColor Yellow
         exit 1
     }
@@ -96,7 +96,7 @@ if ($Push) {
     Write-Host "  git push origin $TagName" -ForegroundColor White
 }
 
-Write-Host "`n📋 Next steps:" -ForegroundColor Cyan
+Write-Host "`nðŸ“‹ Next steps:" -ForegroundColor Cyan
 Write-Host "1. Push the tag: git push origin $TagName" -ForegroundColor White
 Write-Host "2. Monitor the GitHub Actions pipeline" -ForegroundColor White
 Write-Host "3. Verify the package on NuGet.org (may take 5-10 minutes)" -ForegroundColor White

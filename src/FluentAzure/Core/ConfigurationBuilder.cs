@@ -1,4 +1,4 @@
-using FluentAzure.Binding;
+﻿using FluentAzure.Binding;
 using FluentAzure.Sources;
 
 namespace FluentAzure.Core;

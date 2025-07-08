@@ -1,4 +1,4 @@
-using AzureFunctions.Example.Configuration;
+﻿using AzureFunctions.Example.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace AzureFunctions.Example.Services;

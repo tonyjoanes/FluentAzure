@@ -1,4 +1,4 @@
-version: 2
+﻿version: 2
 updates:
   # Enable version updates for NuGet packages
   - package-ecosystem: "nuget"

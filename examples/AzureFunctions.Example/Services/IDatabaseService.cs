@@ -1,4 +1,4 @@
-namespace AzureFunctions.Example.Services;
+﻿namespace AzureFunctions.Example.Services;
 
 /// <summary>
 /// Database service interface for demonstrating configuration usage.
