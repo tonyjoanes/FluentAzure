@@ -1,4 +1,4 @@
-﻿namespace FluentAzure.Core;
+namespace FluentAzure.Core;
 
 /// <summary>
 /// Main entry point for the FluentAzure configuration pipeline.

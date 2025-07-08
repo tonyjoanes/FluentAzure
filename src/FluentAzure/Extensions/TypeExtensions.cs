@@ -1,4 +1,4 @@
-﻿/// <summary>
+/// <summary>
 /// Provides extension methods for type-related operations.
 /// </summary>
 public static class TypeExtensions

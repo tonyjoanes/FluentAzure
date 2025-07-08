@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using FluentAzure.Core;

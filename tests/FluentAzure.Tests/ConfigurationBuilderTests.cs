@@ -1,4 +1,4 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using FluentAzure.Core;
 
 namespace FluentAzure.Tests;

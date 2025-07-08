@@ -1,4 +1,4 @@
-﻿using FluentAzure.Core;
+using FluentAzure.Core;
 using FluentAzure.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;

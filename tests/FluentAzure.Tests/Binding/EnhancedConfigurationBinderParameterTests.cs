@@ -1,12 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
+using System.ComponentModel.DataAnnotations;
 using AutoFixture;
 using AutoFixture.Xunit2;
 using FluentAssertions;
 using FluentAzure.Binding;
-using FluentAzure.Core;
-using FluentAzure.Tests.Binding;
-using Xunit;
 
 namespace FluentAzure.Tests.Binding;
 

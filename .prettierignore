@@ -1,0 +1,32 @@
+# C# files
+*.cs
+*.csproj
+*.sln
+*.resx
+*.config
+
+# .NET build outputs
+bin/
+obj/
+packages/
+*.dll
+*.exe
+*.pdb
+*.nupkg
+
+# Other files that shouldn't be formatted by Prettier
+*.md
+*.yml
+*.yaml
+*.json
+*.xml
+*.txt
+*.ps1
+*.sh
+
+# Git and other system files
+.git/
+.vs/
+*.user
+*.suo
+*.cache

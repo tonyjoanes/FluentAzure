@@ -1,4 +1,4 @@
-﻿namespace FluentAzure.Tests.Binding;
+namespace FluentAzure.Tests.Binding;
 
 public enum TestEnum
 {

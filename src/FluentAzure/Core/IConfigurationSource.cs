@@ -1,4 +1,4 @@
-﻿namespace FluentAzure.Core;
+namespace FluentAzure.Core;
 
 /// <summary>
 /// Defines a configuration source that can provide configuration values.

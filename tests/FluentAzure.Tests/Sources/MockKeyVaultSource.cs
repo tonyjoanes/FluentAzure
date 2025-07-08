@@ -1,4 +1,4 @@
-﻿using FluentAzure.Core;
+using FluentAzure.Core;
 using FluentAzure.Sources;
 using Microsoft.Extensions.Logging;
 
