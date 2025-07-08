@@ -7,6 +7,14 @@ on:
   pull_request:
     branches: [ main ]
 
+# Set permissions for the entire workflow
+permissions:
+  contents: write
+  packages: write
+  issues: write
+  pull-requests: write
+  actions: read
+
 env:
   DOTNET_VERSION: '8.0.x'
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
@@ -290,13 +298,15 @@ jobs:
       env:
         NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
 
-    # Create GitHub release (optional)
+    # Create GitHub release using official action
     - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/v')
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ github.ref_name }}
-        name: Release ${{ github.ref_name }}
+        release_name: Release ${{ github.ref_name }}
         body: |
           ## What's Changed
 
@@ -309,4 +319,4 @@ jobs:
           NuGet packages are available on [NuGet.org](https://www.nuget.org/packages/FluentAzure)
         draft: false
         prerelease: true
-        generate_release_notes: true
+      continue-on-error: true
