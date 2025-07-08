@@ -6,9 +6,9 @@
     <IsPackable>true</IsPackable>
     <NoWarn>1591</NoWarn>
     <!-- Suppress missing XML comment warnings -->
-    <GenerateDocumentationFile>
-      false
-    </GenerateDocumentationFile>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- Include README in package -->
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
     <!-- Azure Configuration Packages -->
