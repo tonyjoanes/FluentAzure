@@ -1,6 +1,6 @@
 ﻿using AzureFunctions.Example.Configuration;
 using AzureFunctions.Example.Services;
-using FluentAzure.Core;
+using FluentAzure;
 using FluentAzure.Extensions;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,8 +17,7 @@ var host = new HostBuilder()
             var logger = provider.GetRequiredService<ILogger<FunctionConfiguration>>();
 
             // Build configuration using FluentAzure
-            var configResult = FluentAzure
-                .Configuration()
+            var configResult = FluentConfig()
                 .FromEnvironment()
                 .FromKeyVault(Environment.GetEnvironmentVariable("KeyVaultUrl"))
                 .Required("DatabaseConnectionString")

@@ -1,4 +1,4 @@
-﻿using FluentAzure.Core;
+﻿using FluentAzure;
 using FluentAzure.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,180 +43,63 @@ public static class ServiceCollectionExample
     {
         var services = new ServiceCollection();
 
-        // Basic usage - binds AppSettings and registers it as a singleton
-        services.AddFluentAzure<AppSettings>(config =>
-            config
-                .FromEnvironment()
+        services.AddFluentAzure<AppSettings>(builder =>
+            builder
                 .FromJsonFile("appsettings.json")
-                .Required("AppName")
+                .FromEnvironment()
+                .Required("App:Name")
                 .Required("Database:ConnectionString")
-                .Required("Api:ApiKey")
                 .Optional("Debug", "false")
-                .Optional("Database:TimeoutSeconds", "30")
-                .Optional("Api:TimeoutSeconds", "60")
         );
 
         var serviceProvider = services.BuildServiceProvider();
-        var appSettings = serviceProvider.GetRequiredService<AppSettings>();
+        var config = serviceProvider.GetRequiredService<AppSettings>();
 
-        Console.WriteLine($"App: {appSettings.AppName} v{appSettings.Version}");
-        Console.WriteLine($"Database: {appSettings.Database.ConnectionString}");
-        Console.WriteLine($"API: {appSettings.Api.BaseUrl}");
+        Console.WriteLine($"App: {config.AppName}");
+        Console.WriteLine($"Version: {config.Version}");
+        Console.WriteLine($"Debug: {config.Debug}");
     }
 
     /// <summary>
-    /// Demonstrates usage with factory method.
+    /// Demonstrates advanced usage with Key Vault and validation.
     /// </summary>
-    public static void WithFactoryMethod()
+    public static void AdvancedUsage()
     {
         var services = new ServiceCollection();
 
-        // Register with factory method (note: always registers as singleton)
         services.AddFluentAzure<AppSettings>(
-            config =>
-                config
-                    .FromEnvironment()
+            builder =>
+                builder
                     .FromJsonFile("appsettings.json")
-                    .Required("AppName")
-                    .Required("Database:ConnectionString"),
-            settings =>
-            {
-                // You can add custom logic here if needed
-                return settings;
-            }
-        );
-
-        var serviceProvider = services.BuildServiceProvider();
-        var appSettings = serviceProvider.GetRequiredService<AppSettings>();
-
-        Console.WriteLine($"Factory method configured: {appSettings.AppName}");
-    }
-
-    /// <summary>
-    /// Demonstrates usage with Key Vault integration.
-    /// </summary>
-    public static void WithKeyVault()
-    {
-        var services = new ServiceCollection();
-
-        // Configure with Key Vault for sensitive data
-        services.AddFluentAzure<AppSettings>(config =>
-            config
-                .FromEnvironment()
-                .FromJsonFile("appsettings.json")
-                .FromKeyVault("https://your-keyvault.vault.azure.net/")
-                .Required("AppName")
-                .Required("Database:ConnectionString") // This could come from Key Vault
-                .Required("Api:ApiKey") // This could come from Key Vault
-                .Optional("Debug", "false")
-        );
-
-        var serviceProvider = services.BuildServiceProvider();
-        var appSettings = serviceProvider.GetRequiredService<AppSettings>();
-
-        Console.WriteLine("Configuration loaded with Key Vault integration");
-    }
-
-    /// <summary>
-    /// Demonstrates usage with factory method for post-processing.
-    /// </summary>
-    public static void WithFactory()
-    {
-        var services = new ServiceCollection();
-
-        // Use factory to modify configuration after binding
-        services.AddFluentAzure<AppSettings>(
-            config =>
-                config
                     .FromEnvironment()
-                    .FromJsonFile("appsettings.json")
-                    .Required("AppName")
-                    .Required("Database:ConnectionString"),
-            settings =>
-            {
-                // Post-process the configuration
-                if (string.IsNullOrEmpty(settings.Version))
-                {
-                    settings.Version = "1.0.0";
-                }
-
-                // Add environment-specific modifications
-                if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
-                {
-                    settings.Debug = true;
-                }
-
-                return settings;
-            }
-        );
-
-        var serviceProvider = services.BuildServiceProvider();
-        var appSettings = serviceProvider.GetRequiredService<AppSettings>();
-
-        Console.WriteLine($"Post-processed config: {appSettings.AppName} v{appSettings.Version}");
-    }
-
-    /// <summary>
-    /// Demonstrates usage in a typical ASP.NET Core Program.cs scenario.
-    /// </summary>
-    public static void AspNetCoreExample()
-    {
-        // This is what you would typically put in Program.cs or Startup.cs
-        var builder = WebApplication.CreateBuilder();
-
-        // Add FluentAzure configuration
-        builder.Services.AddFluentAzure<AppSettings>(config =>
-            config
-                .FromEnvironment()
-                .FromJsonFile("appsettings.json")
-                .FromJsonFile(
-                    $"appsettings.{builder.Environment.EnvironmentName}.json",
-                    optional: true
-                )
-                .FromKeyVault("https://your-keyvault.vault.azure.net/")
-                .Required("AppName")
-                .Required("Database:ConnectionString")
-                .Required("Api:ApiKey")
-                .Optional("Debug", "false")
-                .Validate(
-                    "Database:TimeoutSeconds",
-                    timeout =>
+                    .FromKeyVault("https://my-keyvault.vault.azure.net/")
+                    .Required("App:Name")
+                    .Required("Database:ConnectionString")
+                    .Required("Api:ApiKey")
+                    .Optional("Debug", "false")
+                    .Validate("Database:TimeoutSeconds", timeout =>
                     {
-                        if (int.TryParse(timeout, out var seconds) && seconds > 0 && seconds <= 300)
+                        if (int.TryParse(timeout, out var seconds) && seconds > 0)
                         {
                             return Result<string>.Success(timeout);
                         }
-                        return Result<string>.Error(
-                            "Database timeout must be between 1-300 seconds"
-                        );
-                    }
-                )
+                        return Result<string>.Error("Timeout must be a positive integer");
+                    }),
+            config =>
+            {
+                // Post-processing: ensure API URL ends with trailing slash
+                if (!config.Api.BaseUrl.EndsWith("/"))
+                {
+                    config.Api.BaseUrl += "/";
+                }
+                return config;
+            }
         );
 
-        // Now you can inject AppSettings into your controllers/services
-        builder.Services.AddControllers();
-        builder.Services.AddScoped<MyService>();
+        var serviceProvider = services.BuildServiceProvider();
+        var appConfig = serviceProvider.GetRequiredService<AppSettings>();
 
-        var app = builder.Build();
-        app.Run();
-    }
-
-    /// <summary>
-    /// Example service that uses the injected configuration.
-    /// </summary>
-    public class MyService
-    {
-        private readonly AppSettings _settings;
-
-        public MyService(AppSettings settings)
-        {
-            _settings = settings;
-        }
-
-        public void DoSomething()
-        {
-            Console.WriteLine($"Using configuration: {_settings.AppName}");
-            // Use the configuration...
-        }
+        Console.WriteLine($"App: {appConfig.AppName}");
+        Console.WriteLine($"API Base URL: {appConfig.Api.BaseUrl}");
     }
 }

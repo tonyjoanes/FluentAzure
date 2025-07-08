@@ -358,9 +358,9 @@ public class UsersController : ControllerBase
             var fileName =
                 $"profile-pictures/{user.Id}/{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
             var fileUrl = await _fileService.UploadFileAsync(
-                _config.Storage.DefaultContainer,
+                file.OpenReadStream(),
                 fileName,
-                file.OpenReadStream()
+                file.ContentType
             );
 
             // Update user profile picture URL

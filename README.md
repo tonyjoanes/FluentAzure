@@ -36,11 +36,12 @@ var timeout = int.Parse(config["Timeout"] ?? "30");
 // ... more boilerplate
 ```
 
-Write this fluent pipeline:
+Write this ultra-clean pipeline:
 ```csharp
-// FluentAzure approach - clean and safe
-var config = await FluentAzure
-    .Configuration()
+// FluentAzure approach - ultra clean and safe
+using FluentAzure; // Single using statement!
+
+var config = await FluentConfig()  // Ultra clean - just FluentConfig()!
     .FromEnvironment()
     .FromKeyVault("https://myvault.vault.azure.net")
     .Required("ConnectionString")
@@ -66,10 +67,23 @@ Or add to your `.csproj`:
 
 ## 📖 Example Usage Patterns
 
-#### **Simple Configuration**
+#### **Ultra Clean Configuration (Recommended)**
 ```csharp
+using FluentAzure; // Single using statement!
+
+var config = await FluentConfig()  // Ultra clean - just FluentConfig()!
+    .FromEnvironment()
+    .Required("DATABASE_URL")
+    .Optional("CACHE_TTL", "300")
+    .BuildAsync();
+```
+
+#### **Clean Configuration (Alternative)**
+```csharp
+using FluentAzure; // Single using statement!
+
 var config = await FluentAzure
-    .Configuration()
+    .AzureConfig()  // Clean, intuitive API
     .FromEnvironment()
     .Required("DATABASE_URL")
     .Optional("CACHE_TTL", "300")
@@ -78,23 +92,24 @@ var config = await FluentAzure
 
 #### **Complex Enterprise Setup**
 ```csharp
-var config = await FluentAzure
-    .Configuration()
-    .ForEnvironment(Environment.Production)
+using FluentAzure; // Single using statement!
+
+var config = await FluentConfig()  // Ultra clean - just FluentConfig()!
     .FromJsonFile("appsettings.json")
     .FromEnvironment()
     .FromKeyVault("https://company-prod-kv.vault.azure.net")
-    .FromAppConfiguration("company-prod-appconfig")
     .Transform("ConnectionString", DecryptConnectionString)
     .Validate(c => Uri.IsWellFormedUriString(c.ServiceUrl, UriKind.Absolute))
     .Bind<AppConfiguration>()
-    .WithRefreshInterval(TimeSpan.FromMinutes(5))
     .BuildAsync();
 ```
 
 #### **Dependency Injection**
 ```csharp
 // Program.cs
+using FluentAzure;
+using FluentAzure.Extensions;
+
 builder.Services.AddFluentAzure(config => config
     .FromEnvironment()
     .FromKeyVault(builder.Configuration["KeyVault:Url"])
@@ -113,6 +128,28 @@ public class ApiController : ControllerBase
 }
 ```
 
+#### **Web API Example**
+```csharp
+// Program.cs
+using FluentAzure;
+using FluentAzure.Extensions;
+
+var configResult = await FluentConfig()  // Ultra clean - just FluentConfig()!
+    .FromJsonFile("appsettings.json")
+    .FromEnvironment()
+    .FromKeyVault(builder.Configuration["KeyVault:Url"])
+    .Required("ConnectionStrings:DefaultConnection")
+    .Required("Jwt:SecretKey")
+    .Optional("Logging:LogLevel:Default", "Information")
+    .BuildAsync()
+    .Bind<WebApiConfiguration>();
+
+var config = configResult.Match(
+    success => { builder.Services.AddSingleton(success); return success; },
+    errors => throw new InvalidOperationException($"Configuration failed: {string.Join(", ", errors)}")
+);
+```
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -121,16 +158,38 @@ public class ApiController : ControllerBase
 
 ### Quick Start
 1. Install the package: `dotnet add package FluentAzure`
-2. Add using statement: `using FluentAzure;`
-3. Use the fluent API to build your configuration
+2. Add using statement: `using FluentAzure;` (that's it!)
+3. Use the fluent API: `FluentConfig()` (ultra clean) or `FluentAzure.AzureConfig()` (clean)
 4. Handle results with the `Match` method for type-safe error handling
 
 ### Features
+- **Ultra Clean API**: Use `FluentConfig()` directly with just `using FluentAzure;`
+- **Clean API**: Single `using FluentAzure;` statement with intuitive `AzureConfig()` method
 - **Fluent API**: Chain configuration sources with readable syntax
 - **Type Safety**: Compile-time validation and runtime error handling
 - **Multiple Sources**: Environment variables, Key Vault, JSON files, and more
 - **Dependency Injection**: Seamless integration with .NET DI container
 - **Performance**: Intelligent caching and lazy loading
+
+## 🔄 API Comparison
+
+### **Ultra Clean (Recommended)**
+```csharp
+using FluentAzure;
+var config = await FluentConfig()...
+```
+
+### **Clean (Alternative)**
+```csharp
+using FluentAzure;
+var config = await FluentAzure.AzureConfig()...
+```
+
+### **Legacy (Deprecated)**
+```csharp
+using FluentAzure.Core;
+var config = await FluentAzure.Configuration()...
+```
 
 ## 🤝 Contributing
 

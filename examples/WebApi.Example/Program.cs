@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using FluentAzure.Core;
+using FluentAzure;
 using FluentAzure.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -12,8 +12,7 @@ using WebApi.Example.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure FluentAzure with strongly-typed configuration
-var configResult = await FluentAzure
-    .Configuration()
+var buildResult = await FluentConfig()
     .FromJsonFile("appsettings.json")
     .FromEnvironment()
     .FromKeyVault(builder.Configuration["KeyVault:Url"])
@@ -26,8 +25,9 @@ var configResult = await FluentAzure
     .Optional("Logging:LogLevel:Default", "Information")
     .Optional("AllowedHosts", "*")
     .Optional("Cors:AllowedOrigins", "http://localhost:3000")
-    .BuildAsync()
-    .Bind<WebApiConfiguration>();
+    .BuildAsync();
+
+var configResult = buildResult.Bind<WebApiConfiguration>();
 
 var config = configResult.Match(
     success =>

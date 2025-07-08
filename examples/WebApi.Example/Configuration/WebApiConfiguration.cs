@@ -245,6 +245,13 @@ public class SecurityConfig
     public bool EnableFrameOptions { get; set; } = true;
 
     public string FrameOptions { get; set; } = "DENY";
+
+    [Range(8, 50)]
+    public int MinPasswordLength { get; set; } = 12;
+
+    public bool RequireSpecialCharacters { get; set; } = true;
+
+    public bool EnableAuditLogging { get; set; } = true;
 }
 
 /// <summary>
