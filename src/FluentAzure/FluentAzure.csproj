@@ -4,18 +4,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
-    <PackageId>FluentAzure</PackageId>
-    <Version>1.0.0</Version>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
-    <Authors>FluentAzure Contributors</Authors>
-    <Description>A fluent, functional, and type-safe library for Azure configuration and secrets management using the Result monad pattern.</Description>
-    <PackageTags>azure;configuration;fluent;secrets;keyvault;functional;result;monad</PackageTags>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/tonyjoanes/FluentAzure</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageProjectUrl>https://github.com/tonyjoanes/FluentAzure</PackageProjectUrl>
     <NoWarn>1591</NoWarn>
     <!-- Suppress missing XML comment warnings -->
     <GenerateDocumentationFile>

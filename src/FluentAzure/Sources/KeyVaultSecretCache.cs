@@ -74,7 +74,7 @@ internal class KeyVaultSecretCache
         {
             Value = value,
             ExpiresAt = DateTime.UtcNow.Add(effectiveTtl),
-            LastAccessed = DateTime.UtcNow
+            LastAccessed = DateTime.UtcNow,
         };
 
         _cache.AddOrUpdate(key, entry, (_, _) => entry);
@@ -142,13 +142,14 @@ internal class KeyVaultSecretCache
             ["TotalEntries"] = entries.Count,
             ["ValidEntries"] = valid,
             ["ExpiredEntries"] = expired,
-            ["CacheHitRate"] = CalculateHitRate(entries)
+            ["CacheHitRate"] = CalculateHitRate(entries),
         };
     }
 
     private double CalculateHitRate(List<CacheEntry> entries)
     {
-        if (entries.Count == 0) return 0.0;
+        if (entries.Count == 0)
+            return 0.0;
 
         var recentAccesses = entries
             .Where(e => DateTime.UtcNow.Subtract(e.LastAccessed) < TimeSpan.FromMinutes(10))

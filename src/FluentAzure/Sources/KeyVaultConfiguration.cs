@@ -48,7 +48,8 @@ public class KeyVaultConfiguration
     /// Gets or sets the function to transform Key Vault secret names to configuration keys.
     /// Defaults to replacing '--' with ':' for hierarchical configuration.
     /// </summary>
-    public Func<string, string> KeyMapper { get; set; } = defaultKey => defaultKey.Replace("--", ":");
+    public Func<string, string> KeyMapper { get; set; } =
+        defaultKey => defaultKey.Replace("--", ":");
 
     /// <summary>
     /// Gets or sets the secret version to retrieve. If null, retrieves the latest version.

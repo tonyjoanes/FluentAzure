@@ -5,57 +5,61 @@
     <LangVersion>12.0</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-
     <!-- RELAXED CODE ANALYSIS FOR DEVELOPMENT -->
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <!-- Only treat specific critical warnings as errors -->
-    <WarningsAsErrors>CS0162;CS0168;CS0219</WarningsAsErrors> <!-- Unreachable code, unused variables -->
+    <WarningsAsErrors>CS0162;CS0168;CS0219</WarningsAsErrors>
+    <!-- Unreachable code, unused variables -->
     <WarningsNotAsErrors>CS1591</WarningsNotAsErrors>
     <!-- Missing XML comment for publicly visible type or member -->
-
     <!-- Code analysis settings - RELAXED -->
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
     <!-- Commenting out strict ruleset for now -->
     <!-- <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)FluentAzure.ruleset</CodeAnalysisRuleSet> -->
-
     <!-- Documentation -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-
     <!-- Source linking for debugging -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-
     <!-- Deterministic builds -->
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
     <Deterministic>true</Deterministic>
-
     <!-- Company and product info -->
     <Company>FluentAzure</Company>
     <Product>FluentAzure</Product>
     <Copyright>Copyright © FluentAzure Contributors</Copyright>
-
     <!-- Repository info -->
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/your-username/FluentAzure</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/your-username/FluentAzure</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/tonyjoanes/FluentAzure</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/tonyjoanes/FluentAzure</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-
     <!-- Build properties -->
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
+    <!-- Version Management using MinVer -->
+    <!-- MinVer will automatically determine version from Git tags -->
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
+    <!-- Assembly version (major.minor.0.0 for compatibility) -->
+    <AssemblyVersion>$(MinVerMajor).$(MinVerMinor).0.0</AssemblyVersion>
+    <!-- File version (full version for debugging) -->
+    <FileVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(MinVerBuildMetadata)</FileVersion>
+    <!-- Informational version (full version with metadata) -->
+    <InformationalVersion>$(MinVerVersion)</InformationalVersion>
+    <!-- Package version -->
+    <Version>$(MinVerVersion)</Version>
+    <PackageVersion>$(MinVerVersion)</PackageVersion>
   </PropertyGroup>
-
   <ItemGroup>
     <!-- Essential code analysis packages only -->
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-
     <!-- TEMPORARILY DISABLED FOR DEVELOPMENT -->
     <!-- Uncomment these when ready to enforce stricter code quality -->
     <!--
@@ -68,28 +72,35 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     -->
-
     <!-- Source link packages -->
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <!-- MinVer for automatic versioning from Git tags -->
+    <PackageReference Include="MinVer" Version="4.3.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
-
   <!-- Test project specific settings -->
   <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
     <IsPackable>false</IsPackable>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
-
   <!-- Main library project specific settings -->
   <PropertyGroup Condition="'$(IsPackable)' == 'true'">
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageTags>azure;configuration;fluent;secrets;keyvault;functional;result;monad</PackageTags>
-    <PackageReleaseNotes>See https://github.com/your-username/FluentAzure/releases for release notes.</PackageReleaseNotes>
+    <PackageReleaseNotes>See https://github.com/tonyjoanes/FluentAzure/releases for release notes.</PackageReleaseNotes>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <!-- Pre-release package settings -->
+    <PackageVersion>$(Version)</PackageVersion>
+    <PackageId>FluentAzure</PackageId>
+    <Authors>FluentAzure Contributors</Authors>
+    <Description>A fluent, functional, and type-safe library for Azure configuration and secrets management using the Result monad pattern.</Description>
   </PropertyGroup>
 </Project>
