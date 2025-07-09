@@ -7,6 +7,8 @@ namespace FluentAzure.Extensions;
 
 /// <summary>
 /// Extension methods for configuration binding with enhanced features.
+/// This class is used to bind configuration to a strongly-typed object.
+/// It is used in the FluentAzure.Extensions namespace.
 /// </summary>
 public static class BindingExtensions
 {

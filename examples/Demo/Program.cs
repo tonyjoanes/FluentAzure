@@ -73,8 +73,8 @@ public static class Program
 
         try
         {
-            // Ultra clean API - just FluentConfig()!
-            var buildResult = await FluentConfig() // Ultra clean!
+            // Ultra clean API - just FluentConfig.Create()!
+var buildResult = await FluentConfig.Create() // Ultra clean!
                 .FromEnvironment()
                 .Required("App:Name")
                 .Required("Database:ConnectionString")
@@ -127,7 +127,7 @@ public static class Program
         try
         {
             // Ultra clean API
-            var buildResult = await FluentConfig() // Ultra clean!
+            var buildResult = await FluentConfig.Create() // Ultra clean!
                 .FromJsonFile(tempFile)
                 .FromEnvironment()
                 .Required("Api:BaseUrl")
@@ -208,8 +208,8 @@ public static class Program
         try
         {
             // Traditional approach for comparison
-            var buildResult = await FluentAzure
-                .FluentConfig() // Still clean, but requires FluentAzure prefix
+var buildResult = await FluentAzure.FluentConfig
+    .Create() // Still clean, but requires FluentAzure prefix
                 .FromEnvironment()
                 .Required("App:Name")
                 .Required("Database:ConnectionString")

@@ -55,7 +55,8 @@ public class IntegrationTests : IDisposable
         try
         {
             // Act
-            var result = await FluentConfig()
+            var result = await FluentConfig
+                .Create()
                 .FromJsonFile(appSettingsPath)
                 .FromEnvironment()
                 .Required("App__Name")
@@ -111,7 +112,8 @@ public class IntegrationTests : IDisposable
         );
 
         // Act
-        var result = await FluentConfig()
+        var result = await FluentConfig
+            .Create()
             .FromJsonFile(appSettingsPath)
             .Required("Port")
             .Required("MaxConnections")
@@ -163,7 +165,7 @@ public class IntegrationTests : IDisposable
         {
             // Act
             var result = await FluentAzure
-                .Configuration()
+                .FluentConfig.Create()
                 .FromEnvironment()
                 .Required("API_URL")
                 .Transform(
@@ -210,7 +212,7 @@ public class IntegrationTests : IDisposable
 
         // Act
         var result = await FluentAzure
-            .Configuration()
+            .FluentConfig.Create()
             .FromJsonFile(appSettingsPath)
             .Required("App__Name")
             .Required("Database__ConnectionString")
@@ -264,7 +266,7 @@ public class IntegrationTests : IDisposable
         {
             // Act
             var result = await FluentAzure
-                .Configuration()
+                .FluentConfig.Create()
                 .FromJsonFile(lowPriorityPath, priority: 100)
                 .FromJsonFile(highPriorityPath, priority: 200)
                 .FromEnvironment(priority: 300) // Highest priority
@@ -311,10 +313,7 @@ public class IntegrationTests : IDisposable
         );
 
         // Act
-        var result = await FluentAzure
-            .Configuration()
-            .FromJsonFile(complexPath)
-            .BuildAsync();
+        var result = await FluentAzure.FluentConfig.Create().FromJsonFile(complexPath).BuildAsync();
 
         // Assert
         result.Should().NotBeNull();
@@ -342,7 +341,7 @@ public class IntegrationTests : IDisposable
         {
             // Act
             var result = await FluentAzure
-                .Configuration()
+                .FluentConfig.Create()
                 .FromEnvironment()
                 .Required("TEST_VALUE")
                 .Transform("TEST_VALUE", value => Result<string>.Success(value.ToUpperInvariant()))
@@ -365,7 +364,7 @@ public class IntegrationTests : IDisposable
     public async Task Integration_EmptyConfiguration_ShouldReturnEmptyResult()
     {
         // Act
-        var result = await FluentAzure.Configuration().BuildAsync();
+        var result = await FluentAzure.FluentConfig.Create().BuildAsync();
 
         // Assert
         result.Should().NotBeNull();
@@ -378,7 +377,7 @@ public class IntegrationTests : IDisposable
     {
         // Act
         var result = await FluentAzure
-            .Configuration()
+            .FluentConfig.Create()
             .Optional("MissingKey1", "default1")
             .Optional("MissingKey2", "default2")
             .BuildAsync();

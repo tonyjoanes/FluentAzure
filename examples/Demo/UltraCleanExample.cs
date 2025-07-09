@@ -2,6 +2,7 @@ using FluentAzure;
 using FluentAzure.Core;
 using FluentAzure.Extensions;
 using Microsoft.Extensions.DependencyInjection;
+
 // FluentConfig() is available via GlobalUsings.cs
 
 namespace FluentAzure.Examples;
@@ -48,12 +49,16 @@ public static class UltraCleanExample
 
         // Set up some environment variables for testing
         Environment.SetEnvironmentVariable("App__Name", "UltraCleanApp");
-        Environment.SetEnvironmentVariable("Database__ConnectionString", "Server=localhost;Database=ultraclean");
+        Environment.SetEnvironmentVariable(
+            "Database__ConnectionString",
+            "Server=localhost;Database=ultraclean"
+        );
 
         try
         {
-            // Ultra clean - just FluentConfig()! No FluentAzure prefix needed!
-            var buildResult = await FluentConfig()  // This is as clean as it gets!
+            // Ultra clean - just FluentConfig.Create()! No FluentAzure prefix needed!
+            var buildResult = await FluentConfig
+                .Create() // This is as clean as it gets!
                 .FromEnvironment()
                 .Required("App:Name")
                 .Required("Database:ConnectionString")
@@ -94,7 +99,9 @@ public static class UltraCleanExample
 
         // Create a temporary JSON file for testing
         var tempFile = Path.GetTempFileName();
-        await File.WriteAllTextAsync(tempFile, """
+        await File.WriteAllTextAsync(
+            tempFile,
+            """
             {
                 "Api": {
                     "BaseUrl": "https://api.ultraclean.com",
@@ -104,30 +111,38 @@ public static class UltraCleanExample
                     "MaxConnections": 200
                 }
             }
-            """);
+            """
+        );
 
         try
         {
-            // Ultra clean advanced usage - just FluentConfig()!
-            var buildResult = await FluentConfig()  // Still just FluentConfig()!
+            // Ultra clean advanced usage - just FluentConfig.Create()!
+            var buildResult = await FluentConfig
+                .Create() // Still just FluentConfig.Create()!
                 .FromJsonFile(tempFile)
                 .FromEnvironment()
                 .Required("Api:BaseUrl")
                 .Required("Api:TimeoutSeconds")
                 .Optional("Database:MaxConnections", "100")
-                .Validate("Api:TimeoutSeconds", timeout =>
-                {
-                    if (int.TryParse(timeout, out var seconds) && seconds > 0 && seconds <= 300)
+                .Validate(
+                    "Api:TimeoutSeconds",
+                    timeout =>
                     {
-                        return Result<string>.Success(timeout);
+                        if (int.TryParse(timeout, out var seconds) && seconds > 0 && seconds <= 300)
+                        {
+                            return Result<string>.Success(timeout);
+                        }
+                        return Result<string>.Error("API timeout must be between 1-300 seconds");
                     }
-                    return Result<string>.Error("API timeout must be between 1-300 seconds");
-                })
-                .Transform("Api:BaseUrl", url =>
-                {
-                    // Ensure URL ends with trailing slash
-                    return Result<string>.Success(url.EndsWith("/") ? url : url + "/");
-                })
+                )
+                .Transform(
+                    "Api:BaseUrl",
+                    url =>
+                    {
+                        // Ensure URL ends with trailing slash
+                        return Result<string>.Success(url.EndsWith("/") ? url : url + "/");
+                    }
+                )
                 .BuildAsync();
 
             var result = buildResult.Bind<AppSettings>();
@@ -188,16 +203,20 @@ public static class UltraCleanExample
 
         // Set up environment variables
         Environment.SetEnvironmentVariable("App__Name", "ComparisonApp");
-        Environment.SetEnvironmentVariable("Database__ConnectionString", "Server=localhost;Database=comparison");
+        Environment.SetEnvironmentVariable(
+            "Database__ConnectionString",
+            "Server=localhost;Database=comparison"
+        );
 
         try
         {
             // 1. Ultra Clean (Recommended)
             Console.WriteLine("\n1️⃣ Ultra Clean (Recommended):");
             Console.WriteLine("   using static FluentAzure.GlobalMethods;");
-            Console.WriteLine("   var config = await FluentConfig()...");
+            Console.WriteLine("   var config = await FluentConfig.Create()...");
 
-            var ultraCleanResult = await FluentConfig()
+            var ultraCleanResult = await FluentConfig
+                .Create()
                 .FromEnvironment()
                 .Required("App:Name")
                 .BuildAsync();
@@ -205,10 +224,10 @@ public static class UltraCleanExample
             // 2. Clean (Alternative)
             Console.WriteLine("\n2️⃣ Clean (Alternative):");
             Console.WriteLine("   using FluentAzure;");
-            Console.WriteLine("   var config = await FluentAzure.FluentConfig()...");
+            Console.WriteLine("   var config = await FluentAzure.FluentConfig.Create()...");
 
             var cleanResult = await FluentAzure
-                .FluentConfig()
+                .FluentConfig.Create()
                 .FromEnvironment()
                 .Required("App:Name")
                 .BuildAsync();
@@ -219,12 +238,14 @@ public static class UltraCleanExample
             Console.WriteLine("   var config = await FluentAzure.Configuration()...");
 
             var legacyResult = await FluentAzure
-                .Configuration()
+                .FluentConfig.Create()
                 .FromEnvironment()
                 .Required("App:Name")
                 .BuildAsync();
 
-            Console.WriteLine("\n✅ All three approaches work, but Ultra Clean is the most elegant!");
+            Console.WriteLine(
+                "\n✅ All three approaches work, but Ultra Clean is the most elegant!"
+            );
         }
         finally
         {

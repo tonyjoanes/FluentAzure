@@ -1,49 +1,62 @@
+using Microsoft.Extensions.DependencyInjection;
+
 namespace FluentAzure;
 
 /// <summary>
 /// Main entry point for the FluentAzure configuration pipeline.
-/// This is a facade that provides a cleaner API for consumers.
-///
-/// With 'using FluentAzure;' you can use:
-/// - FluentConfig() directly (ultra clean)
-/// - FluentAzure.Configuration() (clean)
+/// This provides a clean, unified API surface that requires only 'using FluentAzure;'.
 /// </summary>
-public static class FluentAzure
+public static class FluentConfig
 {
     /// <summary>
     /// Starts a new Azure configuration pipeline builder.
-    /// Clean API - FluentAzure.FluentConfig()
+    /// Main entry point - FluentConfig.Create()
     /// </summary>
     /// <returns>A new configuration builder instance.</returns>
-    public static Core.ConfigurationBuilder FluentConfig()
+    public static Core.ConfigurationBuilder Create()
     {
         return Core.FluentAzure.Configuration();
     }
 
     /// <summary>
-    /// Starts a new Azure configuration pipeline builder.
-    /// Alternative API - FluentAzure.Configuration()
+    /// Adds FluentAzure configuration to the service collection with a strongly-typed configuration object.
+    /// This method is available directly when using FluentAzure.
     /// </summary>
-    /// <returns>A new configuration builder instance.</returns>
-    public static Core.ConfigurationBuilder Configuration()
+    /// <typeparam name="T">The type of the configuration object to bind.</typeparam>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The configuration builder action.</param>
+    /// <returns>The service collection for chaining.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when configuration binding fails.</exception>
+    public static IServiceCollection AddFluentAzure<T>(
+        this IServiceCollection services,
+        Func<Core.ConfigurationBuilder, Core.ConfigurationBuilder> configure
+    )
+        where T : class, new()
     {
-        return Core.FluentAzure.Configuration();
+        return Extensions.ServiceCollectionExtensions.AddFluentAzure<T>(services, configure);
     }
-}
 
-/// <summary>
-/// Global static methods for ultra-clean API
-/// These methods are available directly when using FluentAzure
-/// </summary>
-public static class FluentAzureGlobalMethods
-{
     /// <summary>
-    /// Starts a new Azure configuration pipeline builder.
-    /// Ultra clean API - just FluentConfig()
+    /// Adds FluentAzure configuration to the service collection with a factory method.
+    /// This method is available directly when using FluentAzure.
     /// </summary>
-    /// <returns>A new configuration builder instance.</returns>
-    public static Core.ConfigurationBuilder FluentConfig()
+    /// <typeparam name="T">The type of the configuration object to bind.</typeparam>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The configuration builder action.</param>
+    /// <param name="factory">Factory method to create the configuration object.</param>
+    /// <returns>The service collection for chaining.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when configuration binding fails.</exception>
+    public static IServiceCollection AddFluentAzure<T>(
+        this IServiceCollection services,
+        Func<Core.ConfigurationBuilder, Core.ConfigurationBuilder> configure,
+        Func<T, T> factory
+    )
+        where T : class, new()
     {
-        return Core.FluentAzure.Configuration();
+        return Extensions.ServiceCollectionExtensions.AddFluentAzure<T>(
+            services,
+            configure,
+            factory
+        );
     }
 }

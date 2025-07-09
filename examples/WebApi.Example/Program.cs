@@ -12,7 +12,8 @@ using WebApi.Example.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure FluentAzure with strongly-typed configuration
-var buildResult = await FluentConfig()
+var buildResult = await FluentConfig
+    .Create()
     .FromJsonFile("appsettings.json")
     .FromEnvironment()
     .FromKeyVault(builder.Configuration["KeyVault:Url"])

@@ -17,7 +17,7 @@ var host = new HostBuilder()
             var logger = provider.GetRequiredService<ILogger<FunctionConfiguration>>();
 
             // Build configuration using FluentAzure
-            var configResult = FluentConfig()
+            var configResult = FluentConfig.Create()
                 .FromEnvironment()
                 .FromKeyVault(Environment.GetEnvironmentVariable("KeyVaultUrl"))
                 .Required("DatabaseConnectionString")
