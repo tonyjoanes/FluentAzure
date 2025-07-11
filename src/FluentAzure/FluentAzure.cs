@@ -1,6 +1,6 @@
-using Microsoft.Extensions.DependencyInjection;
 using FluentAzure.Binding;
 using FluentAzure.Core;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FluentAzure;
 

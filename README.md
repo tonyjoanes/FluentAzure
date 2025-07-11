@@ -63,7 +63,7 @@ dotnet add package FluentAzure
 
 Or add to your `.csproj`:
 ```xml
-<PackageReference Include="FluentAzure" Version="1.0.0" />
+<PackageReference Include="FluentAzure" Version="0.2.0-rc.3" />
 ```
 
 ## 📖 Example Usage Patterns
