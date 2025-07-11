@@ -1,6 +1,4 @@
 using FluentAzure;
-using FluentAzure.Core;
-using FluentAzure.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
 // FluentConfig() is available via GlobalUsings.cs
@@ -66,11 +64,11 @@ public static class UltraCleanExample
                 .Optional("Version", "2.0.0")
                 .BuildAsync();
 
-            var result = buildResult.Bind<AppSettings>();
+            var configResult = buildResult.Bind<AppSettings>();
 
-            if (result.IsSuccess)
+            if (configResult.IsSuccess)
             {
-                var config = result.Value!;
+                var config = configResult.Value!;
                 Console.WriteLine($"✅ App Name: {config.AppName}");
                 Console.WriteLine($"✅ Version: {config.Version}");
                 Console.WriteLine($"✅ Debug: {config.Debug}");
@@ -78,7 +76,9 @@ public static class UltraCleanExample
             }
             else
             {
-                Console.WriteLine($"❌ Configuration failed: {string.Join(", ", result.Errors)}");
+                Console.WriteLine(
+                    $"❌ Configuration failed: {string.Join(", ", configResult.Errors)}"
+                );
             }
         }
         finally
@@ -130,9 +130,9 @@ public static class UltraCleanExample
                     {
                         if (int.TryParse(timeout, out var seconds) && seconds > 0 && seconds <= 300)
                         {
-                            return Result<string>.Success(timeout);
+                            return Core.Result<string>.Success(timeout);
                         }
-                        return Result<string>.Error("API timeout must be between 1-300 seconds");
+                        return Core.Result<string>.Error("API timeout must be between 1-300 seconds");
                     }
                 )
                 .Transform(
@@ -140,23 +140,25 @@ public static class UltraCleanExample
                     url =>
                     {
                         // Ensure URL ends with trailing slash
-                        return Result<string>.Success(url.EndsWith("/") ? url : url + "/");
+                        return Core.Result<string>.Success(url.EndsWith("/") ? url : url + "/");
                     }
                 )
                 .BuildAsync();
 
-            var result = buildResult.Bind<AppSettings>();
+            var configResult = buildResult.Bind<AppSettings>();
 
-            if (result.IsSuccess)
+            if (configResult.IsSuccess)
             {
-                var config = result.Value!;
+                var config = configResult.Value!;
                 Console.WriteLine($"✅ API Base URL: {config.Api.BaseUrl}");
                 Console.WriteLine($"✅ API Timeout: {config.Api.TimeoutSeconds}s");
                 Console.WriteLine($"✅ Max Connections: {config.Database.MaxConnections}");
             }
             else
             {
-                Console.WriteLine($"❌ Configuration failed: {string.Join(", ", result.Errors)}");
+                Console.WriteLine(
+                    $"❌ Configuration failed: {string.Join(", ", configResult.Errors)}"
+                );
             }
         }
         finally

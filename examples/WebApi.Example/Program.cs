@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using FluentAzure;
-using FluentAzure.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;

@@ -1,4 +1,5 @@
 using FluentAzure.Binding;
+using FluentAzure.Extensions;
 using FluentAzure.Sources;
 
 namespace FluentAzure.Core;
@@ -330,5 +331,146 @@ public class ConfigurationBuilder
                 $"Failed to bind configuration to type {typeof(T).Name}: {ex.Message}"
             );
         }
+    }
+
+    /// <summary>
+    /// Builds the configuration and returns it as an Option.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous build operation. The task result contains the configuration as an Option.</returns>
+    public async Task<Option<Dictionary<string, string>>> BuildOptionalAsync()
+    {
+        var result = await BuildAsync();
+        return result.ToOption();
+    }
+
+    /// <summary>
+    /// Builds the configuration and binds it to a strongly-typed object, returning an Option.
+    /// </summary>
+    /// <typeparam name="T">The type to bind the configuration to.</typeparam>
+    /// <returns>A task that represents the asynchronous build operation. The task result contains the bound configuration object as an Option.</returns>
+    public async Task<Option<T>> BuildOptionalAsync<T>()
+        where T : class, new()
+    {
+        var result = await BuildAsync<T>();
+        return result.ToOption();
+    }
+
+    /// <summary>
+    /// Specifies a configuration key that should be validated as an Option.
+    /// </summary>
+    /// <param name="key">The configuration key to validate</param>
+    /// <param name="validator">The validation function that returns an Option</param>
+    /// <returns>The configuration builder for method chaining</returns>
+    public ConfigurationBuilder ValidateOptional(string key, Func<string, Option<string>> validator)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(key);
+        ArgumentNullException.ThrowIfNull(validator);
+
+        _validations.Add(config =>
+        {
+            if (!config.TryGetValue(key, out var value))
+            {
+                // Key doesn't exist, can't validate it
+                return Result<string>.Success("");
+            }
+
+            var validationOption = validator(value);
+            return validationOption.Match(
+                some => Result<string>.Success(""),
+                () => Result<string>.Error($"Validation failed for key '{key}'")
+            );
+        });
+        return this;
+    }
+
+    /// <summary>
+    /// Specifies a configuration key that should be validated with a predicate, returning an Option.
+    /// </summary>
+    /// <param name="key">The configuration key to validate</param>
+    /// <param name="predicate">The validation predicate</param>
+    /// <param name="errorMessage">The error message if validation fails</param>
+    /// <returns>The configuration builder for method chaining</returns>
+    public ConfigurationBuilder ValidateOptional(string key, Func<string, bool> predicate, string errorMessage)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(key);
+        ArgumentNullException.ThrowIfNull(predicate);
+        ArgumentNullException.ThrowIfNull(errorMessage);
+
+        return ValidateOptional(key, value => predicate(value) ? Option<string>.Some(value) : Option<string>.None());
+    }
+
+    /// <summary>
+    /// Specifies an optional configuration key that returns an Option.
+    /// </summary>
+    /// <param name="key">The configuration key</param>
+    /// <returns>The configuration builder for method chaining</returns>
+    public ConfigurationBuilder Optional(string key)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(key);
+        // For optional keys without defaults, we just track them but don't require them
+        // This allows for Option-based access later
+        return this;
+    }
+
+    /// <summary>
+    /// Specifies a configuration key that should be transformed using an Option-based function.
+    /// </summary>
+    /// <param name="key">The configuration key to transform</param>
+    /// <param name="transform">The transformation function that returns an Option</param>
+    /// <returns>The configuration builder for method chaining</returns>
+    public ConfigurationBuilder TransformOptional(string key, Func<string, Option<string>> transform)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(key);
+        ArgumentNullException.ThrowIfNull(transform);
+
+        _transformations.Add(config =>
+        {
+            if (!config.TryGetValue(key, out var value))
+            {
+                // Key doesn't exist, nothing to transform
+                return Task.FromResult(Result<Dictionary<string, string>>.Success(config));
+            }
+
+            var transformOption = transform(value);
+            return transformOption.Match(
+                some =>
+                {
+                    var newConfig = new Dictionary<string, string>(config);
+                    newConfig[key] = some;
+                    return Task.FromResult(Result<Dictionary<string, string>>.Success(newConfig));
+                },
+                () => Task.FromResult(Result<Dictionary<string, string>>.Error($"Transformation failed for key '{key}'"))
+            );
+        });
+        return this;
+    }
+
+    /// <summary>
+    /// Specifies a configuration key that should be transformed with a fallback value.
+    /// </summary>
+    /// <param name="key">The configuration key to transform</param>
+    /// <param name="transform">The transformation function</param>
+    /// <param name="fallback">The fallback value if transformation fails</param>
+    /// <returns>The configuration builder for method chaining</returns>
+    public ConfigurationBuilder TransformWithFallback(string key, Func<string, Option<string>> transform, string fallback)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(key);
+        ArgumentNullException.ThrowIfNull(transform);
+        ArgumentNullException.ThrowIfNull(fallback);
+
+        _transformations.Add(config =>
+        {
+            if (!config.TryGetValue(key, out var value))
+            {
+                // Key doesn't exist, nothing to transform
+                return Task.FromResult(Result<Dictionary<string, string>>.Success(config));
+            }
+
+            var transformOption = transform(value);
+            var newConfig = new Dictionary<string, string>(config);
+            newConfig[key] = transformOption.GetValueOrDefault(fallback);
+            return Task.FromResult(Result<Dictionary<string, string>>.Success(newConfig));
+        });
+        return this;
     }
 }

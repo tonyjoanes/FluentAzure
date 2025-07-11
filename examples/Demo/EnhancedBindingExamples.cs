@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
+using FluentAzure;
 using FluentAzure.Binding;
 using FluentAzure.Core;
 using FluentAzure.Extensions;
@@ -7,7 +8,7 @@ using FluentAzure.Extensions;
 namespace Demo;
 
 /// <summary>
-/// Comprehensive examples demonstrating the enhanced configuration binding system.
+/// Simplified examples demonstrating the enhanced configuration binding system.
 /// </summary>
 public static class EnhancedBindingExamples
 {
@@ -16,7 +17,7 @@ public static class EnhancedBindingExamples
     /// </summary>
     public static async Task DemoBasicBinding()
     {
-        Console.WriteLine("\nðŸ“‹ Enhanced Binding Example 1: Basic Binding with Validation");
+        Console.WriteLine("\n📋 Enhanced Binding Example 1: Basic Binding with Validation");
         Console.WriteLine(new string('-', 50));
 
         var config = new Dictionary<string, string>
@@ -33,14 +34,14 @@ public static class EnhancedBindingExamples
             ["Logging:EnableConsole"] = "true",
         };
 
-        var result = (
-            await FluentAzure.Core.FluentAzure.Configuration().FromInMemory(config).BuildAsync()
-        ).Bind<AppConfiguration>();
+        var result = (await FluentConfig.Create().FromInMemory(config).BuildAsync()).Bind(config =>
+            ConfigurationBinder.Bind<AppConfiguration>(config)
+        );
 
         result.Match(
             success =>
             {
-                Console.WriteLine("âœ… Configuration bound successfully!");
+                Console.WriteLine("✅ Configuration bound successfully!");
                 Console.WriteLine(
                     $"Database: {success.Database.Host}:{success.Database.Port}/{success.Database.Name}"
                 );
@@ -51,7 +52,7 @@ public static class EnhancedBindingExamples
             },
             errors =>
             {
-                Console.WriteLine("âŒ Binding failed:");
+                Console.WriteLine("❌ Binding failed:");
                 foreach (var error in errors)
                 {
                     Console.WriteLine($"  - {error}");
@@ -61,11 +62,11 @@ public static class EnhancedBindingExamples
     }
 
     /// <summary>
-    /// Demonstrates record type binding.
+    /// Demonstrates binding with fallback handling.
     /// </summary>
-    public static async Task DemoRecordBinding()
+    public static async Task DemoBindingWithFallback()
     {
-        Console.WriteLine("\nðŸ“‹ Enhanced Binding Example 2: Record Type Binding");
+        Console.WriteLine("\n📋 Enhanced Binding Example 2: Binding with Fallback");
         Console.WriteLine(new string('-', 50));
 
         var config = new Dictionary<string, string>
@@ -77,186 +78,43 @@ public static class EnhancedBindingExamples
             ["EnableFeature"] = "true",
         };
 
-        var result = (
-            await FluentAzure.Core.FluentAzure.Configuration().FromInMemory(config).BuildAsync()
-        ).BindRecord<AppSettings>();
+        var result = (await FluentConfig.Create().FromInMemory(config).BuildAsync()).Bind(config =>
+            ConfigurationBinder.Bind<AppConfiguration>(config)
+        );
 
         result.Match(
             success =>
             {
-                Console.WriteLine("âœ… Record bound successfully!");
-                Console.WriteLine($"App: {success.Name} v{success.Version}");
-                Console.WriteLine($"Environment: {success.Environment}");
-                Console.WriteLine($"Max Connections: {success.MaxConnections}");
-                Console.WriteLine($"Feature Enabled: {success.EnableFeature}");
+                Console.WriteLine("✅ Configuration bound successfully!");
+                Console.WriteLine($"Database: {success.Database.Host}");
+                Console.WriteLine($"API: {success.Api.BaseUrl}");
             },
             errors =>
             {
-                Console.WriteLine("âŒ Record binding failed:");
-                foreach (var error in errors)
+                Console.WriteLine("❌ Binding failed, using fallback:");
+                var fallback = new AppConfiguration
                 {
-                    Console.WriteLine($"  - {error}");
-                }
+                    Database = new DatabaseConfig
+                    {
+                        Host = "default-host",
+                        Port = 1433,
+                        Name = "default-db",
+                    },
+                    Api = new ApiConfig { BaseUrl = "https://default-api.com", Timeout = 30 },
+                    Logging = new LoggingConfig { Level = "Information", EnableConsole = true },
+                };
+                Console.WriteLine($"Database: {fallback.Database.Host}");
+                Console.WriteLine($"API: {fallback.Api.BaseUrl}");
             }
         );
     }
 
     /// <summary>
-    /// Demonstrates collection binding.
+    /// Demonstrates binding with validation.
     /// </summary>
-    public static async Task DemoCollectionBinding()
+    public static async Task DemoBindingWithValidation()
     {
-        Console.WriteLine("\nðŸ“‹ Enhanced Binding Example 3: Collection Binding");
-        Console.WriteLine(new string('-', 50));
-
-        var config = new Dictionary<string, string>
-        {
-            ["Endpoints__0__Name"] = "Primary",
-            ["Endpoints__0__Url"] = "https://primary.example.com",
-            ["Endpoints__0__Timeout"] = "30",
-            ["Endpoints__1__Name"] = "Secondary",
-            ["Endpoints__1__Url"] = "https://secondary.example.com",
-            ["Endpoints__1__Timeout"] = "60",
-            ["Endpoints__2__Name"] = "Backup",
-            ["Endpoints__2__Url"] = "https://backup.example.com",
-            ["Endpoints__2__Timeout"] = "120",
-        };
-
-        var result = (
-            await FluentAzure.Core.FluentAzure.Configuration().FromInMemory(config).BuildAsync()
-        ).BindList<Endpoint>(listKey: "Endpoints");
-
-        result.Match(
-            success =>
-            {
-                Console.WriteLine("âœ… Collection bound successfully!");
-                Console.WriteLine($"Found {success.Count} endpoints:");
-                foreach (var endpoint in success)
-                {
-                    Console.WriteLine(
-                        $"  - {endpoint.Name}: {endpoint.Url} (Timeout: {endpoint.Timeout}s)"
-                    );
-                }
-            },
-            errors =>
-            {
-                Console.WriteLine("âŒ Collection binding failed:");
-                foreach (var error in errors)
-                {
-                    Console.WriteLine($"  - {error}");
-                }
-            }
-        );
-    }
-
-    /// <summary>
-    /// Demonstrates dictionary binding.
-    /// </summary>
-    public static async Task DemoDictionaryBinding()
-    {
-        Console.WriteLine("\nðŸ“‹ Enhanced Binding Example 4: Dictionary Binding");
-        Console.WriteLine(new string('-', 50));
-
-        var config = new Dictionary<string, string>
-        {
-            ["Services__api__Url"] = "https://api.example.com",
-            ["Services__api__Timeout"] = "30",
-            ["Services__database__Url"] = "https://db.example.com",
-            ["Services__database__Timeout"] = "60",
-            ["Services__cache__Url"] = "https://cache.example.com",
-            ["Services__cache__Timeout"] = "10",
-        };
-
-        var result = (
-            await FluentAzure.Core.FluentAzure.Configuration().FromInMemory(config).BuildAsync()
-        ).BindDictionary<string, ServiceConfig>(dictionaryKey: "Services");
-
-        result.Match(
-            success =>
-            {
-                Console.WriteLine("âœ… Dictionary bound successfully!");
-                Console.WriteLine($"Found {success.Count} services:");
-                foreach (var service in success)
-                {
-                    Console.WriteLine(
-                        $"  - {service.Key}: {service.Value.Url} (Timeout: {service.Value.Timeout}s)"
-                    );
-                }
-            },
-            errors =>
-            {
-                Console.WriteLine("âŒ Dictionary binding failed:");
-                foreach (var error in errors)
-                {
-                    Console.WriteLine($"  - {error}");
-                }
-            }
-        );
-    }
-
-    /// <summary>
-    /// Demonstrates JSON binding with custom options.
-    /// </summary>
-    public static async Task DemoJsonBinding()
-    {
-        Console.WriteLine("\nðŸ“‹ Enhanced Binding Example 5: JSON Binding with Custom Options");
-        Console.WriteLine(new string('-', 50));
-
-        var config = new Dictionary<string, string>
-        {
-            ["User:FirstName"] = "John",
-            ["User:LastName"] = "Doe",
-            ["User:Email"] = "john.doe@example.com",
-            ["User:Age"] = "30",
-            ["User:IsActive"] = "true",
-            ["User:Preferences:Theme"] = "dark",
-            ["User:Preferences:Language"] = "en-US",
-            ["User:Preferences:Notifications:Email"] = "true",
-            ["User:Preferences:Notifications:SMS"] = "false",
-        };
-
-        var jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true,
-        };
-
-        var result = (
-            await FluentAzure.Core.FluentAzure.Configuration().FromInMemory(config).BuildAsync()
-        ).BindWithJsonOptions<UserProfile>(jsonOptions);
-
-        result.Match(
-            success =>
-            {
-                Console.WriteLine("âœ… JSON binding successful!");
-                Console.WriteLine($"User: {success.FirstName} {success.LastName}");
-                Console.WriteLine($"Email: {success.Email}, Age: {success.Age}");
-                Console.WriteLine($"Active: {success.IsActive}");
-                Console.WriteLine($"Theme: {success.Preferences.Theme}");
-                Console.WriteLine($"Language: {success.Preferences.Language}");
-                Console.WriteLine(
-                    $"Email Notifications: {success.Preferences.Notifications.Email}"
-                );
-                Console.WriteLine($"SMS Notifications: {success.Preferences.Notifications.SMS}");
-            },
-            errors =>
-            {
-                Console.WriteLine("âŒ JSON binding failed:");
-                foreach (var error in errors)
-                {
-                    Console.WriteLine($"  - {error}");
-                }
-            }
-        );
-    }
-
-    /// <summary>
-    /// Demonstrates validation errors.
-    /// </summary>
-    public static async Task DemoValidationErrors()
-    {
-        Console.WriteLine("\nðŸ“‹ Enhanced Binding Example 6: Validation Errors");
+        Console.WriteLine("\n📋 Enhanced Binding Example 3: Binding with Validation");
         Console.WriteLine(new string('-', 50));
 
         var config = new Dictionary<string, string>
@@ -267,18 +125,18 @@ public static class EnhancedBindingExamples
             ["RequiredField"] = "", // Empty required field
         };
 
-        var result = (
-            await FluentAzure.Core.FluentAzure.Configuration().FromInMemory(config).BuildAsync()
-        ).Bind<ValidatedConfig>();
+        var result = (await FluentConfig.Create().FromInMemory(config).BuildAsync()).Bind(config =>
+            ConfigurationBinder.Bind<ValidatedConfig>(config)
+        );
 
         result.Match(
             success =>
             {
-                Console.WriteLine("âœ… Validation passed (unexpected)!");
+                Console.WriteLine("✅ Validation passed (unexpected)!");
             },
             errors =>
             {
-                Console.WriteLine("âŒ Validation failed (expected):");
+                Console.WriteLine("❌ Validation failed (expected):");
                 foreach (var error in errors)
                 {
                     Console.WriteLine($"  - {error}");
@@ -292,7 +150,7 @@ public static class EnhancedBindingExamples
     /// </summary>
     public static async Task DemoCustomValidation()
     {
-        Console.WriteLine("\nðŸ“‹ Enhanced Binding Example 7: Custom Validation");
+        Console.WriteLine("\n📋 Enhanced Binding Example 4: Custom Validation");
         Console.WriteLine(new string('-', 50));
 
         var config = new Dictionary<string, string>
@@ -302,36 +160,38 @@ public static class EnhancedBindingExamples
             ["ConfirmPassword"] = "different",
         };
 
-        var result = (
-            await FluentAzure.Core.FluentAzure.Configuration().FromInMemory(config).BuildAsync()
-        ).BindWithValidation<LoginConfig>(login =>
-        {
-            if (login.Password.Length < 8)
+        var result = (await FluentConfig.Create().FromInMemory(config).BuildAsync())
+            .Bind(config => ConfigurationBinder.Bind<LoginConfig>(config))
+            .Bind(login =>
             {
-                return Result<string>.Error("Password must be at least 8 characters long");
-            }
+                if (login.Password.Length < 8)
+                {
+                    return Result<LoginConfig>.Error("Password must be at least 8 characters long");
+                }
 
-            if (login.Password != login.ConfirmPassword)
-            {
-                return Result<string>.Error("Password and confirmation password do not match");
-            }
+                if (login.Password != login.ConfirmPassword)
+                {
+                    return Result<LoginConfig>.Error(
+                        "Password and confirmation password do not match"
+                    );
+                }
 
-            if (login.Username == login.Password)
-            {
-                return Result<string>.Error("Username and password cannot be the same");
-            }
+                if (login.Username == login.Password)
+                {
+                    return Result<LoginConfig>.Error("Username and password cannot be the same");
+                }
 
-            return Result<string>.Success("Validation passed");
-        });
+                return Result<LoginConfig>.Success(login);
+            });
 
         result.Match(
             success =>
             {
-                Console.WriteLine("âœ… Custom validation passed!");
+                Console.WriteLine("✅ Custom validation passed!");
             },
             errors =>
             {
-                Console.WriteLine("âŒ Custom validation failed:");
+                Console.WriteLine("❌ Custom validation failed:");
                 foreach (var error in errors)
                 {
                     Console.WriteLine($"  - {error}");
@@ -341,41 +201,44 @@ public static class EnhancedBindingExamples
     }
 
     /// <summary>
-    /// Demonstrates binding without validation.
+    /// Demonstrates option-based binding.
     /// </summary>
-    public static async Task DemoBindingWithoutValidation()
+    public static async Task DemoOptionBasedBinding()
     {
-        Console.WriteLine("\nðŸ“‹ Enhanced Binding Example 8: Binding Without Validation");
+        Console.WriteLine("\n📋 Enhanced Binding Example 5: Option-based Binding");
         Console.WriteLine(new string('-', 50));
 
         var config = new Dictionary<string, string>
         {
-            ["Name"] = "Test App",
-            ["Version"] = "invalid-version",
-            ["MaxConnections"] = "not-a-number",
+            ["Database:Host"] = "localhost",
+            ["Database:Port"] = "5432",
+            ["Database:Name"] = "myapp",
         };
 
-        var result = (
-            await FluentAzure.Core.FluentAzure.Configuration().FromInMemory(config).BuildAsync()
-        ).BindWithoutValidation<AppSettings>();
+        var configOption = await FluentConfig.Create().FromInMemory(config).BuildOptionalAsync();
 
-        result.Match(
-            success =>
-            {
-                Console.WriteLine("âœ… Binding without validation successful!");
-                Console.WriteLine($"Name: {success.Name}");
-                Console.WriteLine($"Version: {success.Version}");
-                Console.WriteLine($"Max Connections: {success.MaxConnections}");
-            },
-            errors =>
-            {
-                Console.WriteLine("âŒ Binding failed:");
-                foreach (var error in errors)
+        // Use option-based binding
+        var appConfig = configOption
+            .Bind(config => config.BindOptional<AppConfiguration>())
+            .GetValueOrDefault(
+                new AppConfiguration
                 {
-                    Console.WriteLine($"  - {error}");
+                    Database = new DatabaseConfig
+                    {
+                        Host = "default",
+                        Port = 1433,
+                        Name = "default",
+                    },
+                    Api = new ApiConfig { BaseUrl = "https://default.com", Timeout = 30 },
+                    Logging = new LoggingConfig { Level = "Information", EnableConsole = true },
                 }
-            }
+            );
+
+        Console.WriteLine(
+            $"Database: {appConfig.Database.Host}:{appConfig.Database.Port}/{appConfig.Database.Name}"
         );
+        Console.WriteLine($"API: {appConfig.Api.BaseUrl}");
+        Console.WriteLine($"Logging: {appConfig.Logging.Level}");
     }
 }
 
@@ -410,60 +273,10 @@ public class LoggingConfig
     public bool EnableConsole { get; set; }
 }
 
-// Record type example
-public record AppSettings(
-    string Name,
-    string Version,
-    string Environment,
-    int MaxConnections,
-    bool EnableFeature
-);
-
-// Collection example
-public class Endpoint
-{
-    public string Name { get; set; } = string.Empty;
-    public string Url { get; set; } = string.Empty;
-    public int Timeout { get; set; }
-}
-
-// Dictionary example
-public class ServiceConfig
-{
-    public string Url { get; set; } = string.Empty;
-    public int Timeout { get; set; }
-}
-
-// Complex nested object example
-public class UserProfile
-{
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public int Age { get; set; }
-    public bool IsActive { get; set; }
-    public UserPreferences Preferences { get; set; } = new();
-}
-
-public class UserPreferences
-{
-    public string Theme { get; set; } = string.Empty;
-    public string Language { get; set; } = string.Empty;
-    public NotificationSettings Notifications { get; set; } = new();
-}
-
-public class NotificationSettings
-{
-    public bool Email { get; set; }
-    public bool SMS { get; set; }
-}
-
-// Validation example
 public class ValidatedConfig
 {
     [Required]
-    [EmailAddress]
-    public string Email { get; set; } = string.Empty;
+    public string RequiredField { get; set; } = string.Empty;
 
     [Range(1, 120)]
     public int Age { get; set; }
@@ -472,10 +285,10 @@ public class ValidatedConfig
     public string Url { get; set; } = string.Empty;
 
     [Required]
-    public string RequiredField { get; set; } = string.Empty;
+    [EmailAddress]
+    public string Email { get; set; } = string.Empty;
 }
 
-// Custom validation example
 public class LoginConfig
 {
     public string Username { get; set; } = string.Empty;

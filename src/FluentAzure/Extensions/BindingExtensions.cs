@@ -6,401 +6,180 @@ using FluentAzure.Core;
 namespace FluentAzure.Extensions;
 
 /// <summary>
-/// Extension methods for configuration binding with enhanced features.
-/// This class is used to bind configuration to a strongly-typed object.
-/// It is used in the FluentAzure.Extensions namespace.
+/// Extension methods for configuration binding using Options.
 /// </summary>
 public static class BindingExtensions
 {
     /// <summary>
+    /// Binds configuration to a strongly-typed object and returns an Option.
+    /// </summary>
+    /// <typeparam name="T">The type to bind to</typeparam>
+    /// <param name="configuration">The configuration dictionary</param>
+    /// <returns>Some(bound object) if binding succeeds, None otherwise</returns>
+    public static Option<T> BindOptional<T>(this Dictionary<string, string> configuration)
+        where T : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        var result = ConfigurationBinder.Bind<T>(configuration);
+        return result.ToOption();
+    }
+
+    /// <summary>
+    /// Binds configuration to a strongly-typed object with options and returns an Option.
+    /// </summary>
+    /// <typeparam name="T">The type to bind to</typeparam>
+    /// <param name="configuration">The configuration dictionary</param>
+    /// <param name="options">The binding options</param>
+    /// <returns>Some(bound object) if binding succeeds, None otherwise</returns>
+    public static Option<T> BindOptional<T>(this Dictionary<string, string> configuration, BindingOptions options)
+        where T : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(options);
+
+        var result = EnhancedConfigurationBinder.Bind<T>(configuration, options);
+        return result.ToOption();
+    }
+
+    /// <summary>
+    /// Binds configuration to a strongly-typed object with JSON deserialization and returns an Option.
+    /// </summary>
+    /// <typeparam name="T">The type to bind to</typeparam>
+    /// <param name="configuration">The configuration dictionary</param>
+    /// <param name="options">The binding options</param>
+    /// <returns>Some(bound object) if binding succeeds, None otherwise</returns>
+    public static Option<T> BindJsonOptional<T>(this Dictionary<string, string> configuration, BindingOptions? options = null)
+        where T : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        var result = EnhancedConfigurationBinder.BindJson<T>(configuration, options);
+        return result.ToOption();
+    }
+
+    /// <summary>
+    /// Binds configuration to a strongly-typed object with fallback handling.
+    /// </summary>
+    /// <typeparam name="T">The type to bind to</typeparam>
+    /// <param name="configuration">The configuration dictionary</param>
+    /// <param name="fallback">The fallback object if binding fails</param>
+    /// <returns>The bound object or the fallback</returns>
+    public static T BindWithFallback<T>(this Dictionary<string, string> configuration, T fallback)
+        where T : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(fallback);
+
+        return configuration.BindOptional<T>().GetValueOrDefault(fallback);
+    }
+
+    /// <summary>
+    /// Binds configuration to a strongly-typed object with fallback factory.
+    /// </summary>
+    /// <typeparam name="T">The type to bind to</typeparam>
+    /// <param name="configuration">The configuration dictionary</param>
+    /// <param name="fallbackFactory">The fallback factory if binding fails</param>
+    /// <returns>The bound object or the result of the fallback factory</returns>
+    public static T BindWithFallback<T>(this Dictionary<string, string> configuration, Func<T> fallbackFactory)
+        where T : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(fallbackFactory);
+
+        return configuration.BindOptional<T>().GetValueOrDefault(fallbackFactory);
+    }
+
+    /// <summary>
     /// Binds configuration to a strongly-typed object with validation.
     /// </summary>
-    /// <typeparam name="T">The type of object to bind to.</typeparam>
-    /// <param name="result">The configuration result.</param>
-    /// <param name="options">Optional binding options.</param>
-    /// <returns>A result containing the bound instance or validation errors.</returns>
-    public static Result<T> Bind<T>(
-        this Result<Dictionary<string, string>> result,
-        BindingOptions? options = null
-    )
-        where T : class
+    /// <typeparam name="T">The type to bind to</typeparam>
+    /// <param name="configuration">The configuration dictionary</param>
+    /// <param name="validator">The validation function</param>
+    /// <returns>Some(bound object) if binding and validation succeed, None otherwise</returns>
+    public static Option<T> BindWithValidation<T>(this Dictionary<string, string> configuration, Func<T, bool> validator)
+        where T : class, new()
     {
-        return result.Bind(config => EnhancedConfigurationBinder.Bind<T>(config, options));
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(validator);
+
+        return configuration.BindOptional<T>().Filter(validator);
     }
 
     /// <summary>
-    /// Binds configuration to a strongly-typed object using JSON deserialization.
+    /// Binds configuration to a strongly-typed object with validation and custom error handling.
     /// </summary>
-    /// <typeparam name="T">The type of object to bind to.</typeparam>
-    /// <param name="result">The configuration result.</param>
-    /// <param name="options">Optional binding options.</param>
-    /// <returns>A result containing the bound instance or errors.</returns>
-    public static Result<T> BindJson<T>(
-        this Result<Dictionary<string, string>> result,
-        BindingOptions? options = null
-    )
-        where T : class
+    /// <typeparam name="T">The type to bind to</typeparam>
+    /// <param name="configuration">The configuration dictionary</param>
+    /// <param name="validator">The validation function</param>
+    /// <param name="errorFactory">The error message factory</param>
+    /// <returns>Success with the bound object if validation succeeds, Error otherwise</returns>
+    public static Result<T> BindWithValidation<T>(this Dictionary<string, string> configuration, Func<T, bool> validator, Func<T, string> errorFactory)
+        where T : class, new()
     {
-        return result.Bind(config => EnhancedConfigurationBinder.BindJson<T>(config, options));
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(validator);
+        ArgumentNullException.ThrowIfNull(errorFactory);
+
+        return configuration.BindOptional<T>()
+            .ToResult("Configuration binding failed")
+            .Bind(obj => validator(obj) ? Result<T>.Success(obj) : Result<T>.Error(errorFactory(obj)));
     }
 
     /// <summary>
-    /// Binds configuration to a record type with validation.
+    /// Binds configuration to a strongly-typed object with conditional binding.
     /// </summary>
-    /// <typeparam name="T">The record type to bind to.</typeparam>
-    /// <param name="result">The configuration result.</param>
-    /// <param name="options">Optional binding options.</param>
-    /// <returns>A result containing the bound record or validation errors.</returns>
-    public static Result<T> BindRecord<T>(
-        this Result<Dictionary<string, string>> result,
-        BindingOptions? options = null
-    )
-        where T : class
+    /// <typeparam name="T">The type to bind to</typeparam>
+    /// <param name="configuration">The configuration dictionary</param>
+    /// <param name="condition">The condition that determines whether to bind</param>
+    /// <param name="fallback">The fallback object if condition is false or binding fails</param>
+    /// <returns>The bound object or the fallback</returns>
+    public static T BindConditional<T>(this Dictionary<string, string> configuration, Func<T, bool> condition, T fallback)
+        where T : class, new()
     {
-        var bindingOptions = options ?? new BindingOptions();
-        bindingOptions.EnableValidation = true;
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(condition);
+        ArgumentNullException.ThrowIfNull(fallback);
 
-        return result.BindJson<T>(bindingOptions);
+        return configuration.BindOptional<T>()
+            .Filter(condition)
+            .GetValueOrDefault(fallback);
     }
 
     /// <summary>
-    /// Binds configuration to an object with custom JSON options.
+    /// Binds configuration to a strongly-typed object with transformation.
     /// </summary>
-    /// <typeparam name="T">The type of object to bind to.</typeparam>
-    /// <param name="result">The configuration result.</param>
-    /// <param name="jsonOptions">Custom JSON serialization options.</param>
-    /// <returns>A result containing the bound instance or errors.</returns>
-    public static Result<T> BindWithJsonOptions<T>(
-        this Result<Dictionary<string, string>> result,
-        JsonSerializerOptions jsonOptions
-    )
-        where T : class
+    /// <typeparam name="T">The type to bind to</typeparam>
+    /// <typeparam name="TResult">The type of the transformed result</typeparam>
+    /// <param name="configuration">The configuration dictionary</param>
+    /// <param name="transformer">The transformation function</param>
+    /// <returns>Some(transformed object) if binding and transformation succeed, None otherwise</returns>
+    public static Option<TResult> BindAndTransform<T, TResult>(this Dictionary<string, string> configuration, Func<T, TResult> transformer)
+        where T : class, new()
     {
-        var options = new BindingOptions { JsonOptions = jsonOptions };
-        return result.BindJson<T>(options);
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(transformer);
+
+        return configuration.BindOptional<T>().Map(transformer);
     }
 
     /// <summary>
-    /// Binds configuration to an object with case-sensitive key matching.
+    /// Binds configuration to a strongly-typed object with transformation and fallback.
     /// </summary>
-    /// <typeparam name="T">The type of object to bind to.</typeparam>
-    /// <param name="result">The configuration result.</param>
-    /// <returns>A result containing the bound instance or errors.</returns>
-    public static Result<T> BindCaseSensitive<T>(this Result<Dictionary<string, string>> result)
-        where T : class
+    /// <typeparam name="T">The type to bind to</typeparam>
+    /// <typeparam name="TResult">The type of the transformed result</typeparam>
+    /// <param name="configuration">The configuration dictionary</param>
+    /// <param name="transformer">The transformation function</param>
+    /// <param name="fallback">The fallback value if binding or transformation fails</param>
+    /// <returns>The transformed object or the fallback</returns>
+    public static TResult BindAndTransformWithFallback<T, TResult>(this Dictionary<string, string> configuration, Func<T, TResult> transformer, TResult fallback)
+        where T : class, new()
     {
-        var options = new BindingOptions { CaseSensitive = true };
-        return result.Bind<T>(options);
-    }
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(transformer);
 
-    /// <summary>
-    /// Binds configuration to an object without validation.
-    /// </summary>
-    /// <typeparam name="T">The type of object to bind to.</typeparam>
-    /// <param name="result">The configuration result.</param>
-    /// <returns>A result containing the bound instance or errors.</returns>
-    public static Result<T> BindWithoutValidation<T>(this Result<Dictionary<string, string>> result)
-        where T : class
-    {
-        var options = new BindingOptions { EnableValidation = false };
-        return result.Bind<T>(options);
-    }
-
-    /// <summary>
-    /// Binds configuration to a collection type.
-    /// </summary>
-    /// <typeparam name="T">The collection type to bind to.</typeparam>
-    /// <param name="result">The configuration result.</param>
-    /// <param name="options">Optional binding options.</param>
-    /// <returns>A result containing the bound collection or errors.</returns>
-    public static Result<T> BindCollection<T>(
-        this Result<Dictionary<string, string>> result,
-        BindingOptions? options = null
-    )
-        where T : class
-    {
-        return result.Bind<T>(options);
-    }
-
-    /// <summary>
-    /// Binds configuration to a list of objects.
-    /// </summary>
-    /// <typeparam name="T">The type of objects in the list.</typeparam>
-    /// <param name="result">The configuration result.</param>
-    /// <param name="listKey">The configuration key containing the list.</param>
-    /// <param name="options">Optional binding options.</param>
-    /// <returns>A result containing the bound list or errors.</returns>
-    public static Result<List<T>> BindList<T>(
-        this Result<Dictionary<string, string>> result,
-        string listKey,
-        BindingOptions? options = null
-    )
-        where T : class
-    {
-        return result.Bind(config =>
-        {
-            // Filter configuration to only include keys for this list
-            var listConfig = config
-                .Where(kvp =>
-                    kvp.Key.StartsWith(listKey + "__", StringComparison.OrdinalIgnoreCase)
-                )
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-
-            if (!listConfig.Any())
-            {
-                return Result<List<T>>.Error($"No configuration found for list key '{listKey}'");
-            }
-
-            // Convert to JSON array format
-            var jsonArray = ConvertListToJsonArray(listConfig, listKey);
-
-            try
-            {
-                var bindingOptions = options ?? new BindingOptions();
-                var list = JsonSerializer.Deserialize<List<T>>(
-                    jsonArray,
-                    bindingOptions.JsonOptions ?? new JsonSerializerOptions()
-                );
-
-                if (list == null)
-                {
-                    return Result<List<T>>.Error("Failed to deserialize list");
-                }
-
-                // Validate if enabled
-                if (bindingOptions.EnableValidation)
-                {
-                    var errors = new List<string>();
-                    foreach (var item in list)
-                    {
-                        var validationContext = new ValidationContext(item);
-                        var validationResults = new List<ValidationResult>();
-
-                        if (
-                            !Validator.TryValidateObject(
-                                item,
-                                validationContext,
-                                validationResults,
-                                true
-                            )
-                        )
-                        {
-                            errors.AddRange(
-                                validationResults.Select(r => r.ErrorMessage ?? "Validation failed")
-                            );
-                        }
-                    }
-
-                    if (errors.Any())
-                    {
-                        return Result<List<T>>.Error(errors);
-                    }
-                }
-
-                return Result<List<T>>.Success(list);
-            }
-            catch (JsonException ex)
-            {
-                return Result<List<T>>.Error($"JSON deserialization failed: {ex.Message}");
-            }
-        });
-    }
-
-    /// <summary>
-    /// Binds configuration to a dictionary.
-    /// </summary>
-    /// <typeparam name="TKey">The type of dictionary keys.</typeparam>
-    /// <typeparam name="TValue">The type of dictionary values.</typeparam>
-    /// <param name="result">The configuration result.</param>
-    /// <param name="dictionaryKey">The configuration key containing the dictionary.</param>
-    /// <param name="options">Optional binding options.</param>
-    /// <returns>A result containing the bound dictionary or errors.</returns>
-    public static Result<Dictionary<TKey, TValue>> BindDictionary<TKey, TValue>(
-        this Result<Dictionary<string, string>> result,
-        string dictionaryKey,
-        BindingOptions? options = null
-    )
-        where TKey : notnull
-        where TValue : class
-    {
-        return result.Bind(config =>
-        {
-            // Filter configuration to only include keys for this dictionary
-            var dictConfig = config
-                .Where(kvp =>
-                    kvp.Key.StartsWith(dictionaryKey + "__", StringComparison.OrdinalIgnoreCase)
-                )
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-
-            if (!dictConfig.Any())
-            {
-                return Result<Dictionary<TKey, TValue>>.Error(
-                    $"No configuration found for dictionary key '{dictionaryKey}'"
-                );
-            }
-
-            // Convert to JSON object format
-            var jsonObject = ConvertDictionaryToJsonObject(dictConfig, dictionaryKey);
-
-            try
-            {
-                var bindingOptions = options ?? new BindingOptions();
-                var dictionary = JsonSerializer.Deserialize<Dictionary<TKey, TValue>>(
-                    jsonObject,
-                    bindingOptions.JsonOptions ?? new JsonSerializerOptions()
-                );
-
-                if (dictionary == null)
-                {
-                    return Result<Dictionary<TKey, TValue>>.Error(
-                        "Failed to deserialize dictionary"
-                    );
-                }
-
-                return Result<Dictionary<TKey, TValue>>.Success(dictionary);
-            }
-            catch (JsonException ex)
-            {
-                return Result<Dictionary<TKey, TValue>>.Error(
-                    $"JSON deserialization failed: {ex.Message}"
-                );
-            }
-        });
-    }
-
-    /// <summary>
-    /// Binds configuration to an object with custom validation.
-    /// </summary>
-    /// <typeparam name="T">The type of object to bind to.</typeparam>
-    /// <param name="result">The configuration result.</param>
-    /// <param name="validator">Custom validation function.</param>
-    /// <returns>A result containing the bound instance or validation errors.</returns>
-    public static Result<T> BindWithValidation<T>(
-        this Result<Dictionary<string, string>> result,
-        Func<T, Result<string>> validator
-    )
-        where T : class
-    {
-        return result
-            .Bind<T>()
-            .Bind(instance =>
-            {
-                var validationResult = validator(instance);
-                return validationResult.IsSuccess
-                    ? Result<T>.Success(instance)
-                    : Result<T>.Error(validationResult.Errors);
-            });
-    }
-
-    /// <summary>
-    /// Binds configuration to an object with transformation.
-    /// </summary>
-    /// <typeparam name="T">The type of object to bind to.</typeparam>
-    /// <typeparam name="TResult">The type of the transformed result.</typeparam>
-    /// <param name="result">The configuration result.</param>
-    /// <param name="transformer">Transformation function.</param>
-    /// <returns>A result containing the transformed instance or errors.</returns>
-    public static Result<TResult> BindAndTransform<T, TResult>(
-        this Result<Dictionary<string, string>> result,
-        Func<T, TResult> transformer
-    )
-        where T : class
-        where TResult : class
-    {
-        return result.Bind<T>().Map(transformer);
-    }
-
-    private static string ConvertListToJsonArray(Dictionary<string, string> config, string listKey)
-    {
-        var items = new List<Dictionary<string, object>>();
-        var groups = config
-            .GroupBy(kvp => kvp.Key.Split(new[] { "__" }, StringSplitOptions.RemoveEmptyEntries)[1]) // Get index
-            .OrderBy(g => int.Parse(g.Key));
-
-        foreach (var group in groups)
-        {
-            var item = new Dictionary<string, object>();
-            foreach (var kvp in group)
-            {
-                var keys = kvp.Key.Split(new[] { "__" }, StringSplitOptions.RemoveEmptyEntries);
-                if (keys.Length > 2)
-                {
-                    var propertyPath = string.Join(".", keys.Skip(2));
-                    SetNestedValue(item, propertyPath, ParseValue(kvp.Value));
-                }
-            }
-            items.Add(item);
-        }
-
-        return JsonSerializer.Serialize(items);
-    }
-
-    private static string ConvertDictionaryToJsonObject(
-        Dictionary<string, string> config,
-        string dictionaryKey
-    )
-    {
-        var dictionary = new Dictionary<string, object>();
-
-        foreach (var kvp in config)
-        {
-            var keys = kvp.Key.Split(new[] { "__" }, StringSplitOptions.RemoveEmptyEntries);
-            if (keys.Length > 1)
-            {
-                var dictKey = keys[1];
-                if (keys.Length > 2)
-                {
-                    var propertyPath = string.Join(".", keys.Skip(2));
-                    if (!dictionary.ContainsKey(dictKey))
-                    {
-                        dictionary[dictKey] = new Dictionary<string, object>();
-                    }
-                    SetNestedValue(
-                        (Dictionary<string, object>)dictionary[dictKey],
-                        propertyPath,
-                        ParseValue(kvp.Value)
-                    );
-                }
-                else
-                {
-                    dictionary[dictKey] = ParseValue(kvp.Value);
-                }
-            }
-        }
-
-        return JsonSerializer.Serialize(dictionary);
-    }
-
-    private static void SetNestedValue(Dictionary<string, object> dict, string path, object value)
-    {
-        var keys = path.Split('.');
-        var current = dict;
-
-        for (int i = 0; i < keys.Length - 1; i++)
-        {
-            var key = keys[i];
-            if (!current.ContainsKey(key))
-            {
-                current[key] = new Dictionary<string, object>();
-            }
-            current = (Dictionary<string, object>)current[key];
-        }
-
-        current[keys[keys.Length - 1]] = value;
-    }
-
-    private static object ParseValue(string value)
-    {
-        // Try to parse as different types
-        if (bool.TryParse(value, out var boolValue))
-            return boolValue;
-        if (int.TryParse(value, out var intValue))
-            return intValue;
-        if (double.TryParse(value, out var doubleValue))
-            return doubleValue;
-        if (DateTime.TryParse(value, out var dateValue))
-            return dateValue;
-
-        return value;
+        return configuration.BindOptional<T>()
+            .Map(transformer)
+            .GetValueOrDefault(fallback);
     }
 }

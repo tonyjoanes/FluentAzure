@@ -1,6 +1,4 @@
 ﻿using FluentAzure;
-using FluentAzure.Core;
-using FluentAzure.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
 // FluentConfig() is available via GlobalUsings.cs
@@ -74,7 +72,8 @@ public static class Program
         try
         {
             // Ultra clean API - just FluentConfig.Create()!
-var buildResult = await FluentConfig.Create() // Ultra clean!
+            var buildResult = await FluentConfig
+                .Create() // Ultra clean!
                 .FromEnvironment()
                 .Required("App:Name")
                 .Required("Database:ConnectionString")
@@ -127,7 +126,8 @@ var buildResult = await FluentConfig.Create() // Ultra clean!
         try
         {
             // Ultra clean API
-            var buildResult = await FluentConfig.Create() // Ultra clean!
+            var buildResult = await FluentConfig
+                .Create() // Ultra clean!
                 .FromJsonFile(tempFile)
                 .FromEnvironment()
                 .Required("Api:BaseUrl")
@@ -139,9 +139,9 @@ var buildResult = await FluentConfig.Create() // Ultra clean!
                     {
                         if (int.TryParse(timeout, out var seconds) && seconds > 0 && seconds <= 300)
                         {
-                            return Result<string>.Success(timeout);
+                            return Core.Result<string>.Success(timeout);
                         }
-                        return Result<string>.Error("API timeout must be between 1-300 seconds");
+                        return Core.Result<string>.Error("API timeout must be between 1-300 seconds");
                     }
                 )
                 .Transform(
@@ -149,7 +149,7 @@ var buildResult = await FluentConfig.Create() // Ultra clean!
                     url =>
                     {
                         // Ensure URL ends with trailing slash
-                        return Result<string>.Success(url.EndsWith("/") ? url : url + "/");
+                        return Core.Result<string>.Success(url.EndsWith("/") ? url : url + "/");
                     }
                 )
                 .BuildAsync();
@@ -208,8 +208,8 @@ var buildResult = await FluentConfig.Create() // Ultra clean!
         try
         {
             // Traditional approach for comparison
-var buildResult = await FluentAzure.FluentConfig
-    .Create() // Still clean, but requires FluentAzure prefix
+            var buildResult = await FluentAzure
+                .FluentConfig.Create() // Still clean, but requires FluentAzure prefix
                 .FromEnvironment()
                 .Required("App:Name")
                 .Required("Database:ConnectionString")

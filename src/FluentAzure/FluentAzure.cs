@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using FluentAzure.Binding;
+using FluentAzure.Core;
 
 namespace FluentAzure;
 
@@ -15,7 +17,7 @@ public static class FluentConfig
     /// <returns>A new configuration builder instance.</returns>
     public static Core.ConfigurationBuilder Create()
     {
-        return Core.FluentAzure.Configuration();
+        return new Core.ConfigurationBuilder();
     }
 
     /// <summary>
@@ -58,5 +60,24 @@ public static class FluentConfig
             configure,
             factory
         );
+    }
+}
+
+/// <summary>
+/// Extension methods for binding configuration results.
+/// These are available directly when using FluentAzure.
+/// </summary>
+public static class BindingExtensions
+{
+    /// <summary>
+    /// Binds configuration to a strongly-typed object.
+    /// </summary>
+    /// <typeparam name="T">The type to bind to</typeparam>
+    /// <param name="result">The configuration result</param>
+    /// <returns>A result containing the bound object or errors</returns>
+    public static Result<T> Bind<T>(this Result<Dictionary<string, string>> result)
+        where T : class, new()
+    {
+        return result.Bind(config => ConfigurationBinder.Bind<T>(config));
     }
 }
