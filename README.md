@@ -63,7 +63,7 @@ dotnet add package FluentAzure
 
 Or add to your `.csproj`:
 ```xml
-<PackageReference Include="FluentAzure" Version="0.2.0-rc.4" />
+<PackageReference Include="FluentAzure" Version="0.2.0-rc.5" />
 ```
 
 ## 🔢 Version Information
@@ -74,7 +74,7 @@ You can access the current version programmatically:
 using FluentAzure;
 
 // Get the current version
-string version = FluentConfig.CurrentVersion; // "0.2.0-rc.4"
+string version = FluentConfig.CurrentVersion; // "0.2.0-rc.5"
 
 // Or access version details directly
 int major = FluentAzure.Version.Major;     // 0

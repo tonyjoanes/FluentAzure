@@ -25,7 +25,7 @@ public static class Version
     /// Current pre-release identifier (e.g., "rc.4", "beta.1", etc.).
     /// Set to null for stable releases.
     /// </summary>
-    public const string? PreRelease = "rc.4";
+    public const string? PreRelease = "rc.5";
 
     /// <summary>
     /// Full version string in semantic versioning format.

@@ -47,10 +47,10 @@
     <!-- File version (full version for debugging) -->
     <FileVersion>0.2.0.0</FileVersion>
     <!-- Informational version (full version with metadata) -->
-    <InformationalVersion>0.2.0-rc.4</InformationalVersion>
+    <InformationalVersion>0.2.0-rc.5</InformationalVersion>
     <!-- Package version -->
-    <Version>0.2.0-rc.4</Version>
-    <PackageVersion>0.2.0-rc.4</PackageVersion>
+    <Version>0.2.0-rc.5</Version>
+    <PackageVersion>0.2.0-rc.5</PackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <!-- Essential code analysis packages only -->
