@@ -219,7 +219,7 @@ jobs:
 
     # Create NuGet package with automatic versioning
     - name: Create NuGet package
-      run: dotnet pack --no-build --configuration Release --output ./packages
+      run: dotnet pack src/FluentAzure/FluentAzure.csproj --no-build --configuration Release --output ./packages
 
     # Display version information for debugging
     - name: Display version information
@@ -275,7 +275,7 @@ jobs:
 
     # Create NuGet package
     - name: Create NuGet package
-      run: dotnet pack --no-build --configuration Release --output ./packages
+      run: dotnet pack src/FluentAzure/FluentAzure.csproj --no-build --configuration Release --output ./packages
 
     # Display version information
     - name: Display version information
@@ -287,13 +287,18 @@ jobs:
     # Publish to NuGet.org
     - name: Publish to NuGet.org
       run: |
-        # Publish each package found
-        for package in ./packages/*.nupkg; do
-          echo "Publishing $package to NuGet.org..."
-          dotnet nuget push "$package" \
-            --source https://api.nuget.org/v3/index.json \
-            --api-key ${{ secrets.NUGET_API_KEY }} \
-            --skip-duplicate
+        # Only publish the FluentAzure package
+        for package in ./packages/FluentAzure.*.nupkg; do
+          if [ -f "$package" ]; then
+            echo "Publishing $package to NuGet.org..."
+            dotnet nuget push "$package" \
+              --source https://api.nuget.org/v3/index.json \
+              --api-key ${{ secrets.NUGET_API_KEY }} \
+              --skip-duplicate
+          else
+            echo "No FluentAzure package found to publish"
+            exit 1
+          fi
         done
       env:
         NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
