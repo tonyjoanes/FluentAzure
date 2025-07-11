@@ -11,6 +11,10 @@ namespace FluentAzure;
 public static class FluentConfig
 {
     /// <summary>
+    /// Gets the current version information for FluentAzure.
+    /// </summary>
+    public static string CurrentVersion => Version.Full;
+    /// <summary>
     /// Starts a new Azure configuration pipeline builder.
     /// Main entry point - FluentConfig.Create()
     /// </summary>

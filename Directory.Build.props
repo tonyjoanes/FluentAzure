@@ -40,19 +40,17 @@
     <!-- Build properties -->
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <!-- Version Management using MinVer -->
-    <!-- MinVer will automatically determine version from Git tags -->
-    <MinVerTagPrefix>v</MinVerTagPrefix>
-    <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
+    <!-- Version Management using explicit constants -->
+    <!-- Version is managed in src/FluentAzure/Version.cs -->
     <!-- Assembly version (major.minor.0.0 for compatibility) -->
-    <AssemblyVersion>$(MinVerMajor).$(MinVerMinor).0.0</AssemblyVersion>
+    <AssemblyVersion>0.2.0.0</AssemblyVersion>
     <!-- File version (full version for debugging) -->
-    <FileVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(MinVerBuildMetadata)</FileVersion>
+    <FileVersion>0.2.0.0</FileVersion>
     <!-- Informational version (full version with metadata) -->
-    <InformationalVersion>$(MinVerVersion)</InformationalVersion>
+    <InformationalVersion>0.2.0-rc.4</InformationalVersion>
     <!-- Package version -->
-    <Version>$(MinVerVersion)</Version>
-    <PackageVersion>$(MinVerVersion)</PackageVersion>
+    <Version>0.2.0-rc.4</Version>
+    <PackageVersion>0.2.0-rc.4</PackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <!-- Essential code analysis packages only -->
@@ -77,11 +75,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <!-- MinVer for automatic versioning from Git tags -->
-    <PackageReference Include="MinVer" Version="4.3.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <!-- Version management is now handled in src/FluentAzure/Version.cs -->
   </ItemGroup>
   <!-- Test project specific settings -->
   <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
