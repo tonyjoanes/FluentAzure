@@ -195,4 +195,48 @@ public static class ConfigurationExtensions
 
         return config.GetOptional<T>(key).GetValueOrDefault(defaultFactory);
     }
+
+    /// <summary>
+    /// Gets a configuration value as an Option with type conversion.
+    /// Returns None if the key is not found, Some(value) if found and conversion succeeds.
+    /// </summary>
+    /// <typeparam name="T">The target type</typeparam>
+    /// <param name="configuration">The configuration dictionary</param>
+    /// <param name="key">The configuration key</param>
+    /// <returns>Some(converted value) if the key exists and conversion succeeds, None otherwise</returns>
+    public static Option<T> GetOption<T>(this Dictionary<string, string> configuration, string key)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
+        if (!configuration.TryGetValue(key, out var value))
+        {
+            return Option<T>.None();
+        }
+
+        var conversionResult = TypeExtensions.TryConvert<T>(value);
+        return conversionResult.Match(success => Option<T>.Some(success), _ => Option<T>.None());
+    }
+
+    /// <summary>
+    /// Gets a configuration value as an Option with type conversion and validation.
+    /// Returns None if the key is not found or validation fails.
+    /// </summary>
+    /// <typeparam name="T">The target type</typeparam>
+    /// <param name="configuration">The configuration dictionary</param>
+    /// <param name="key">The configuration key</param>
+    /// <param name="validator">The validation function</param>
+    /// <returns>Some(converted value) if the key exists, conversion succeeds, and validation passes, None otherwise</returns>
+    public static Option<T> GetOption<T>(
+        this Dictionary<string, string> configuration,
+        string key,
+        Func<T, bool> validator
+    )
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        ArgumentNullException.ThrowIfNull(validator);
+
+        return configuration.GetOption<T>(key).Filter(validator);
+    }
 }
