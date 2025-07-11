@@ -226,9 +226,7 @@ public static class ServiceCollectionExtensions
         var builder = configure(new ConfigurationBuilder());
         var option = builder.BuildOptionalAsync<T>().GetAwaiter().GetResult();
 
-        var configuration = option
-            .Filter(condition)
-            .GetValueOrDefault(fallback);
+        var configuration = option.Filter(condition).GetValueOrDefault(fallback);
 
         services.AddSingleton(configuration);
         return services;

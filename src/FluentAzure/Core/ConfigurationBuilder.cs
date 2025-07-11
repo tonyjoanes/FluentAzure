@@ -390,13 +390,20 @@ public class ConfigurationBuilder
     /// <param name="predicate">The validation predicate</param>
     /// <param name="errorMessage">The error message if validation fails</param>
     /// <returns>The configuration builder for method chaining</returns>
-    public ConfigurationBuilder ValidateOptional(string key, Func<string, bool> predicate, string errorMessage)
+    public ConfigurationBuilder ValidateOptional(
+        string key,
+        Func<string, bool> predicate,
+        string errorMessage
+    )
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
         ArgumentNullException.ThrowIfNull(predicate);
         ArgumentNullException.ThrowIfNull(errorMessage);
 
-        return ValidateOptional(key, value => predicate(value) ? Option<string>.Some(value) : Option<string>.None());
+        return ValidateOptional(
+            key,
+            value => predicate(value) ? Option<string>.Some(value) : Option<string>.None()
+        );
     }
 
     /// <summary>
@@ -418,7 +425,10 @@ public class ConfigurationBuilder
     /// <param name="key">The configuration key to transform</param>
     /// <param name="transform">The transformation function that returns an Option</param>
     /// <returns>The configuration builder for method chaining</returns>
-    public ConfigurationBuilder TransformOptional(string key, Func<string, Option<string>> transform)
+    public ConfigurationBuilder TransformOptional(
+        string key,
+        Func<string, Option<string>> transform
+    )
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
         ArgumentNullException.ThrowIfNull(transform);
@@ -439,7 +449,12 @@ public class ConfigurationBuilder
                     newConfig[key] = some;
                     return Task.FromResult(Result<Dictionary<string, string>>.Success(newConfig));
                 },
-                () => Task.FromResult(Result<Dictionary<string, string>>.Error($"Transformation failed for key '{key}'"))
+                () =>
+                    Task.FromResult(
+                        Result<Dictionary<string, string>>.Error(
+                            $"Transformation failed for key '{key}'"
+                        )
+                    )
             );
         });
         return this;
@@ -452,7 +467,11 @@ public class ConfigurationBuilder
     /// <param name="transform">The transformation function</param>
     /// <param name="fallback">The fallback value if transformation fails</param>
     /// <returns>The configuration builder for method chaining</returns>
-    public ConfigurationBuilder TransformWithFallback(string key, Func<string, Option<string>> transform, string fallback)
+    public ConfigurationBuilder TransformWithFallback(
+        string key,
+        Func<string, Option<string>> transform,
+        string fallback
+    )
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
         ArgumentNullException.ThrowIfNull(transform);

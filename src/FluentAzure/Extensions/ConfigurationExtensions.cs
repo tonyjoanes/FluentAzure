@@ -7,7 +7,6 @@ namespace FluentAzure.Extensions;
 /// </summary>
 public static class ConfigurationExtensions
 {
-
     /// <summary>
     /// Validates a configuration value using a predicate.
     /// </summary>
@@ -27,7 +26,8 @@ public static class ConfigurationExtensions
         ArgumentNullException.ThrowIfNull(key);
         ArgumentNullException.ThrowIfNull(validator);
         ArgumentNullException.ThrowIfNull(errorMessage);
-        return config.GetOptional(key)
+        return config
+            .GetOptional(key)
             .ToResult($"Configuration key '{key}' not found")
             .Bind(value =>
                 validator(value)
