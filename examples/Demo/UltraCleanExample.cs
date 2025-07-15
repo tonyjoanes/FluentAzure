@@ -234,10 +234,11 @@ public static class UltraCleanExample
                 .Required("App:Name")
                 .BuildAsync();
 
-            // 3. Legacy (Deprecated)
-            Console.WriteLine("\n3️⃣ Legacy (Deprecated):");
-            Console.WriteLine("   using FluentAzure.Core;");
-            Console.WriteLine("   var config = await FluentAzure.Configuration()...");
+            // 3. Legacy (No longer available)
+            Console.WriteLine("\n3️⃣ Legacy (No longer available):");
+            Console.WriteLine("   // This API has been removed:");
+            Console.WriteLine("   // var config = await FluentAzure.Configuration()...");
+            Console.WriteLine("   // Use FluentConfig.Create() instead");
 
             var legacyResult = await FluentAzure
                 .FluentConfig.Create()
