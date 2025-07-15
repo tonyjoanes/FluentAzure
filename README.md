@@ -1,7 +1,5 @@
 ﻿# FluentAzure
 
- This is a test
-
 A fluent, functional, and type-safe NuGet package for Azure configuration and secrets management.
 
 ![.NET](https://img.shields.io/badge/.NET-8.0-blue.svg)
