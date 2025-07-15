@@ -80,8 +80,10 @@ dotnet run
 
 ```csharp
 // Program.cs - Configuration setup
-var configResult = await FluentAzure
-    .Configuration()
+using FluentAzure;
+
+var configResult = await FluentConfig
+    .Create()
     .FromEnvironment()
     .FromKeyVault(Environment.GetEnvironmentVariable("KeyVaultUrl"))
     .Required("DatabaseConnectionString")
@@ -97,8 +99,10 @@ var configResult = await FluentAzure
 
 ```csharp
 // Program.cs - Configuration setup
-var configResult = await FluentAzure
-    .Configuration()
+using FluentAzure;
+
+var configResult = await FluentConfig
+    .Create()
     .FromJsonFile("appsettings.json")
     .FromEnvironment()
     .FromKeyVault(builder.Configuration["KeyVault:Url"])
@@ -345,7 +349,9 @@ az webapp deployment source config-zip \
 ### Environment-Specific Configuration
 ```csharp
 // Use different configuration sources per environment
-var configBuilder = FluentAzure.Configuration();
+using FluentAzure;
+
+var configBuilder = FluentConfig.Create();
 
 if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Production")
 {
