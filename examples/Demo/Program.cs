@@ -51,7 +51,7 @@ public static class Program
 
         // Example 3: Dependency Injection integration
         Console.WriteLine("\n3. Dependency Injection Integration:");
-        await DependencyInjectionExample();
+        DependencyInjectionExample();
 
         // Example 4: Traditional approach for comparison
         Console.WriteLine("\n4. Traditional Approach (for comparison):");
@@ -174,7 +174,7 @@ public static class Program
         }
     }
 
-    private static async Task DependencyInjectionExample()
+    private static void DependencyInjectionExample()
     {
         var services = new ServiceCollection();
 

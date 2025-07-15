@@ -69,7 +69,7 @@ public class UsersController : ControllerBase
             if (_config.RateLimit.EnableRateLimiting)
             {
                 var clientId = User.Identity?.Name ?? "anonymous";
-                var isRateLimited = await CheckRateLimitAsync(clientId);
+                var isRateLimited = CheckRateLimit(clientId);
                 if (isRateLimited)
                 {
                     return StatusCode(429, new { Message = "Rate limit exceeded" });
@@ -436,7 +436,7 @@ public class UsersController : ControllerBase
         return true;
     }
 
-    private async Task<bool> CheckRateLimitAsync(string clientId)
+    private bool CheckRateLimit(string clientId)
     {
         // Simplified rate limiting check
         // In a real implementation, you would use a distributed cache

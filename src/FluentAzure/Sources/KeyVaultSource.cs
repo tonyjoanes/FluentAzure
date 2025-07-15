@@ -160,7 +160,7 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
                 var secrets = new List<SecretProperties>();
                 var secretsAsync = _client.GetPropertiesOfSecretsAsync();
 
-                await foreach (var secret in secretsAsync)
+                await foreach (var secret in secretsAsync.ConfigureAwait(false))
                 {
                     // Apply prefix filter if specified
                     if (
@@ -178,7 +178,7 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
                 }
 
                 return secrets;
-            });
+            }).ConfigureAwait(false);
 
             // Load secrets in parallel with retry logic
             foreach (var secretProperty in secretProperties)
@@ -187,7 +187,7 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
                 secretLoadTasks.Add(task);
             }
 
-            var results = await Task.WhenAll(secretLoadTasks);
+            var results = await Task.WhenAll(secretLoadTasks).ConfigureAwait(false);
 
             // Process results
             foreach (var result in results)
@@ -276,7 +276,7 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
         _values.Clear();
         _cache.Clear();
 
-        return await LoadAsync();
+        return await LoadAsync().ConfigureAwait(false);
     }
 
     /// <summary>
@@ -308,9 +308,9 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
             var secretResponse = await _retryPipeline.ExecuteAsync(async _ =>
             {
                 return effectiveVersion != null
-                    ? await _client.GetSecretAsync(secretName, effectiveVersion)
-                    : await _client.GetSecretAsync(secretName);
-            });
+                    ? await _client.GetSecretAsync(secretName, effectiveVersion).ConfigureAwait(false)
+                    : await _client.GetSecretAsync(secretName).ConfigureAwait(false);
+            }).ConfigureAwait(false);
 
             if (secretResponse?.Value?.Value != null)
             {
@@ -342,9 +342,21 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
     {
         if (!_disposed)
         {
+            // Clear sensitive data securely
             _cache.Clear();
+            
+            // Clear in-memory values securely
+            foreach (var key in _values.Keys.ToList())
+            {
+                if (_values.TryRemove(key, out var value) && value != null)
+                {
+                    // Overwrite sensitive data
+                    value = new string('\0', value.Length);
+                }
+            }
+            
             _disposed = true;
-            _logger?.LogInformation("KeyVaultSource disposed");
+            _logger?.LogInformation("KeyVaultSource disposed securely");
         }
     }
 
@@ -358,9 +370,9 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
                     ? await _client.GetSecretAsync(
                         secretProperties.Name,
                         _configuration.SecretVersion
-                    )
-                    : await _client.GetSecretAsync(secretProperties.Name);
-            });
+                    ).ConfigureAwait(false)
+                    : await _client.GetSecretAsync(secretProperties.Name).ConfigureAwait(false);
+            }).ConfigureAwait(false);
 
             if (secret?.Value?.Value != null)
             {

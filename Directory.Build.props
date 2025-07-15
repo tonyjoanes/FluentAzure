@@ -5,18 +5,17 @@
     <LangVersion>12.0</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <!-- RELAXED CODE ANALYSIS FOR DEVELOPMENT -->
+    <!-- CODE ANALYSIS SETTINGS -->
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <!-- Only treat specific critical warnings as errors -->
-    <WarningsAsErrors>CS0162;CS0168;CS0219</WarningsAsErrors>
-    <!-- Unreachable code, unused variables -->
+    <!-- Treat critical warnings as errors -->
+    <WarningsAsErrors>CS0162;CS0168;CS0219;CS1998</WarningsAsErrors>
+    <!-- Unreachable code, unused variables, async without await -->
     <WarningsNotAsErrors>CS1591</WarningsNotAsErrors>
     <!-- Missing XML comment for publicly visible type or member -->
-    <!-- Code analysis settings - RELAXED -->
+    <!-- Enable enhanced code analysis -->
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
-    <!-- Commenting out strict ruleset for now -->
-    <!-- <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)FluentAzure.ruleset</CodeAnalysisRuleSet> -->
+    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)FluentAzure.ruleset</CodeAnalysisRuleSet>
     <!-- Documentation -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
@@ -53,14 +52,11 @@
     <PackageVersion>0.2.0-rc.5</PackageVersion>
   </PropertyGroup>
   <ItemGroup>
-    <!-- Essential code analysis packages only -->
+    <!-- Essential code analysis packages -->
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="9.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <!-- TEMPORARILY DISABLED FOR DEVELOPMENT -->
-    <!-- Uncomment these when ready to enforce stricter code quality -->
-    <!--
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -69,7 +65,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    -->
     <!-- Source link packages -->
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>

@@ -428,3 +428,52 @@ Thumbs.db
 
 # Google App Engine generated folder
 appengine-generated/
+
+# Security and Sensitive Files
+*.key
+*.pem
+*.p12
+*.cert
+*.crt
+*.csr
+secret*
+secrets*
+*secret*
+*.env
+.env.*
+*.local.json
+local.settings.json
+*connection*string*
+*apikey*
+*api-key*
+*access-key*
+*auth*token*
+*private*key*
+
+# Azure specific sensitive files
+azureauth.json
+azure.json
+*.azureauth
+servicePrincipal.json
+*.publishsettings
+
+# Configuration files that might contain secrets
+appsettings.production.json
+appsettings.staging.json
+*config.production.*
+*config.staging.*
+
+# Backup files
+*.bak
+*.backup
+*.old
+*~
+
+# Temporary security audit files
+security-audit.log
+
+# Additional security exclusions
+.secrets/
+secrets/
+private/
+credentials/
