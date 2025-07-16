@@ -170,7 +170,7 @@ public static class UltraCleanExample
     /// <summary>
     /// Demonstrates dependency injection with the ultra-clean API.
     /// </summary>
-    public static async Task UltraCleanDependencyInjection()
+    public static void UltraCleanDependencyInjection()
     {
         Console.WriteLine("\n🏗️ Ultra Clean Dependency Injection Example");
         Console.WriteLine("===========================================");
