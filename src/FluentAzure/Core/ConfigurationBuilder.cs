@@ -16,6 +16,27 @@ public class ConfigurationBuilder
         Func<Dictionary<string, string>, Task<Result<Dictionary<string, string>>>>
     > _transformations = new();
     private readonly List<Func<Dictionary<string, string>, Result<string>>> _validations = new();
+    private readonly List<Action<ConfigurationChangedEventArgs>> _changeHandlers = new();
+
+    /// <summary>
+    /// Adds a configuration change handler to the builder.
+    /// </summary>
+    /// <param name="handler">The change handler.</param>
+    internal void AddConfigurationChangeHandler(Action<ConfigurationChangedEventArgs> handler)
+    {
+        ArgumentNullException.ThrowIfNull(handler);
+        _changeHandlers.Add(handler);
+    }
+
+    /// <summary>
+    /// Adds a configuration change handler to the builder.
+    /// </summary>
+    /// <param name="handler">The change handler.</param>
+    internal void AddConfigurationChangeHandler(Action<Dictionary<string, string>, Dictionary<string, string>> handler)
+    {
+        ArgumentNullException.ThrowIfNull(handler);
+        _changeHandlers.Add(args => handler(args.PreviousValues, args.NewValues));
+    }
 
     /// <summary>
     /// Adds an environment variable source to the configuration pipeline.
@@ -55,6 +76,27 @@ public class ConfigurationBuilder
     {
         ArgumentNullException.ThrowIfNull(source);
         _sources.Add(source);
+
+        // Wire up change handlers for sources that support hot reload
+        if (source.SupportsHotReload && _changeHandlers.Count > 0)
+        {
+            source.ConfigurationChanged += (sender, e) =>
+            {
+                foreach (var handler in _changeHandlers)
+                {
+                    try
+                    {
+                        handler(e);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log error but don't throw - change handlers should be resilient
+                        System.Diagnostics.Debug.WriteLine($"Error in configuration change handler: {ex.Message}");
+                    }
+                }
+            };
+        }
+
         return this;
     }
 

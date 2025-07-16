@@ -84,6 +84,54 @@ int patch = FluentAzure.Version.Patch;     // 0
 bool isPreRelease = FluentAzure.Version.IsPreRelease; // true
 ```
 
+## 🛡️ Built-in Safety Features
+
+FluentAzure provides multiple layers of safety out of the box:
+
+### **Required Values** - Fail Fast
+```csharp
+var config = await FluentConfig
+    .Create()
+    .FromEnvironment()
+    .Required("Database:ConnectionString")  // Fails if missing
+    .Required("Api:Key")                    // Fails if missing
+    .BuildAsync();
+```
+
+### **Optional Values** - Safe Defaults
+```csharp
+var config = await FluentConfig
+    .Create()
+    .FromEnvironment()
+    .Optional("Timeout", "30")              // Always safe with default
+    .Optional("Debug", "false")             // Always safe with default
+    .BuildAsync();
+```
+
+### **Strongly-Typed Binding** - Type Safety
+```csharp
+var config = await FluentConfig
+    .Create()
+    .FromEnvironment()
+    .Required("App:Name")
+    .Optional("Timeout", "30")
+    .BuildAsync()
+    .Bind<AppSettings>();  // Fully type-safe object
+```
+
+### **Validation** - Runtime Safety
+```csharp
+var config = await FluentConfig
+    .Create()
+    .FromEnvironment()
+    .Validate("Timeout", timeout =>
+        int.TryParse(timeout, out var t) && t > 0
+            ? Result<string>.Success(timeout)
+            : Result<string>.Error("Invalid timeout")
+    )
+    .BuildAsync();
+```
+
 ## 📖 Example Usage Patterns
 
 #### **Ultra Clean Configuration (Recommended)**

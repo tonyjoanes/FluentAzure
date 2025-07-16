@@ -110,6 +110,12 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
     /// <inheritdoc />
     public int Priority { get; }
 
+    /// <inheritdoc />
+    public bool SupportsHotReload => false;
+
+    /// <inheritdoc />
+    public event EventHandler<ConfigurationChangedEventArgs>? ConfigurationChanged;
+
     /// <summary>
     /// Gets the cache statistics for monitoring purposes.
     /// </summary>
