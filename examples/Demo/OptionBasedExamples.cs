@@ -250,7 +250,7 @@ public static class OptionBasedExamples
     /// <summary>
     /// Demonstrates Option-based configuration in dependency injection.
     /// </summary>
-    public static async Task OptionBasedDependencyInjection()
+    public static void OptionBasedDependencyInjection()
     {
         Console.WriteLine("\n🏗️ Option-Based Dependency Injection");
         Console.WriteLine("====================================");

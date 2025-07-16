@@ -25,23 +25,23 @@ public static class OptionBenefitsExample
 
             Console.WriteLine("\n1️⃣ **Null Safety & No Exceptions**");
             Console.WriteLine("=================================");
-            await DemonstrateNullSafety(configResult);
+            DemonstrateNullSafety(configResult);
 
             Console.WriteLine("\n2️⃣ **Graceful Fallbacks**");
             Console.WriteLine("=========================");
-            await DemonstrateFallbacks(configResult);
+            DemonstrateFallbacks(configResult);
 
             Console.WriteLine("\n3️⃣ **Type-Safe Validation**");
             Console.WriteLine("===========================");
-            await DemonstrateTypeSafeValidation(configResult);
+            DemonstrateTypeSafeValidation(configResult);
 
             Console.WriteLine("\n4️⃣ **Functional Composition**");
             Console.WriteLine("=============================");
-            await DemonstrateFunctionalComposition(configResult);
+            DemonstrateFunctionalComposition(configResult);
 
             Console.WriteLine("\n5️⃣ **Clean Error Handling**");
             Console.WriteLine("===========================");
-            await DemonstrateCleanErrorHandling(configResult);
+            DemonstrateCleanErrorHandling(configResult);
         }
         finally
         {
@@ -55,7 +55,7 @@ public static class OptionBenefitsExample
     /// <summary>
     /// Shows how Options prevent null reference exceptions
     /// </summary>
-    private static async Task DemonstrateNullSafety(Result<Dictionary<string, string>> configResult)
+    private static void DemonstrateNullSafety(Result<Dictionary<string, string>> configResult)
     {
         configResult.Match(
             success =>
@@ -89,7 +89,7 @@ public static class OptionBenefitsExample
     /// <summary>
     /// Shows how Options provide elegant fallback chains
     /// </summary>
-    private static async Task DemonstrateFallbacks(Result<Dictionary<string, string>> configResult)
+    private static void DemonstrateFallbacks(Result<Dictionary<string, string>> configResult)
     {
         configResult.Match(
             success =>
@@ -135,7 +135,7 @@ public static class OptionBenefitsExample
     /// <summary>
     /// Shows how Options provide type-safe validation
     /// </summary>
-    private static async Task DemonstrateTypeSafeValidation(Result<Dictionary<string, string>> configResult)
+    private static void DemonstrateTypeSafeValidation(Result<Dictionary<string, string>> configResult)
     {
         configResult.Match(
             success =>
@@ -173,7 +173,7 @@ public static class OptionBenefitsExample
     /// <summary>
     /// Shows how Options enable functional composition
     /// </summary>
-    private static async Task DemonstrateFunctionalComposition(Result<Dictionary<string, string>> configResult)
+    private static void DemonstrateFunctionalComposition(Result<Dictionary<string, string>> configResult)
     {
         configResult.Match(
             success =>
@@ -239,7 +239,7 @@ public static class OptionBenefitsExample
     /// <summary>
     /// Shows how Options provide clean error handling
     /// </summary>
-    private static async Task DemonstrateCleanErrorHandling(Result<Dictionary<string, string>> configResult)
+    private static void DemonstrateCleanErrorHandling(Result<Dictionary<string, string>> configResult)
     {
         configResult.Match(
             success =>

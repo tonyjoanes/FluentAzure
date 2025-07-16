@@ -1,9 +1,8 @@
-﻿using FluentAzure;
+﻿using Demo;
+using FluentAzure;
 using Microsoft.Extensions.DependencyInjection;
-using Demo;
 
 // FluentConfig() is available via GlobalUsings.cs
-
 namespace FluentAzure.Examples;
 
 /// <summary>
@@ -146,7 +145,9 @@ public static class Program
                         {
                             return Core.Result<string>.Success(timeout);
                         }
-                        return Core.Result<string>.Error("API timeout must be between 1-300 seconds");
+                        return Core.Result<string>.Error(
+                            "API timeout must be between 1-300 seconds"
+                        );
                     }
                 )
                 .Transform(
