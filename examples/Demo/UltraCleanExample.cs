@@ -132,7 +132,9 @@ public static class UltraCleanExample
                         {
                             return Core.Result<string>.Success(timeout);
                         }
-                        return Core.Result<string>.Error("API timeout must be between 1-300 seconds");
+                        return Core.Result<string>.Error(
+                            "API timeout must be between 1-300 seconds"
+                        );
                     }
                 )
                 .Transform(
@@ -170,7 +172,7 @@ public static class UltraCleanExample
     /// <summary>
     /// Demonstrates dependency injection with the ultra-clean API.
     /// </summary>
-    public static async Task UltraCleanDependencyInjection()
+    public static void UltraCleanDependencyInjection()
     {
         Console.WriteLine("\n🏗️ Ultra Clean Dependency Injection Example");
         Console.WriteLine("===========================================");
@@ -234,10 +236,11 @@ public static class UltraCleanExample
                 .Required("App:Name")
                 .BuildAsync();
 
-            // 3. Legacy (Deprecated)
-            Console.WriteLine("\n3️⃣ Legacy (Deprecated):");
-            Console.WriteLine("   using FluentAzure.Core;");
-            Console.WriteLine("   var config = await FluentAzure.Configuration()...");
+            // 3. Legacy (No longer available)
+            Console.WriteLine("\n3️⃣ Legacy (No longer available):");
+            Console.WriteLine("   // This API has been removed:");
+            Console.WriteLine("   // var config = await FluentAzure.Configuration()...");
+            Console.WriteLine("   // Use FluentConfig.Create() instead");
 
             var legacyResult = await FluentAzure
                 .FluentConfig.Create()
@@ -254,6 +257,132 @@ public static class UltraCleanExample
             // Cleanup
             Environment.SetEnvironmentVariable("App__Name", null);
             Environment.SetEnvironmentVariable("Database__ConnectionString", null);
+        }
+    }
+
+    /// <summary>
+    /// Demonstrates the proper way to use FluentAzure's built-in safety features.
+    /// This is the recommended approach - no need for additional Option<T> wrapping.
+    /// </summary>
+    public static async Task ProperFluentAzureSafety()
+    {
+        Console.WriteLine("\n🛡️ Proper FluentAzure Safety (Recommended)");
+        Console.WriteLine("==========================================");
+
+        // Set up environment variables for testing
+        Environment.SetEnvironmentVariable("App__Name", "SafeApp");
+        Environment.SetEnvironmentVariable(
+            "Database__ConnectionString",
+            "Server=localhost;Database=safe"
+        );
+        Environment.SetEnvironmentVariable("Api__TimeoutSeconds", "30");
+
+        try
+        {
+            // Method 1: Required values - fails fast if missing
+            var requiredResult = await FluentConfig
+                .Create()
+                .FromEnvironment()
+                .Required("App:Name")
+                .Required("Database:ConnectionString")
+                .BuildAsync();
+
+            requiredResult.Match(
+                success =>
+                {
+                    // These are guaranteed to exist and be safe
+                    var appName = success["App:Name"];
+                    var connectionString = success["Database:ConnectionString"];
+                    Console.WriteLine($"✅ Required - App: {appName}");
+                    Console.WriteLine(
+                        $"✅ Required - DB: {connectionString.Substring(0, Math.Min(20, connectionString.Length))}..."
+                    );
+                },
+                errors =>
+                    Console.WriteLine($"❌ Required config failed: {string.Join(", ", errors)}")
+            );
+
+            // Method 2: Optional values with defaults - always safe
+            var optionalResult = await FluentConfig
+                .Create()
+                .FromEnvironment()
+                .Optional("App:Name", "DefaultApp")
+                .Optional("Api:TimeoutSeconds", "60")
+                .Optional("Debug", "false")
+                .BuildAsync();
+
+            optionalResult.Match(
+                success =>
+                {
+                    // These are always safe with defaults
+                    var appName = success["App:Name"];
+                    var timeout = int.Parse(success["Api:TimeoutSeconds"]);
+                    var debug = bool.Parse(success["Debug"]);
+                    Console.WriteLine($"✅ Optional - App: {appName}");
+                    Console.WriteLine($"✅ Optional - Timeout: {timeout}s");
+                    Console.WriteLine($"✅ Optional - Debug: {debug}");
+                },
+                errors =>
+                    Console.WriteLine($"❌ Optional config failed: {string.Join(", ", errors)}")
+            );
+
+            // Method 3: Strongly-typed binding - safest approach
+            var buildResult = await FluentConfig
+                .Create()
+                .FromEnvironment()
+                .Required("App:Name")
+                .Optional("Api:TimeoutSeconds", "30")
+                .Optional("Debug", "false")
+                .BuildAsync();
+
+            var bindingResult = buildResult.Bind<AppSettings>();
+
+            bindingResult.Match(
+                success =>
+                {
+                    // Fully type-safe, no null checks needed
+                    Console.WriteLine($"✅ Typed - App: {success.AppName}");
+                    Console.WriteLine($"✅ Typed - Timeout: {success.Api.TimeoutSeconds}s");
+                    Console.WriteLine($"✅ Typed - Debug: {success.Debug}");
+                },
+                errors => Console.WriteLine($"❌ Binding failed: {string.Join(", ", errors)}")
+            );
+
+            // Method 4: Validation with built-in safety
+            var validatedBuildResult = await FluentConfig
+                .Create()
+                .FromEnvironment()
+                .Required("App:Name")
+                .Optional("Api:TimeoutSeconds", "30")
+                .Validate(
+                    "Api:TimeoutSeconds",
+                    timeout =>
+                    {
+                        if (int.TryParse(timeout, out var seconds) && seconds > 0 && seconds <= 300)
+                        {
+                            return Core.Result<string>.Success(timeout);
+                        }
+                        return Core.Result<string>.Error("Timeout must be between 1-300 seconds");
+                    }
+                )
+                .BuildAsync();
+
+            var validatedResult = validatedBuildResult.Bind<AppSettings>();
+
+            validatedResult.Match(
+                success =>
+                    Console.WriteLine(
+                        $"✅ Validated - App: {success.AppName}, Timeout: {success.Api.TimeoutSeconds}s"
+                    ),
+                errors => Console.WriteLine($"❌ Validation failed: {string.Join(", ", errors)}")
+            );
+        }
+        finally
+        {
+            // Cleanup
+            Environment.SetEnvironmentVariable("App__Name", null);
+            Environment.SetEnvironmentVariable("Database__ConnectionString", null);
+            Environment.SetEnvironmentVariable("Api__TimeoutSeconds", null);
         }
     }
 }

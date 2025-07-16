@@ -43,7 +43,10 @@ internal class KeyVaultSecretCache
         if (DateTime.UtcNow > entry.ExpiresAt)
         {
             // Entry has expired, remove it
-            _cache.TryRemove(key, out _);
+            if (_cache.TryRemove(key, out var removedEntry))
+            {
+                removedEntry.Dispose();
+            }
             _logger?.LogDebug("Cache entry for key '{Key}' has expired and was removed", key);
             return false;
         }
@@ -91,22 +94,34 @@ internal class KeyVaultSecretCache
     /// <returns>True if the entry was found and removed; otherwise, false.</returns>
     public bool Remove(string key)
     {
-        var removed = _cache.TryRemove(key, out _);
-        if (removed)
+        var removed = _cache.TryRemove(key, out var entry);
+        if (removed && entry != null)
         {
+            entry.Dispose();
             _logger?.LogDebug("Removed cache entry for key '{Key}'", key);
         }
         return removed;
     }
 
     /// <summary>
-    /// Clears all cached entries.
+    /// Clears all cached entries securely by overwriting values.
     /// </summary>
     public void Clear()
     {
         var count = _cache.Count;
+        
+        // Clear sensitive data securely
+        foreach (var kvp in _cache.ToList())
+        {
+            if (_cache.TryRemove(kvp.Key, out var entry))
+            {
+                // Dispose entry to clear sensitive data
+                entry.Dispose();
+            }
+        }
+        
         _cache.Clear();
-        _logger?.LogDebug("Cleared {Count} cache entries", count);
+        _logger?.LogDebug("Cleared {Count} cache entries securely", count);
     }
 
     /// <summary>
@@ -181,7 +196,10 @@ internal class KeyVaultSecretCache
 
             foreach (var key in expiredKeys)
             {
-                _cache.TryRemove(key, out _);
+                if (_cache.TryRemove(key, out var entry))
+                {
+                    entry.Dispose();
+                }
             }
 
             _lastCleanup = now;
@@ -196,10 +214,25 @@ internal class KeyVaultSecretCache
     /// <summary>
     /// Represents a cached entry with expiration and access tracking.
     /// </summary>
-    private class CacheEntry
+    private class CacheEntry : IDisposable
     {
+        private bool _disposed;
+        
         public string Value { get; set; } = string.Empty;
         public DateTime ExpiresAt { get; set; }
         public DateTime LastAccessed { get; set; }
+        
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                // Securely clear sensitive data
+                if (Value != null)
+                {
+                    Value = new string('\0', Value.Length);
+                }
+                _disposed = true;
+            }
+        }
     }
 }

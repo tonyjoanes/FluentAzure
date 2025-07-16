@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using FluentAzure.Core;
+using FluentAzure.Sources;
 
 namespace FluentAzure.Extensions;
 
@@ -194,5 +198,103 @@ public static class ConfigurationExtensions
         ArgumentNullException.ThrowIfNull(defaultFactory);
 
         return config.GetOptional<T>(key).GetValueOrDefault(defaultFactory);
+    }
+
+    /// <summary>
+    /// Gets a configuration value as an Option with type conversion.
+    /// Returns None if the key is not found, Some(value) if found and conversion succeeds.
+    /// </summary>
+    /// <typeparam name="T">The target type</typeparam>
+    /// <param name="configuration">The configuration dictionary</param>
+    /// <param name="key">The configuration key</param>
+    /// <returns>Some(converted value) if the key exists and conversion succeeds, None otherwise</returns>
+    public static Option<T> GetOption<T>(this Dictionary<string, string> configuration, string key)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
+        if (!configuration.TryGetValue(key, out var value))
+        {
+            return Option<T>.None();
+        }
+
+        var conversionResult = TypeExtensions.TryConvert<T>(value);
+        return conversionResult.Match(success => Option<T>.Some(success), _ => Option<T>.None());
+    }
+
+    /// <summary>
+    /// Gets a configuration value as an Option with type conversion and validation.
+    /// Returns None if the key is not found or validation fails.
+    /// </summary>
+    /// <typeparam name="T">The target type</typeparam>
+    /// <param name="configuration">The configuration dictionary</param>
+    /// <param name="key">The configuration key</param>
+    /// <param name="validator">The validation function</param>
+    /// <returns>Some(converted value) if the key exists, conversion succeeds, and validation passes, None otherwise</returns>
+    public static Option<T> GetOption<T>(
+        this Dictionary<string, string> configuration,
+        string key,
+        Func<T, bool> validator
+    )
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        ArgumentNullException.ThrowIfNull(validator);
+
+        return configuration.GetOption<T>(key).Filter(validator);
+    }
+
+    /// <summary>
+    /// Adds a JSON file source with hot reload support.
+    /// </summary>
+    /// <param name="builder">The configuration builder.</param>
+    /// <param name="filePath">The path to the JSON file.</param>
+    /// <param name="priority">The priority of this source.</param>
+    /// <param name="optional">Whether the file is optional.</param>
+    /// <param name="debounceMs">Debounce time in milliseconds to prevent rapid-fire updates.</param>
+    /// <returns>The configuration builder.</returns>
+    public static ConfigurationBuilder FromJsonFileWithHotReload(
+        this ConfigurationBuilder builder,
+        string filePath,
+        int priority = 50,
+        bool optional = false,
+        int debounceMs = 500
+    )
+    {
+        var source = new FileWatcherSource(filePath, priority, optional, debounceMs);
+        builder.AddSource(source);
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a configuration change handler to the builder.
+    /// </summary>
+    /// <param name="builder">The configuration builder.</param>
+    /// <param name="handler">The change handler.</param>
+    /// <returns>The configuration builder.</returns>
+    public static ConfigurationBuilder OnConfigurationChanged(
+        this ConfigurationBuilder builder,
+        Action<Dictionary<string, string>, Dictionary<string, string>> handler
+    )
+    {
+        // Store the handler to be applied when sources are loaded
+        builder.AddConfigurationChangeHandler(handler);
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a configuration change handler to the builder with source information.
+    /// </summary>
+    /// <param name="builder">The configuration builder.</param>
+    /// <param name="handler">The change handler.</param>
+    /// <returns>The configuration builder.</returns>
+    public static ConfigurationBuilder OnConfigurationChanged(
+        this ConfigurationBuilder builder,
+        Action<ConfigurationChangedEventArgs> handler
+    )
+    {
+        // Store the handler to be applied when sources are loaded
+        builder.AddConfigurationChangeHandler(handler);
+        return builder;
     }
 }

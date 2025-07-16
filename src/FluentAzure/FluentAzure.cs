@@ -1,5 +1,6 @@
 using FluentAzure.Binding;
 using FluentAzure.Core;
+using FluentAzure.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FluentAzure;
@@ -83,5 +84,40 @@ public static class BindingExtensions
         where T : class, new()
     {
         return result.Bind(config => ConfigurationBinder.Bind<T>(config));
+    }
+
+    /// <summary>
+    /// Gets a configuration value as an Option from a configuration result.
+    /// </summary>
+    /// <typeparam name="T">The type to convert to</typeparam>
+    /// <param name="result">The configuration result</param>
+    /// <param name="key">The configuration key</param>
+    /// <returns>Some(value) if the configuration succeeds and key exists, None otherwise</returns>
+    public static Option<T> GetOption<T>(this Result<Dictionary<string, string>> result, string key)
+    {
+        return result.Match(
+            success => ConfigurationExtensions.GetOption<T>(success, key),
+            _ => Option<T>.None()
+        );
+    }
+
+    /// <summary>
+    /// Gets a configuration value as an Option with validation from a configuration result.
+    /// </summary>
+    /// <typeparam name="T">The type to convert to</typeparam>
+    /// <param name="result">The configuration result</param>
+    /// <param name="key">The configuration key</param>
+    /// <param name="validator">The validation function</param>
+    /// <returns>Some(value) if the configuration succeeds, key exists, and validation passes, None otherwise</returns>
+    public static Option<T> GetOption<T>(
+        this Result<Dictionary<string, string>> result,
+        string key,
+        Func<T, bool> validator
+    )
+    {
+        return result.Match(
+            success => ConfigurationExtensions.GetOption<T>(success, key, validator),
+            _ => Option<T>.None()
+        );
     }
 }

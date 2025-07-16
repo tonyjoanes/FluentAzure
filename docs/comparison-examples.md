@@ -122,8 +122,10 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         
         // FluentAzure configuration with automatic validation
-        var configResult = await FluentAzure
-            .Configuration()
+        using FluentAzure;
+        
+        var configResult = await FluentConfig
+            .Create()
             .FromJsonFile("appsettings.json")
             .FromEnvironment()
             .Required("ConnectionStrings:DefaultConnection")
@@ -266,6 +268,8 @@ public class Startup : FunctionsStartup
 
 ```csharp
 // Program.cs - FluentAzure approach
+using FluentAzure;
+
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
     .ConfigureServices(services =>
@@ -275,8 +279,8 @@ var host = new HostBuilder()
         {
             var logger = provider.GetRequiredService<ILogger<FunctionConfiguration>>();
             
-            var configResult = FluentAzure
-                .Configuration()
+            var configResult = FluentConfig
+                .Create()
                 .FromEnvironment()
                 .FromKeyVault(Environment.GetEnvironmentVariable("KeyVaultUrl"))
                 .Required("DatabaseConnectionString")
@@ -725,8 +729,10 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         
         // FluentAzure with automatic error handling
-        var configResult = await FluentAzure
-            .Configuration()
+        using FluentAzure;
+        
+        var configResult = await FluentConfig
+            .Create()
             .FromJsonFile("appsettings.json")
             .FromEnvironment()
             .Required("ConnectionStrings:DefaultConnection")
@@ -808,8 +814,10 @@ Transform your configuration management from a tedious, error-prone task into a 
 dotnet add package FluentAzure
 
 # Start using the fluent API
-var config = await FluentAzure
-    .Configuration()
+using FluentAzure;
+
+var config = await FluentConfig
+    .Create()
     .FromEnvironment()
     .FromKeyVault("https://your-keyvault.vault.azure.net/")
     .Required("DatabaseConnectionString")

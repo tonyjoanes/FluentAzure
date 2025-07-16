@@ -44,7 +44,9 @@ Each feature scored 1-10 on:
 - **Strategic Value**: 10/10 - Entire platform depends on this
 
 ```csharp
-FluentAzure.Configuration()
+using FluentAzure;
+
+FluentConfig.Create()
     .FromEnvironment()
     .FromKeyVault("vault-url")
     .Required("ConnectionString")
@@ -130,7 +132,7 @@ FluentAzure.Configuration()
 - **Strategic Value**: 9/10 - Unique in market
 
 ```csharp
-FluentAzure.Configuration()
+FluentConfig.Create()
     .ForTesting()
     .MockKeyVault("vault", new { ApiKey = "test" })
     .BuildAsync()
@@ -169,7 +171,7 @@ FluentAzure.Configuration()
 - **Strategic Value**: 10/10 - Major competitive advantage
 
 ```csharp
-FluentAzure.Configuration()
+FluentConfig.Create()
     .FromAzureKeyVault("azure-vault")
     .FromAWSSecretsManager("aws-secrets")
     .FromGoogleSecretManager("gcp-secrets")
@@ -265,7 +267,7 @@ FluentAzure.BlobStorage("account")
 - **Strategic Value**: 8/10 - Future-proofing
 
 ```csharp
-FluentAzure.Configuration()
+FluentConfig.Create()
     .FromKubernetesSecrets("namespace", "secret")
     .FromKubernetesConfigMaps("namespace", "config")
 ```
@@ -310,7 +312,7 @@ var suggestions = await FluentAzure.AI()
 - **Strategic Value**: 9/10 - Network effects
 
 ```csharp
-FluentAzure.Configuration()
+FluentConfig.Create()
     .FromTemplate("stripe-integration")
     .FromTemplate("auth0-provider")
 ```

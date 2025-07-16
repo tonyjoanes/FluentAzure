@@ -41,18 +41,19 @@ Write this ultra-clean pipeline:
 // FluentAzure approach - ultra clean and safe
 using FluentAzure; // Single using statement!
 
-var config = await FluentConfig
+var configResult = await FluentConfig
     .Create()  // Ultra clean - just FluentConfig.Create()!
     .FromEnvironment()
     .FromKeyVault("https://myvault.vault.azure.net")
     .Required("ConnectionString")
-    .Optional("Timeout", 30)
-    .Validate(c => c.ConnectionString.StartsWith("Server="))
-    .BuildAsync()
-    .Match(
-        success => success,
-        errors => throw new ConfigurationException(errors)
-    );
+    .Optional("Timeout", "30")
+    .Validate(c => c["ConnectionString"].StartsWith("Server=") ? null : "ConnectionString must start with Server=")
+    .BuildAsync();
+
+var config = configResult.Match(
+    success => success,
+    errors => throw new InvalidOperationException($"Configuration failed: {string.Join(", ", errors)}")
+);
 ```
 
 ## 📦 Installation
@@ -83,6 +84,54 @@ int patch = FluentAzure.Version.Patch;     // 0
 bool isPreRelease = FluentAzure.Version.IsPreRelease; // true
 ```
 
+## 🛡️ Built-in Safety Features
+
+FluentAzure provides multiple layers of safety out of the box:
+
+### **Required Values** - Fail Fast
+```csharp
+var config = await FluentConfig
+    .Create()
+    .FromEnvironment()
+    .Required("Database:ConnectionString")  // Fails if missing
+    .Required("Api:Key")                    // Fails if missing
+    .BuildAsync();
+```
+
+### **Optional Values** - Safe Defaults
+```csharp
+var config = await FluentConfig
+    .Create()
+    .FromEnvironment()
+    .Optional("Timeout", "30")              // Always safe with default
+    .Optional("Debug", "false")             // Always safe with default
+    .BuildAsync();
+```
+
+### **Strongly-Typed Binding** - Type Safety
+```csharp
+var config = await FluentConfig
+    .Create()
+    .FromEnvironment()
+    .Required("App:Name")
+    .Optional("Timeout", "30")
+    .BuildAsync()
+    .Bind<AppSettings>();  // Fully type-safe object
+```
+
+### **Validation** - Runtime Safety
+```csharp
+var config = await FluentConfig
+    .Create()
+    .FromEnvironment()
+    .Validate("Timeout", timeout =>
+        int.TryParse(timeout, out var t) && t > 0
+            ? Result<string>.Success(timeout)
+            : Result<string>.Error("Invalid timeout")
+    )
+    .BuildAsync();
+```
+
 ## 📖 Example Usage Patterns
 
 #### **Ultra Clean Configuration (Recommended)**
@@ -101,15 +150,16 @@ var config = await FluentConfig
 ```csharp
 using FluentAzure; // Single using statement!
 
-var config = await FluentConfig
+var configResult = await FluentConfig
     .Create()  // Ultra clean - just FluentConfig.Create()!
     .FromJsonFile("appsettings.json")
     .FromEnvironment()
     .FromKeyVault("https://company-prod-kv.vault.azure.net")
     .Transform("ConnectionString", DecryptConnectionString)
-    .Validate(c => Uri.IsWellFormedUriString(c.ServiceUrl, UriKind.Absolute))
-    .Bind<AppConfiguration>()
+    .Validate(c => Uri.IsWellFormedUriString(c["ServiceUrl"], UriKind.Absolute) ? null : "ServiceUrl must be a valid URI")
     .BuildAsync();
+
+var config = configResult.Bind<AppConfiguration>();
 ```
 
 #### **Dependency Injection**
@@ -147,13 +197,15 @@ var configResult = await FluentConfig
     .Required("ConnectionStrings:DefaultConnection")
     .Required("Jwt:SecretKey")
     .Optional("Logging:LogLevel:Default", "Information")
-    .BuildAsync()
-    .Bind<WebApiConfiguration>();
+    .BuildAsync();
 
-var config = configResult.Match(
+var bindResult = configResult.Bind<WebApiConfiguration>();
+
+var config = bindResult.Match(
     success => { builder.Services.AddSingleton(success); return success; },
     errors => throw new InvalidOperationException($"Configuration failed: {string.Join(", ", errors)}")
 );
+```
 ```
 
 ## 🚀 Getting Started
@@ -184,10 +236,15 @@ using FluentAzure;
 var config = await FluentConfig.Create()...
 ```
 
-### **Legacy (Deprecated)**
+### **Legacy (No longer available)**
 ```csharp
-using FluentAzure.Core;
-var config = await FluentAzure.Configuration()...
+// This API has been removed in favor of the ultra clean approach
+// using FluentAzure.Core;
+// var config = await FluentAzure.Configuration()...
+
+// Use this instead:
+using FluentAzure;
+var config = await FluentConfig.Create()...
 ```
 
 ## 🤝 Contributing

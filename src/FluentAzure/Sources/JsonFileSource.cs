@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
-using System.Threading.Tasks;
 using FluentAzure.Core;
 
 namespace FluentAzure.Sources;
@@ -12,9 +8,9 @@ namespace FluentAzure.Sources;
 /// </summary>
 public class JsonFileSource : IConfigurationSource
 {
-    private readonly string _filePath;
+    protected readonly string _filePath;
     private readonly bool _optional;
-    private Dictionary<string, string>? _values;
+    protected Dictionary<string, string>? _values;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="JsonFileSource"/> class.
@@ -36,7 +32,13 @@ public class JsonFileSource : IConfigurationSource
     public int Priority { get; }
 
     /// <inheritdoc />
-    public async Task<Result<Dictionary<string, string>>> LoadAsync()
+    public virtual bool SupportsHotReload => false;
+
+    /// <inheritdoc />
+    public event EventHandler<ConfigurationChangedEventArgs>? ConfigurationChanged;
+
+    /// <inheritdoc />
+    public virtual async Task<Result<Dictionary<string, string>>> LoadAsync()
     {
         try
         {
@@ -91,6 +93,21 @@ public class JsonFileSource : IConfigurationSource
     public string? GetValue(string key)
     {
         return _values?.TryGetValue(key, out var value) == true ? value : null;
+    }
+
+    /// <inheritdoc />
+    public virtual Task<Result<Dictionary<string, string>>> ReloadAsync()
+    {
+        return LoadAsync();
+    }
+
+    /// <summary>
+    /// Raises the ConfigurationChanged event.
+    /// </summary>
+    /// <param name="e">The event arguments.</param>
+    protected virtual void OnConfigurationChanged(ConfigurationChangedEventArgs e)
+    {
+        ConfigurationChanged?.Invoke(this, e);
     }
 
     private static Dictionary<string, string> FlattenJsonDocument(
