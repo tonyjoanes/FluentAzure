@@ -132,7 +132,9 @@ public static class UltraCleanExample
                         {
                             return Core.Result<string>.Success(timeout);
                         }
-                        return Core.Result<string>.Error("API timeout must be between 1-300 seconds");
+                        return Core.Result<string>.Error(
+                            "API timeout must be between 1-300 seconds"
+                        );
                     }
                 )
                 .Transform(
@@ -269,7 +271,10 @@ public static class UltraCleanExample
 
         // Set up environment variables for testing
         Environment.SetEnvironmentVariable("App__Name", "SafeApp");
-        Environment.SetEnvironmentVariable("Database__ConnectionString", "Server=localhost;Database=safe");
+        Environment.SetEnvironmentVariable(
+            "Database__ConnectionString",
+            "Server=localhost;Database=safe"
+        );
         Environment.SetEnvironmentVariable("Api__TimeoutSeconds", "30");
 
         try
@@ -289,9 +294,12 @@ public static class UltraCleanExample
                     var appName = success["App:Name"];
                     var connectionString = success["Database:ConnectionString"];
                     Console.WriteLine($"✅ Required - App: {appName}");
-                    Console.WriteLine($"✅ Required - DB: {connectionString.Substring(0, Math.Min(20, connectionString.Length))}...");
+                    Console.WriteLine(
+                        $"✅ Required - DB: {connectionString.Substring(0, Math.Min(20, connectionString.Length))}..."
+                    );
                 },
-                errors => Console.WriteLine($"❌ Required config failed: {string.Join(", ", errors)}")
+                errors =>
+                    Console.WriteLine($"❌ Required config failed: {string.Join(", ", errors)}")
             );
 
             // Method 2: Optional values with defaults - always safe
@@ -314,18 +322,20 @@ public static class UltraCleanExample
                     Console.WriteLine($"✅ Optional - Timeout: {timeout}s");
                     Console.WriteLine($"✅ Optional - Debug: {debug}");
                 },
-                errors => Console.WriteLine($"❌ Optional config failed: {string.Join(", ", errors)}")
+                errors =>
+                    Console.WriteLine($"❌ Optional config failed: {string.Join(", ", errors)}")
             );
 
             // Method 3: Strongly-typed binding - safest approach
-            var bindingResult = await FluentConfig
+            var buildResult = await FluentConfig
                 .Create()
                 .FromEnvironment()
                 .Required("App:Name")
                 .Optional("Api:TimeoutSeconds", "30")
                 .Optional("Debug", "false")
-                .BuildAsync()
-                .Bind<AppSettings>();
+                .BuildAsync();
+
+            var bindingResult = buildResult.Bind<AppSettings>();
 
             bindingResult.Match(
                 success =>
@@ -339,24 +349,31 @@ public static class UltraCleanExample
             );
 
             // Method 4: Validation with built-in safety
-            var validatedResult = await FluentConfig
+            var validatedBuildResult = await FluentConfig
                 .Create()
                 .FromEnvironment()
                 .Required("App:Name")
                 .Optional("Api:TimeoutSeconds", "30")
-                .Validate("Api:TimeoutSeconds", timeout =>
-                {
-                    if (int.TryParse(timeout, out var seconds) && seconds > 0 && seconds <= 300)
+                .Validate(
+                    "Api:TimeoutSeconds",
+                    timeout =>
                     {
-                        return Core.Result<string>.Success(timeout);
+                        if (int.TryParse(timeout, out var seconds) && seconds > 0 && seconds <= 300)
+                        {
+                            return Core.Result<string>.Success(timeout);
+                        }
+                        return Core.Result<string>.Error("Timeout must be between 1-300 seconds");
                     }
-                    return Core.Result<string>.Error("Timeout must be between 1-300 seconds");
-                })
-                .BuildAsync()
-                .Bind<AppSettings>();
+                )
+                .BuildAsync();
+
+            var validatedResult = validatedBuildResult.Bind<AppSettings>();
 
             validatedResult.Match(
-                success => Console.WriteLine($"✅ Validated - App: {success.AppName}, Timeout: {success.Api.TimeoutSeconds}s"),
+                success =>
+                    Console.WriteLine(
+                        $"✅ Validated - App: {success.AppName}, Timeout: {success.Api.TimeoutSeconds}s"
+                    ),
                 errors => Console.WriteLine($"❌ Validation failed: {string.Join(", ", errors)}")
             );
         }

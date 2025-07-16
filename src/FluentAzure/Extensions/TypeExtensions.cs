@@ -124,20 +124,29 @@ public static class TypeExtensions
             }
 
             // Handle nullable types
-            if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(Nullable<>))
+            if (
+                targetType.IsGenericType
+                && targetType.GetGenericTypeDefinition() == typeof(Nullable<>)
+            )
             {
                 var underlyingType = Nullable.GetUnderlyingType(targetType);
                 if (underlyingType != null)
                 {
                     // Recursively try to convert to the underlying type
-                    var method = typeof(TypeExtensions).GetMethod("TryConvert", new[] { typeof(string) });
+                    var method = typeof(TypeExtensions).GetMethod(
+                        "TryConvert",
+                        new[] { typeof(string) }
+                    );
                     var genericMethod = method?.MakeGenericMethod(underlyingType);
                     var result = genericMethod?.Invoke(null, new object[] { value });
 
                     if (result is Result<object> typedResult && typedResult.IsSuccess)
                     {
                         // Create nullable instance
-                        var nullableInstance = Activator.CreateInstance(targetType, typedResult.Value);
+                        var nullableInstance = Activator.CreateInstance(
+                            targetType,
+                            typedResult.Value
+                        );
                         return Result<T>.Success((T)nullableInstance!);
                     }
                 }
@@ -161,7 +170,9 @@ public static class TypeExtensions
             }
             catch (Exception ex)
             {
-                return Result<T>.Error($"Cannot convert '{value}' to {targetType.Name}: {ex.Message}");
+                return Result<T>.Error(
+                    $"Cannot convert '{value}' to {targetType.Name}: {ex.Message}"
+                );
             }
         }
         catch (Exception ex)

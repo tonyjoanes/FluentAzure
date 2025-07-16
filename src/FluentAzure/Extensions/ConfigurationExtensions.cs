@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using FluentAzure.Core;
+using FluentAzure.Sources;
 
 namespace FluentAzure.Extensions;
 
@@ -238,5 +242,59 @@ public static class ConfigurationExtensions
         ArgumentNullException.ThrowIfNull(validator);
 
         return configuration.GetOption<T>(key).Filter(validator);
+    }
+
+    /// <summary>
+    /// Adds a JSON file source with hot reload support.
+    /// </summary>
+    /// <param name="builder">The configuration builder.</param>
+    /// <param name="filePath">The path to the JSON file.</param>
+    /// <param name="priority">The priority of this source.</param>
+    /// <param name="optional">Whether the file is optional.</param>
+    /// <param name="debounceMs">Debounce time in milliseconds to prevent rapid-fire updates.</param>
+    /// <returns>The configuration builder.</returns>
+    public static ConfigurationBuilder FromJsonFileWithHotReload(
+        this ConfigurationBuilder builder,
+        string filePath,
+        int priority = 50,
+        bool optional = false,
+        int debounceMs = 500
+    )
+    {
+        var source = new FileWatcherSource(filePath, priority, optional, debounceMs);
+        builder.AddSource(source);
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a configuration change handler to the builder.
+    /// </summary>
+    /// <param name="builder">The configuration builder.</param>
+    /// <param name="handler">The change handler.</param>
+    /// <returns>The configuration builder.</returns>
+    public static ConfigurationBuilder OnConfigurationChanged(
+        this ConfigurationBuilder builder,
+        Action<Dictionary<string, string>, Dictionary<string, string>> handler
+    )
+    {
+        // Store the handler to be applied when sources are loaded
+        builder.AddConfigurationChangeHandler(handler);
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds a configuration change handler to the builder with source information.
+    /// </summary>
+    /// <param name="builder">The configuration builder.</param>
+    /// <param name="handler">The change handler.</param>
+    /// <returns>The configuration builder.</returns>
+    public static ConfigurationBuilder OnConfigurationChanged(
+        this ConfigurationBuilder builder,
+        Action<ConfigurationChangedEventArgs> handler
+    )
+    {
+        // Store the handler to be applied when sources are loaded
+        builder.AddConfigurationChangeHandler(handler);
+        return builder;
     }
 }

@@ -57,34 +57,39 @@ public static class OptionBasedExamples
         {
             var configResult = await FluentConfig.Create().FromEnvironment().BuildAsync();
 
-            // Method 1: Using GetOption<T>() - returns Option<T>
-            var appNameOption = configResult.GetOption<string>("App:Name");
-            var timeoutOption = configResult.GetOption<int>("Api:TimeoutSeconds");
-            var missingOption = configResult.GetOption<string>("Missing:Key");
+            configResult.Match(
+                success =>
+                {
+                    // Method 1: Using GetValueOrDefault - returns value or default
+                    var appName = success.GetValueOrDefault("App:Name", "DefaultApp");
+                    var timeout = success.GetValueOrDefault("Api:TimeoutSeconds", "60");
+                    var missing = success.GetValueOrDefault("Missing:Key", "DefaultValue");
 
-            // Handle options using Match
-            appNameOption.Match(
-                some: name => Console.WriteLine($"✅ App Name: {name}"),
-                none: () => Console.WriteLine("❌ App Name not found")
-            );
+                    Console.WriteLine($"✅ App Name: {appName}");
+                    Console.WriteLine($"✅ API Timeout: {timeout}s");
+                    Console.WriteLine($"✅ Missing Key: {missing} (default)");
 
-            timeoutOption.Match(
-                some: timeout => Console.WriteLine($"✅ API Timeout: {timeout}s"),
-                none: () => Console.WriteLine("❌ API Timeout not found")
-            );
+                    // Method 2: Using Option<T> for more functional approach
+                    var appNameOption = Option<string>.FromNullable(appName);
+                    var timeoutOption = int.TryParse(timeout, out var t)
+                        ? Option<int>.Some(t)
+                        : Option<int>.None();
 
-            missingOption.Match(
-                some: value => Console.WriteLine($"✅ Missing Key: {value}"),
-                none: () => Console.WriteLine("✅ Missing Key: None (as expected)")
-            );
+                    appNameOption.Match(
+                        some: name => Console.WriteLine($"✅ Option App Name: {name}"),
+                        none: () => Console.WriteLine("❌ Option App Name not found")
+                    );
 
-            // Method 2: Using GetValueOrDefault
-            var appName = appNameOption.GetValueOrDefault("DefaultApp");
-            var timeout = timeoutOption.GetValueOrDefault(60);
-            var missing = missingOption.GetValueOrDefault("DefaultValue");
+                    timeoutOption.Match(
+                        some: t => Console.WriteLine($"✅ Option API Timeout: {t}s"),
+                        none: () => Console.WriteLine("❌ Option API Timeout not found")
+                    );
 
-            Console.WriteLine(
-                $"📊 With Defaults - App: {appName}, Timeout: {timeout}, Missing: {missing}"
+                    Console.WriteLine(
+                        $"📊 With Defaults - App: {appName}, Timeout: {timeout}, Missing: {missing}"
+                    );
+                },
+                errors => Console.WriteLine($"❌ Configuration failed: {string.Join(", ", errors)}")
             );
         }
         finally
@@ -113,36 +118,50 @@ public static class OptionBasedExamples
         {
             var configResult = await FluentConfig.Create().FromEnvironment().BuildAsync();
 
-            // Option with validation
-            var validUrlOption = configResult.GetOption<string>(
-                "Api:BaseUrl",
-                url => Uri.IsWellFormedUriString(url, UriKind.Absolute)
-            );
+            configResult.Match(
+                success =>
+                {
+                    // Get values and validate them
+                    var url = success.GetValueOrDefault("Api:BaseUrl", "");
+                    var timeoutStr = success.GetValueOrDefault("Api:TimeoutSeconds", "");
+                    var connectionsStr = success.GetValueOrDefault("Database:MaxConnections", "");
 
-            var validTimeoutOption = configResult.GetOption<int>(
-                "Api:TimeoutSeconds",
-                timeout => timeout > 0 && timeout <= 300
-            );
+                    // Create options with validation
+                    var validUrlOption =
+                        !string.IsNullOrEmpty(url)
+                        && Uri.IsWellFormedUriString(url, UriKind.Absolute)
+                            ? Option<string>.Some(url)
+                            : Option<string>.None();
 
-            var validConnectionsOption = configResult.GetOption<int>(
-                "Database:MaxConnections",
-                connections => connections > 0 && connections <= 1000
-            );
+                    var validTimeoutOption =
+                        int.TryParse(timeoutStr, out var timeout) && timeout > 0 && timeout <= 300
+                            ? Option<int>.Some(timeout)
+                            : Option<int>.None();
 
-            // Handle validated options
-            validUrlOption.Match(
-                some: url => Console.WriteLine($"✅ Valid URL: {url}"),
-                none: () => Console.WriteLine("❌ Invalid or missing URL")
-            );
+                    var validConnectionsOption =
+                        int.TryParse(connectionsStr, out var connections)
+                        && connections > 0
+                        && connections <= 1000
+                            ? Option<int>.Some(connections)
+                            : Option<int>.None();
 
-            validTimeoutOption.Match(
-                some: timeout => Console.WriteLine($"✅ Valid Timeout: {timeout}s"),
-                none: () => Console.WriteLine("❌ Invalid timeout (must be 1-300 seconds)")
-            );
+                    // Handle validated options
+                    validUrlOption.Match(
+                        some: u => Console.WriteLine($"✅ Valid URL: {u}"),
+                        none: () => Console.WriteLine("❌ Invalid or missing URL")
+                    );
 
-            validConnectionsOption.Match(
-                some: connections => Console.WriteLine($"✅ Valid Connections: {connections}"),
-                none: () => Console.WriteLine("❌ Invalid connections (must be 1-1000)")
+                    validTimeoutOption.Match(
+                        some: t => Console.WriteLine($"✅ Valid Timeout: {t}s"),
+                        none: () => Console.WriteLine("❌ Invalid timeout (must be 1-300 seconds)")
+                    );
+
+                    validConnectionsOption.Match(
+                        some: c => Console.WriteLine($"✅ Valid Connections: {c}"),
+                        none: () => Console.WriteLine("❌ Invalid connections (must be 1-1000)")
+                    );
+                },
+                errors => Console.WriteLine($"❌ Configuration failed: {string.Join(", ", errors)}")
             );
         }
         finally
@@ -173,38 +192,50 @@ public static class OptionBasedExamples
         {
             var configResult = await FluentConfig.Create().FromEnvironment().BuildAsync();
 
-            // Chain multiple options together
-            var appInfo = configResult
-                .GetOption<string>("App:Name")
-                .Map(name => $"Application: {name}")
-                .Bind(name =>
-                    configResult
-                        .GetOption<string>("Api:BaseUrl")
-                        .Map(url => $"{name} -> API: {url}")
-                )
-                .Bind(info =>
-                    configResult
-                        .GetOption<string>("Database:ConnectionString")
-                        .Map(connStr =>
-                            $"{info} -> DB: {connStr.Substring(0, Math.Min(20, connStr.Length))}..."
+            configResult.Match(
+                success =>
+                {
+                    // Chain multiple options together
+                    var appName = success.GetValueOrDefault("App:Name", "");
+                    var apiUrl = success.GetValueOrDefault("Api:BaseUrl", "");
+                    var dbConnStr = success.GetValueOrDefault("Database:ConnectionString", "");
+
+                    var appInfo = Option<string>
+                        .FromNullable(appName)
+                        .Map(name => $"Application: {name}")
+                        .Bind(name =>
+                            Option<string>.FromNullable(apiUrl).Map(url => $"{name} -> API: {url}")
                         )
-                );
+                        .Bind(info =>
+                            Option<string>
+                                .FromNullable(dbConnStr)
+                                .Map(connStr =>
+                                    $"{info} -> DB: {connStr.Substring(0, Math.Min(20, connStr.Length))}..."
+                                )
+                        );
 
-            appInfo.Match(
-                some: info => Console.WriteLine($"✅ Composed Info: {info}"),
-                none: () => Console.WriteLine("❌ Missing required configuration")
-            );
+                    appInfo.Match(
+                        some: info => Console.WriteLine($"✅ Composed Info: {info}"),
+                        none: () => Console.WriteLine("❌ Missing required configuration")
+                    );
 
-            // Alternative: Using Or for fallbacks
-            var primaryUrl = configResult.GetOption<string>("Api:PrimaryUrl");
-            var fallbackUrl = configResult.GetOption<string>("Api:FallbackUrl");
-            var defaultUrl = Option<string>.Some("https://default.api.com");
+                    // Alternative: Using Or for fallbacks
+                    var primaryUrl = Option<string>.FromNullable(
+                        success.GetValueOrDefault("Api:PrimaryUrl", "")
+                    );
+                    var fallbackUrl = Option<string>.FromNullable(
+                        success.GetValueOrDefault("Api:FallbackUrl", "")
+                    );
+                    var defaultUrl = Option<string>.Some("https://default.api.com");
 
-            var finalUrl = primaryUrl.Or(fallbackUrl).Or(defaultUrl);
+                    var finalUrl = primaryUrl.Or(fallbackUrl).Or(defaultUrl);
 
-            finalUrl.Match(
-                some: url => Console.WriteLine($"✅ Final URL: {url}"),
-                none: () => Console.WriteLine("❌ No URL available")
+                    finalUrl.Match(
+                        some: url => Console.WriteLine($"✅ Final URL: {url}"),
+                        none: () => Console.WriteLine("❌ No URL available")
+                    );
+                },
+                errors => Console.WriteLine($"❌ Configuration failed: {string.Join(", ", errors)}")
             );
         }
         finally
@@ -240,7 +271,26 @@ public static class OptionBasedExamples
             var config = serviceProvider.GetRequiredService<AppSettings>();
 
             // Create a service that uses Option-based configuration
-            var optionService = new OptionBasedService(config);
+            var optionService = new OptionBasedService(
+                new OptionBasedExamples.AppSettings
+                {
+                    AppName = config.AppName,
+                    Version = config.Version,
+                    Debug = config.Debug,
+                    Database = new OptionBasedExamples.DatabaseSettings
+                    {
+                        ConnectionString = config.Database.ConnectionString,
+                        TimeoutSeconds = config.Database.TimeoutSeconds,
+                        MaxConnections = config.Database.MaxConnections,
+                    },
+                    Api = new OptionBasedExamples.ApiSettings
+                    {
+                        BaseUrl = config.Api.BaseUrl,
+                        ApiKey = config.Api.ApiKey,
+                        TimeoutSeconds = config.Api.TimeoutSeconds,
+                    },
+                }
+            );
 
             // Use the service
             optionService.ProcessConfiguration();
@@ -302,25 +352,32 @@ public static class OptionBasedExamples
 
             // Option-based approach (type-safe and functional)
             Console.WriteLine("\n🟢 Option-Based Approach:");
-            var urlOption = configResult
-                .GetOption<string>("Api:BaseUrl")
-                .Filter(url => !string.IsNullOrEmpty(url))
-                .Bind(url =>
+            configResult.Match(
+                success =>
                 {
-                    try
-                    {
-                        var uri = new Uri(url);
-                        return Option<Uri>.Some(uri);
-                    }
-                    catch
-                    {
-                        return Option<Uri>.None();
-                    }
-                });
+                    var url = success.GetValueOrDefault("Api:BaseUrl", "");
+                    var urlOption = Option<string>
+                        .FromNullable(url)
+                        .Filter(u => !string.IsNullOrEmpty(u))
+                        .Bind(u =>
+                        {
+                            try
+                            {
+                                var uri = new Uri(u);
+                                return Option<Uri>.Some(uri);
+                            }
+                            catch
+                            {
+                                return Option<Uri>.None();
+                            }
+                        });
 
-            urlOption.Match(
-                some: uri => Console.WriteLine($"✅ Valid URI: {uri}"),
-                none: () => Console.WriteLine("❌ Invalid or missing URL")
+                    urlOption.Match(
+                        some: uri => Console.WriteLine($"✅ Valid URI: {uri}"),
+                        none: () => Console.WriteLine("❌ Invalid or missing URL")
+                    );
+                },
+                errors => Console.WriteLine($"❌ Configuration failed: {string.Join(", ", errors)}")
             );
         }
         finally
@@ -337,9 +394,9 @@ public static class OptionBasedExamples
 /// </summary>
 public class OptionBasedService
 {
-    private readonly AppSettings _config;
+    private readonly OptionBasedExamples.AppSettings _config;
 
-    public OptionBasedService(AppSettings config)
+    public OptionBasedService(OptionBasedExamples.AppSettings config)
     {
         _config = config;
     }

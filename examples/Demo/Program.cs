@@ -1,5 +1,6 @@
 ﻿using FluentAzure;
 using Microsoft.Extensions.DependencyInjection;
+using Demo;
 
 // FluentConfig() is available via GlobalUsings.cs
 
@@ -57,15 +58,19 @@ public static class Program
         Console.WriteLine("\n4. Traditional Approach (for comparison):");
         await TraditionalApproachExample();
 
+        // Example 5: Hot Reload functionality
+        Console.WriteLine("\n5. Hot Reload Example:");
+        await HotReloadExample.RunAsync();
+
         Console.WriteLine("\n✅ All examples completed successfully!");
     }
 
     private static async Task BasicConfigurationExample()
     {
         // Set up some environment variables for testing
-        Environment.SetEnvironmentVariable("App__Name", "MyAwesomeApp");
+        Environment.SetEnvironmentVariable("BasicApp__Name", "MyAwesomeApp");
         Environment.SetEnvironmentVariable(
-            "Database__ConnectionString",
+            "BasicDatabase__ConnectionString",
             "Server=localhost;Database=test"
         );
 
@@ -75,8 +80,8 @@ public static class Program
             var buildResult = await FluentConfig
                 .Create() // Ultra clean!
                 .FromEnvironment()
-                .Required("App:Name")
-                .Required("Database:ConnectionString")
+                .Required("BasicApp:Name")
+                .Required("BasicDatabase:ConnectionString")
                 .Optional("Debug", "true")
                 .Optional("Version", "1.0.0")
                 .BuildAsync();
@@ -99,8 +104,8 @@ public static class Program
         finally
         {
             // Cleanup
-            Environment.SetEnvironmentVariable("App__Name", null);
-            Environment.SetEnvironmentVariable("Database__ConnectionString", null);
+            Environment.SetEnvironmentVariable("BasicApp__Name", null);
+            Environment.SetEnvironmentVariable("BasicDatabase__ConnectionString", null);
         }
     }
 
@@ -176,32 +181,48 @@ public static class Program
 
     private static void DependencyInjectionExample()
     {
-        var services = new ServiceCollection();
-
-        // Clean DI integration with the new API
-        services.AddFluentAzure<AppSettings>(builder =>
-            builder
-                .FromEnvironment()
-                .Required("App:Name")
-                .Required("Database:ConnectionString")
-                .Optional("Debug", "false")
-                .Optional("Version", "1.0.0")
+        // Set up environment variables for testing
+        Environment.SetEnvironmentVariable("DIApp__Name", "DIApp");
+        Environment.SetEnvironmentVariable(
+            "DIDatabase__ConnectionString",
+            "Server=localhost;Database=di"
         );
 
-        var serviceProvider = services.BuildServiceProvider();
-        var config = serviceProvider.GetRequiredService<AppSettings>();
+        try
+        {
+            var services = new ServiceCollection();
 
-        Console.WriteLine($"  DI Config - App: {config.AppName}");
-        Console.WriteLine($"  DI Config - Version: {config.Version}");
-        Console.WriteLine($"  DI Config - Debug: {config.Debug}");
+            // Clean DI integration with the new API
+            services.AddFluentAzure<AppSettings>(builder =>
+                builder
+                    .FromEnvironment()
+                    .Required("DIApp:Name")
+                    .Required("DIDatabase:ConnectionString")
+                    .Optional("Debug", "false")
+                    .Optional("Version", "1.0.0")
+            );
+
+            var serviceProvider = services.BuildServiceProvider();
+            var config = serviceProvider.GetRequiredService<AppSettings>();
+
+            Console.WriteLine($"  DI Config - App: {config.AppName}");
+            Console.WriteLine($"  DI Config - Version: {config.Version}");
+            Console.WriteLine($"  DI Config - Debug: {config.Debug}");
+        }
+        finally
+        {
+            // Cleanup
+            Environment.SetEnvironmentVariable("DIApp__Name", null);
+            Environment.SetEnvironmentVariable("DIDatabase__ConnectionString", null);
+        }
     }
 
     private static async Task TraditionalApproachExample()
     {
         // Set up some environment variables for testing
-        Environment.SetEnvironmentVariable("App__Name", "TraditionalApp");
+        Environment.SetEnvironmentVariable("TraditionalApp__Name", "TraditionalApp");
         Environment.SetEnvironmentVariable(
-            "Database__ConnectionString",
+            "TraditionalDatabase__ConnectionString",
             "Server=localhost;Database=traditional"
         );
 
@@ -211,8 +232,8 @@ public static class Program
             var buildResult = await FluentAzure
                 .FluentConfig.Create() // Still clean, but requires FluentAzure prefix
                 .FromEnvironment()
-                .Required("App:Name")
-                .Required("Database:ConnectionString")
+                .Required("TraditionalApp:Name")
+                .Required("TraditionalDatabase:ConnectionString")
                 .Optional("Debug", "true")
                 .Optional("Version", "1.0.0")
                 .BuildAsync();
@@ -235,8 +256,8 @@ public static class Program
         finally
         {
             // Cleanup
-            Environment.SetEnvironmentVariable("App__Name", null);
-            Environment.SetEnvironmentVariable("Database__ConnectionString", null);
+            Environment.SetEnvironmentVariable("TraditionalApp__Name", null);
+            Environment.SetEnvironmentVariable("TraditionalDatabase__ConnectionString", null);
         }
     }
 }
