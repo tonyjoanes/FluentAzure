@@ -67,6 +67,7 @@ var config = await FluentAzure
 | `SecretNamePrefix` | `string?` | `null` | Prefix filter for secret names |
 | `ReloadFailedSecrets` | `bool` | `true` | Whether to reload secrets that failed during initial load |
 | `OperationTimeout` | `TimeSpan` | `30 seconds` | Timeout for Key Vault operations |
+| `MaxConcurrentSecretLoads` | `int` | `8` | Maximum secrets fetched concurrently during a load, to stay under Key Vault throttling limits |
 
 ## ðŸ” Authentication Methods
 

@@ -43,6 +43,24 @@ public static class FluentConfig
     }
 
     /// <summary>
+    /// Asynchronously adds FluentAzure configuration to the service collection with a strongly-typed configuration object.
+    /// Prefer this where the caller can await, as remote sources are loaded without blocking a thread.
+    /// </summary>
+    /// <typeparam name="T">The type of the configuration object to bind.</typeparam>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The configuration builder action.</param>
+    /// <returns>A task whose result is the service collection for chaining.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when configuration binding fails.</exception>
+    public static Task<IServiceCollection> AddFluentAzureAsync<T>(
+        this IServiceCollection services,
+        Func<Core.ConfigurationBuilder, Core.ConfigurationBuilder> configure
+    )
+        where T : class, new()
+    {
+        return Extensions.ServiceCollectionExtensions.AddFluentAzureAsync<T>(services, configure);
+    }
+
+    /// <summary>
     /// Adds FluentAzure configuration to the service collection with a factory method.
     /// This method is available directly when using FluentAzure.
     /// </summary>

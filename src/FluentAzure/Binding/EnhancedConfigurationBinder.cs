@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -639,11 +640,11 @@ public static class EnhancedConfigurationBinder
         // Try to parse as different types
         if (bool.TryParse(value, out var boolValue))
             return boolValue;
-        if (int.TryParse(value, out var intValue))
+        if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var intValue))
             return intValue;
-        if (double.TryParse(value, out var doubleValue))
+        if (double.TryParse(value, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var doubleValue))
             return doubleValue;
-        if (DateTime.TryParse(value, out var dateValue))
+        if (DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateValue))
             return dateValue;
 
         return value;
@@ -701,7 +702,7 @@ public static class EnhancedConfigurationBinder
                 return Guid.Parse(value);
             try
             {
-                return Convert.ChangeType(value, targetType);
+                return Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture);
             }
             catch
             {
@@ -726,15 +727,15 @@ public static class EnhancedConfigurationBinder
             return targetType.Name switch
             {
                 nameof(Boolean) => bool.Parse(value),
-                nameof(Int32) => int.Parse(value),
-                nameof(Int64) => long.Parse(value),
-                nameof(Double) => double.Parse(value),
-                nameof(Decimal) => decimal.Parse(value),
-                nameof(DateTime) => DateTime.Parse(value),
-                nameof(TimeSpan) => TimeSpan.Parse(value),
+                nameof(Int32) => int.Parse(value, CultureInfo.InvariantCulture),
+                nameof(Int64) => long.Parse(value, CultureInfo.InvariantCulture),
+                nameof(Double) => double.Parse(value, CultureInfo.InvariantCulture),
+                nameof(Decimal) => decimal.Parse(value, CultureInfo.InvariantCulture),
+                nameof(DateTime) => DateTime.Parse(value, CultureInfo.InvariantCulture),
+                nameof(TimeSpan) => TimeSpan.Parse(value, CultureInfo.InvariantCulture),
                 _ => targetType.IsEnum
                     ? Enum.Parse(targetType, value, ignoreCase: true)
-                    : Convert.ChangeType(value, targetType),
+                    : Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture),
             };
         }
         catch (Exception ex)

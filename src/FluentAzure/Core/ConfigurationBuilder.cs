@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentAzure.Binding;
 using FluentAzure.Extensions;
 using FluentAzure.Sources;
@@ -6,6 +7,7 @@ namespace FluentAzure.Core;
 
 /// <summary>
 /// Fluent builder for creating configuration pipelines that can load configuration from multiple sources.
+/// Configuration keys are case-insensitive, matching Microsoft.Extensions.Configuration.
 /// </summary>
 public class ConfigurationBuilder
 {
@@ -161,7 +163,7 @@ public class ConfigurationBuilder
             var transformResult = transform(value);
             if (transformResult.IsSuccess)
             {
-                var newConfig = new Dictionary<string, string>(config);
+                var newConfig = CopyConfiguration(config);
                 newConfig[key] = transformResult.Value;
                 return Task.FromResult(Result<Dictionary<string, string>>.Success(newConfig));
             }
@@ -226,14 +228,14 @@ public class ConfigurationBuilder
     public async Task<Result<Dictionary<string, string>>> BuildAsync()
     {
         var errors = new List<string>();
-        var configuration = new Dictionary<string, string>();
+        var configuration = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         // Load from all sources, sorted by priority (highest first)
         var sortedSources = _sources.OrderByDescending(s => s.Priority).ToList();
 
         foreach (var source in sortedSources)
         {
-            var result = await source.LoadAsync();
+            var result = await source.LoadAsync().ConfigureAwait(false);
             if (result.IsSuccess)
             {
                 // Merge configuration values (higher priority sources override lower priority ones)
@@ -272,17 +274,18 @@ public class ConfigurationBuilder
         {
             if (!configuration.ContainsKey(optionalKey.Key))
             {
-                configuration[optionalKey.Key] = optionalKey.Value.ToString()!;
+                configuration[optionalKey.Key] = FormatDefaultValue(optionalKey.Value);
             }
         }
 
         // Apply transformations
         foreach (var transformation in _transformations)
         {
-            var transformResult = await transformation(configuration);
+            var transformResult = await transformation(configuration).ConfigureAwait(false);
             if (transformResult.IsSuccess)
             {
-                configuration = transformResult.Value;
+                // Custom transforms may return a case-sensitive dictionary; keep lookups case-insensitive
+                configuration = CopyConfiguration(transformResult.Value);
             }
             else
             {
@@ -313,7 +316,7 @@ public class ConfigurationBuilder
     public async Task<Result<T>> BuildAsync<T>()
         where T : class, new()
     {
-        var configResult = await BuildAsync();
+        var configResult = await BuildAsync().ConfigureAwait(false);
         if (configResult.IsFailure)
         {
             return Result<T>.Error(configResult.Errors);
@@ -339,7 +342,7 @@ public class ConfigurationBuilder
     /// <returns>A task that represents the asynchronous build operation. The task result contains the configuration as an Option.</returns>
     public async Task<Option<Dictionary<string, string>>> BuildOptionalAsync()
     {
-        var result = await BuildAsync();
+        var result = await BuildAsync().ConfigureAwait(false);
         return result.ToOption();
     }
 
@@ -351,7 +354,7 @@ public class ConfigurationBuilder
     public async Task<Option<T>> BuildOptionalAsync<T>()
         where T : class, new()
     {
-        var result = await BuildAsync<T>();
+        var result = await BuildAsync<T>().ConfigureAwait(false);
         return result.ToOption();
     }
 
@@ -445,7 +448,7 @@ public class ConfigurationBuilder
             return transformOption.Match(
                 some =>
                 {
-                    var newConfig = new Dictionary<string, string>(config);
+                    var newConfig = CopyConfiguration(config);
                     newConfig[key] = some;
                     return Task.FromResult(Result<Dictionary<string, string>>.Success(newConfig));
                 },
@@ -486,10 +489,41 @@ public class ConfigurationBuilder
             }
 
             var transformOption = transform(value);
-            var newConfig = new Dictionary<string, string>(config);
+            var newConfig = CopyConfiguration(config);
             newConfig[key] = transformOption.GetValueOrDefault(fallback);
             return Task.FromResult(Result<Dictionary<string, string>>.Success(newConfig));
         });
         return this;
     }
+
+    /// <summary>
+    /// Copies configuration values into a new case-insensitive dictionary.
+    /// If the source contains keys differing only by case, the last one wins.
+    /// </summary>
+    private static Dictionary<string, string> CopyConfiguration(
+        IReadOnlyDictionary<string, string> source
+    )
+    {
+        var copy = new Dictionary<string, string>(source.Count, StringComparer.OrdinalIgnoreCase);
+        foreach (var kvp in source)
+        {
+            copy[kvp.Key] = kvp.Value;
+        }
+
+        return copy;
+    }
+
+    /// <summary>
+    /// Formats a typed default value culture-invariantly so it round-trips through binding
+    /// regardless of the current culture (e.g. 1.5 stays "1.5" rather than "1,5" in de-DE).
+    /// </summary>
+    private static string FormatDefaultValue(object value) =>
+        value switch
+        {
+            string s => s,
+            DateTime dt => dt.ToString("O", CultureInfo.InvariantCulture),
+            DateTimeOffset dto => dto.ToString("O", CultureInfo.InvariantCulture),
+            IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
+            _ => value.ToString() ?? string.Empty,
+        };
 }

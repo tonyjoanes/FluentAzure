@@ -4,6 +4,9 @@ namespace FluentAzure.Sources;
 
 /// <summary>
 /// Configuration source that loads values from environment variables.
+/// Keys are case-insensitive, and a variable containing the standard .NET hierarchy separator
+/// "__" (e.g. <c>ConnectionStrings__Default</c>) is also exposed under its ":" form
+/// (<c>ConnectionStrings:Default</c>), as App Service, Container Apps and Functions expect.
 /// </summary>
 public class EnvironmentSource : IConfigurationSource
 {
@@ -16,7 +19,7 @@ public class EnvironmentSource : IConfigurationSource
     public EnvironmentSource(int priority = 100)
     {
         Priority = priority;
-        _values = new Dictionary<string, string>();
+        _values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         LoadEnvironmentVariables();
     }
 
@@ -69,6 +72,12 @@ public class EnvironmentSource : IConfigurationSource
                 {
                     _values[keyString] = value;
                 }
+            }
+
+            // Add ":" aliases after all raw variables so an explicitly set "A:B" is never overwritten
+            foreach (var kvp in _values.Where(kvp => kvp.Key.Contains("__")).ToList())
+            {
+                _values.TryAdd(kvp.Key.Replace("__", ":"), kvp.Value);
             }
         }
         catch (Exception ex)

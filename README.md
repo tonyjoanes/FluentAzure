@@ -136,6 +136,16 @@ public class ApiController : ControllerBase
 }
 ```
 
+Where you can `await` (e.g. top-level statements in `Program.cs`), prefer the async overload so remote sources such as Key Vault load without blocking a thread:
+```csharp
+await builder.Services.AddFluentAzureAsync<AppSettings>(config => config
+    .FromEnvironment()
+    .FromKeyVault(builder.Configuration["KeyVault:Url"])
+);
+```
+
+Configuration keys are case-insensitive, and environment variables using the standard `__` separator (e.g. `ConnectionStrings__Default`) are also available under their `:` form (`ConnectionStrings:Default`).
+
 #### **Web API Example**
 ```csharp
 // Program.cs

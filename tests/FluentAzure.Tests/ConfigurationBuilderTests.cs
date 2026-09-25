@@ -1,5 +1,7 @@
+using System.Globalization;
 using FluentAssertions;
 using FluentAzure.Core;
+using FluentAzure.Sources;
 
 namespace FluentAzure.Tests;
 
@@ -433,6 +435,92 @@ public class ConfigurationBuilderTests
 
         // Act & Assert
         builder.Invoking(b => b.Transform(null!)).Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public async Task BuildAsync_RequiredKey_ShouldMatchCaseInsensitively()
+    {
+        // Arrange
+        var builder = new ConfigurationBuilder()
+            .AddSource(new InMemorySource(new Dictionary<string, string> { ["appname"] = "Demo" }))
+            .Required("AppName");
+
+        // Act
+        var result = await builder.BuildAsync();
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value["APPNAME"].Should().Be("Demo");
+    }
+
+    [Fact]
+    public async Task BuildAsync_HigherPrioritySource_ShouldWinRegardlessOfKeyCase()
+    {
+        // Arrange
+        var builder = new ConfigurationBuilder()
+            .AddSource(new InMemorySource(new Dictionary<string, string> { ["Timeout"] = "10" }, 1))
+            .AddSource(new InMemorySource(new Dictionary<string, string> { ["TIMEOUT"] = "99" }, 2));
+
+        // Act
+        var result = await builder.BuildAsync();
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().ContainSingle();
+        result.Value["timeout"].Should().Be("99");
+    }
+
+    [Fact]
+    public async Task BuildAsync_TransformReturningCaseSensitiveDictionary_ShouldStayCaseInsensitive()
+    {
+        // Arrange
+        var builder = new ConfigurationBuilder()
+            .AddSource(new InMemorySource(new Dictionary<string, string> { ["Key"] = "a" }))
+            .Transform(config =>
+                Task.FromResult(Result<Dictionary<string, string>>.Success(new Dictionary<string, string>(config)))
+            )
+            .Required("key");
+
+        // Act
+        var result = await builder.BuildAsync();
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        result.Value["KEY"].Should().Be("a");
+    }
+
+    [Theory]
+    [InlineData("de-DE")]
+    [InlineData("fr-FR")]
+    [InlineData("en-US")]
+    public async Task BuildAsync_TypedOptionalDefault_ShouldRoundTripUnderAnyCulture(string culture)
+    {
+        // Arrange
+        var originalCulture = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = new CultureInfo(culture);
+
+        try
+        {
+            var builder = new ConfigurationBuilder().Optional("Ratio", 1.5);
+
+            // Act
+            var raw = await builder.BuildAsync();
+            var bound = await builder.BuildAsync<RatioSettings>();
+
+            // Assert
+            raw.Value["Ratio"].Should().Be("1.5");
+            bound.IsSuccess.Should().BeTrue();
+            bound.Value.Ratio.Should().Be(1.5);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+        }
+    }
+
+    public class RatioSettings
+    {
+        public double Ratio { get; set; }
     }
 
     // Test helper class
