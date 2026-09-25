@@ -11,7 +11,7 @@ namespace FluentAzure.Sources;
 /// Enhanced configuration source that loads values from Azure Key Vault with retry logic,
 /// caching, secret versioning, and advanced error handling.
 /// </summary>
-public class KeyVaultSource : IReloadableConfigurationSource, IDisposable
+public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigurationSource, IDisposable
 {
     private readonly string _vaultUrl;
     private readonly SecretClient _client;
@@ -111,6 +111,18 @@ public class KeyVaultSource : IReloadableConfigurationSource, IDisposable
 
     /// <inheritdoc />
     public int Priority { get; }
+
+    /// <summary>
+    /// Gets the options this source was created with.
+    /// </summary>
+    internal KeyVaultConfiguration Configuration => _configuration;
+
+    /// <summary>
+    /// Every value loaded from Key Vault is a secret.
+    /// </summary>
+    /// <param name="key">The configuration key.</param>
+    /// <returns>Always true.</returns>
+    public bool IsSensitive(string key) => true;
 
     /// <summary>
     /// Gets the cache statistics for monitoring purposes.
@@ -270,22 +282,14 @@ public class KeyVaultSource : IReloadableConfigurationSource, IDisposable
     {
         if (!_disposed)
         {
-            // Clear sensitive data securely
+            // Drop references to secret values so they can be garbage collected. .NET strings are
+            // immutable, so they cannot be overwritten in place; this does not scrub memory.
             _cache.Clear();
-            
-            // Clear in-memory values securely
-            foreach (var key in _values.Keys.ToList())
-            {
-                if (_values.TryRemove(key, out var value) && value != null)
-                {
-                    // Overwrite sensitive data
-                    value = new string('\0', value.Length);
-                }
-            }
-            
+            _values.Clear();
+
             _loadLock.Dispose();
             _disposed = true;
-            _logger?.LogInformation("KeyVaultSource disposed securely");
+            _logger?.LogInformation("KeyVaultSource disposed");
         }
     }
 

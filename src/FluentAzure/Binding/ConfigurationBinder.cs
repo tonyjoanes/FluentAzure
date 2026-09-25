@@ -81,7 +81,10 @@ public static class ConfigurationBinder
                     }
                     catch (Exception ex)
                     {
-                        errors.Add($"Failed to bind property '{configKey}' with value '{configValue}': {ex.Message}");
+                        // Never echo the value or the parser's message (which can contain it): it may be a secret
+                        errors.Add(
+                            $"Failed to bind property '{configKey}': the configured value could not be converted to {property.PropertyType.Name} ({ex.GetType().Name})"
+                        );
                     }
                 }
             }
@@ -220,7 +223,7 @@ public static class ConfigurationBinder
             return converter.ConvertFromInvariantString(value);
         }
 
-        throw new InvalidOperationException($"Cannot convert value '{value}' to type {targetType.Name}");
+        throw new InvalidOperationException($"Cannot convert the configured value to type {targetType.Name}");
     }
 
     private static bool IsRequiredProperty(PropertyInfo property)

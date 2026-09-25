@@ -169,6 +169,24 @@ public class AppConfigurationSourceTests
     }
 
     [Fact]
+    public async Task IsSensitive_IsTrueOnlyForValuesResolvedFromKeyVaultReferences()
+    {
+        // Arrange
+        var client = new FakeConfigurationClient();
+        client.AddSecretReference("Database:Password", new Uri("https://vault1.vault.azure.net/secrets/db-password"));
+        client.Add("App:Name", "Demo");
+        var vault = new FakeSecretClient { Secrets = { ["db-password"] = "s3cr3t" } };
+        var source = new AppConfigurationSource(client, new AppConfigurationOptions { SecretClientFactory = _ => vault });
+
+        // Act
+        await source.LoadAsync();
+
+        // Assert
+        source.IsSensitive("Database:Password").Should().BeTrue();
+        source.IsSensitive("App:Name").Should().BeFalse();
+    }
+
+    [Fact]
     public async Task LoadAsync_WithReferenceResolutionDisabled_SkipsReferences()
     {
         // Arrange

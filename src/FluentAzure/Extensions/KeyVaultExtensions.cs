@@ -24,7 +24,9 @@ public static class KeyVaultExtensions
         int priority = 200
     )
     {
-        return builder.AddSource(new KeyVaultSource(vaultUrl, priority));
+        return builder.AddSource(
+            builder.CreateKeyVaultSource(vaultUrl, new KeyVaultConfiguration(), priority)
+        );
     }
 
     /// <summary>
@@ -44,7 +46,7 @@ public static class KeyVaultExtensions
     {
         var configuration = new KeyVaultConfiguration();
         configure(configuration);
-        return builder.AddSource(new KeyVaultSource(vaultUrl, configuration, priority));
+        return builder.AddSource(builder.CreateKeyVaultSource(vaultUrl, configuration, priority));
     }
 
     /// <summary>
@@ -66,7 +68,7 @@ public static class KeyVaultExtensions
     {
         var configuration = new KeyVaultConfiguration();
         configure(configuration);
-        return builder.AddSource(new KeyVaultSource(vaultUrl, configuration, priority, logger));
+        return builder.AddSource(builder.CreateKeyVaultSource(vaultUrl, configuration, priority, logger));
     }
 
     /// <summary>
@@ -85,7 +87,7 @@ public static class KeyVaultExtensions
     )
     {
         var configuration = new KeyVaultConfiguration { Credential = credential };
-        return builder.AddSource(new KeyVaultSource(vaultUrl, configuration, priority));
+        return builder.AddSource(builder.CreateKeyVaultSource(vaultUrl, configuration, priority));
     }
 
     /// <summary>
@@ -109,7 +111,7 @@ public static class KeyVaultExtensions
                 : new ManagedIdentityCredential();
 
         var configuration = new KeyVaultConfiguration { Credential = credential };
-        return builder.AddSource(new KeyVaultSource(vaultUrl, configuration, priority));
+        return builder.AddSource(builder.CreateKeyVaultSource(vaultUrl, configuration, priority));
     }
 
     /// <summary>
@@ -133,7 +135,7 @@ public static class KeyVaultExtensions
     {
         var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
         var configuration = new KeyVaultConfiguration { Credential = credential };
-        return builder.AddSource(new KeyVaultSource(vaultUrl, configuration, priority));
+        return builder.AddSource(builder.CreateKeyVaultSource(vaultUrl, configuration, priority));
     }
 
     /// <summary>
@@ -152,7 +154,7 @@ public static class KeyVaultExtensions
     )
     {
         var configuration = new KeyVaultConfiguration { SecretVersion = secretVersion };
-        return builder.AddSource(new KeyVaultSource(vaultUrl, configuration, priority));
+        return builder.AddSource(builder.CreateKeyVaultSource(vaultUrl, configuration, priority));
     }
 
     /// <summary>
@@ -171,7 +173,7 @@ public static class KeyVaultExtensions
     )
     {
         var configuration = new KeyVaultConfiguration { SecretNamePrefix = secretNamePrefix };
-        return builder.AddSource(new KeyVaultSource(vaultUrl, configuration, priority));
+        return builder.AddSource(builder.CreateKeyVaultSource(vaultUrl, configuration, priority));
     }
 
     /// <summary>
@@ -190,7 +192,7 @@ public static class KeyVaultExtensions
     )
     {
         var configuration = new KeyVaultConfiguration { KeyMapper = keyMapper };
-        return builder.AddSource(new KeyVaultSource(vaultUrl, configuration, priority));
+        return builder.AddSource(builder.CreateKeyVaultSource(vaultUrl, configuration, priority));
     }
 
     /// <summary>
@@ -209,7 +211,7 @@ public static class KeyVaultExtensions
     )
     {
         var configuration = new KeyVaultConfiguration { CacheDuration = cacheDuration };
-        return builder.AddSource(new KeyVaultSource(vaultUrl, configuration, priority));
+        return builder.AddSource(builder.CreateKeyVaultSource(vaultUrl, configuration, priority));
     }
 
     /// <summary>
@@ -237,7 +239,7 @@ public static class KeyVaultExtensions
             BaseRetryDelay = baseRetryDelay,
             MaxRetryDelay = maxRetryDelay,
         };
-        return builder.AddSource(new KeyVaultSource(vaultUrl, configuration, priority));
+        return builder.AddSource(builder.CreateKeyVaultSource(vaultUrl, configuration, priority));
     }
 
     /// <summary>

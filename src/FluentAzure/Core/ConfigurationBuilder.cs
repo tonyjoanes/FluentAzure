@@ -1,4 +1,6 @@
 using System.Globalization;
+using Azure.Core;
+using Azure.Identity;
 using FluentAzure.Binding;
 using FluentAzure.Extensions;
 using FluentAzure.Sources;
@@ -18,6 +20,82 @@ public class ConfigurationBuilder
         Func<Dictionary<string, string>, Task<Result<Dictionary<string, string>>>>
     > _transformations = new();
     private readonly List<Func<Dictionary<string, string>, Result<string>>> _validations = new();
+    private readonly PipelineCredential _credential = new();
+    private readonly HashSet<string> _markedSensitiveKeys = new(StringComparer.OrdinalIgnoreCase);
+    private volatile HashSet<string> _sourceSensitiveKeys = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Gets the credential used by Azure sources (Key Vault, App Configuration) in this pipeline that
+    /// do not specify their own. Defaults to <see cref="DefaultAzureCredential"/>; set it with
+    /// <see cref="UseCredential"/>, <see cref="UseManagedIdentity"/> or <see cref="UseWorkloadIdentity"/>.
+    /// </summary>
+    public TokenCredential Credential => _credential;
+
+    /// <summary>
+    /// Gets the sources added to this pipeline.
+    /// </summary>
+    internal IReadOnlyList<IConfigurationSource> Sources => _sources;
+
+    /// <summary>
+    /// Uses the given credential for all Azure sources in this pipeline that do not specify their own.
+    /// Can be called before or after the sources are added.
+    /// </summary>
+    /// <param name="credential">The credential to use.</param>
+    /// <returns>The configuration builder for method chaining.</returns>
+    public ConfigurationBuilder UseCredential(TokenCredential credential)
+    {
+        ArgumentNullException.ThrowIfNull(credential);
+        _credential.Configure(credential);
+        return this;
+    }
+
+    /// <summary>
+    /// Uses a managed identity for all Azure sources in this pipeline. This is the recommended identity
+    /// for App Service, Functions, Container Apps and VMs: it is deterministic and never falls back to
+    /// developer credentials the way <see cref="DefaultAzureCredential"/> can.
+    /// </summary>
+    /// <param name="clientId">The client ID of a user-assigned managed identity, or null for the system-assigned identity.</param>
+    /// <returns>The configuration builder for method chaining.</returns>
+    public ConfigurationBuilder UseManagedIdentity(string? clientId = null) =>
+        UseCredential(
+            string.IsNullOrEmpty(clientId)
+                ? new ManagedIdentityCredential()
+                : new ManagedIdentityCredential(clientId)
+        );
+
+    /// <summary>
+    /// Uses Microsoft Entra Workload ID (e.g. on AKS) for all Azure sources in this pipeline.
+    /// Reads the tenant, client ID and token file from the standard AZURE_* environment variables.
+    /// </summary>
+    /// <returns>The configuration builder for method chaining.</returns>
+    public ConfigurationBuilder UseWorkloadIdentity() => UseCredential(new WorkloadIdentityCredential());
+
+    /// <summary>
+    /// Marks configuration keys as sensitive in addition to those loaded from Key Vault, so they are
+    /// masked by <c>GetRedactedDebugView()</c>. Useful for secrets supplied through environment variables.
+    /// </summary>
+    /// <param name="keys">The keys to mark as sensitive.</param>
+    /// <returns>The configuration builder for method chaining.</returns>
+    public ConfigurationBuilder Sensitive(params string[] keys)
+    {
+        ArgumentNullException.ThrowIfNull(keys);
+        foreach (var key in keys)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(key);
+            _markedSensitiveKeys.Add(key);
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// Determines whether a key holds a secret: either marked with <see cref="Sensitive"/>, or its value
+    /// in the most recent build came from a sensitive source such as Key Vault.
+    /// </summary>
+    /// <param name="key">The configuration key.</param>
+    /// <returns>True if the key's value should be treated as a secret.</returns>
+    public bool IsSensitive(string key) =>
+        _markedSensitiveKeys.Contains(key) || _sourceSensitiveKeys.Contains(key);
 
     /// <summary>
     /// Adds an environment variable source to the configuration pipeline.
@@ -69,7 +147,7 @@ public class ConfigurationBuilder
     public ConfigurationBuilder FromKeyVault(string vaultUrl, int priority = 200)
     {
         ArgumentException.ThrowIfNullOrEmpty(vaultUrl);
-        _sources.Add(new KeyVaultSource(vaultUrl, priority));
+        _sources.Add(CreateKeyVaultSource(vaultUrl, new KeyVaultConfiguration(), priority));
         return this;
     }
 
@@ -93,6 +171,7 @@ public class ConfigurationBuilder
 
         var options = new AppConfigurationOptions();
         configure?.Invoke(options);
+        options.Credential ??= _credential;
 
         var isEndpoint =
             Uri.TryCreate(endpointOrConnectionString, UriKind.Absolute, out var endpoint)
@@ -272,6 +351,7 @@ public class ConfigurationBuilder
     {
         var errors = new List<string>();
         var configuration = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var sensitiveKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         // Load from all sources, sorted by priority (highest first)
         var sortedSources = _sources.OrderByDescending(s => s.Priority).ToList();
@@ -287,11 +367,16 @@ public class ConfigurationBuilder
             {
                 // Merge configuration values (higher priority sources override lower priority ones)
                 // Only set values that don't already exist since we process highest priority first
+                var sensitiveSource = source as ISensitiveConfigurationSource;
                 foreach (var kvp in result.Value)
                 {
                     if (!configuration.ContainsKey(kvp.Key))
                     {
                         configuration[kvp.Key] = kvp.Value;
+                        if (sensitiveSource?.IsSensitive(kvp.Key) == true)
+                        {
+                            sensitiveKeys.Add(kvp.Key);
+                        }
                     }
                 }
             }
@@ -300,6 +385,8 @@ public class ConfigurationBuilder
                 errors.AddRange(result.Errors);
             }
         }
+
+        _sourceSensitiveKeys = sensitiveKeys;
 
         // Return early if we have source loading errors
         if (errors.Count > 0)
@@ -541,6 +628,20 @@ public class ConfigurationBuilder
             return Task.FromResult(Result<Dictionary<string, string>>.Success(newConfig));
         });
         return this;
+    }
+
+    /// <summary>
+    /// Creates a Key Vault source that uses the pipeline credential unless the configuration specifies one.
+    /// </summary>
+    internal KeyVaultSource CreateKeyVaultSource(
+        string vaultUrl,
+        KeyVaultConfiguration configuration,
+        int priority,
+        Microsoft.Extensions.Logging.ILogger? logger = null
+    )
+    {
+        configuration.Credential ??= _credential;
+        return new KeyVaultSource(vaultUrl, configuration, priority, logger);
     }
 
     /// <summary>

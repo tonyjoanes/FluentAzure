@@ -269,7 +269,8 @@ public static class EnhancedConfigurationBinder
                         {
                             errors.Add(
                                 new BindingError(
-                                    $"Failed to bind property '{string.Join(":", propertyPath)}' with value '{configValue}': {ex.Message}",
+                                    // Never echo the value: it may be a secret
+                                    $"Failed to bind property '{string.Join(":", propertyPath)}': {ex.Message}",
                                     string.Join(":", propertyPath)
                                 )
                             );
@@ -741,7 +742,8 @@ public static class EnhancedConfigurationBinder
         catch (Exception ex)
         {
             throw new InvalidOperationException(
-                $"Failed to convert value '{value}' to type {targetType.Name}: {ex.Message}"
+                // The parser's message can contain the value, so only report the exception type
+                $"The configured value could not be converted to type {targetType.Name} ({ex.GetType().Name})"
             );
         }
     }

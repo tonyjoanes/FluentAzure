@@ -33,6 +33,22 @@ public sealed class FluentAzureConfigurationProvider : ConfigurationProvider, ID
     /// </summary>
     public IReadOnlyList<string> LastReloadErrors { get; private set; } = Array.Empty<string>();
 
+    /// <summary>
+    /// Determines whether a key holds a secret (loaded from Key Vault, a Key Vault reference, or marked
+    /// with <c>Sensitive()</c>), so it can be masked when configuration is displayed.
+    /// </summary>
+    /// <param name="key">The configuration key, using ":" or "__" as the separator.</param>
+    /// <returns>True if the value should be treated as a secret.</returns>
+    public bool IsSensitive(string key)
+    {
+        ArgumentNullException.ThrowIfNull(key);
+        return _source.Pipeline.IsSensitive(key)
+            || (key.Contains(':') && _source.Pipeline.IsSensitive(key.Replace(":", "__")));
+    }
+
+    /// <inheritdoc />
+    public override string ToString() => $"{nameof(FluentAzureConfigurationProvider)} ({Data.Count} keys)";
+
     /// <inheritdoc />
     public override void Load()
     {

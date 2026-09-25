@@ -93,6 +93,27 @@ public static class FluentAzureConfigurationExtensions
     }
 
     /// <summary>
+    /// Produces the same output as <c>GetDebugView()</c>, but masks values that FluentAzure knows are
+    /// secrets (loaded from Key Vault, resolved from Key Vault references, or marked with
+    /// <c>Sensitive()</c>). Use this instead of <c>GetDebugView()</c> when logging configuration.
+    /// </summary>
+    /// <param name="root">The configuration root.</param>
+    /// <param name="mask">The text shown in place of secret values.</param>
+    /// <returns>A human-readable view of the configuration with secrets masked.</returns>
+    public static string GetRedactedDebugView(this IConfigurationRoot root, string mask = "***")
+    {
+        ArgumentNullException.ThrowIfNull(root);
+        ArgumentNullException.ThrowIfNull(mask);
+
+        return root.GetDebugView(context =>
+            context.ConfigurationProvider is FluentAzureConfigurationProvider provider
+            && provider.IsSensitive(context.Path)
+                ? mask
+                : context.Value
+        );
+    }
+
+    /// <summary>
     /// Registers <typeparamref name="T"/> with the options pattern, bound to a configuration section,
     /// validated with data annotations, and validated when the host starts so misconfiguration fails
     /// fast. Inject <see cref="IOptions{TOptions}"/>, or <see cref="IOptionsMonitor{TOptions}"/> to

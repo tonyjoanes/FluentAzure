@@ -103,13 +103,13 @@ public static class ConfigurationExtensions
                     return converted is T typedValue
                         ? Result<T>.Success(typedValue)
                         : Result<T>.Error(
-                            $"Failed to convert value '{value}' to type {typeof(T).Name}"
+                            $"Failed to convert the value of '{key}' to type {typeof(T).Name}"
                         );
                 }
                 catch (Exception ex)
                 {
                     return Result<T>.Error(
-                        $"Failed to convert value '{value}' to type {typeof(T).Name}: {ex.Message}"
+                        $"Failed to convert the value of '{key}' to type {typeof(T).Name} ({ex.GetType().Name})"
                     );
                 }
             });

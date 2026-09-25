@@ -185,6 +185,19 @@ var config = await FluentConfig
 ```
 See [docs/app-configuration-source.md](docs/app-configuration-source.md) for all options.
 
+#### **Identity & Secret Redaction**
+Choose one identity for every Azure source in the pipeline (in any order relative to the sources), and keep secrets out of logs:
+```csharp
+builder.Configuration.AddFluentAzure(fluent => fluent
+    .UseManagedIdentity()                  // or UseWorkloadIdentity() / UseCredential(...)
+    .FromAppConfiguration("https://myconfig.azconfig.io")
+    .FromKeyVault("https://myvault.vault.azure.net")
+    .Sensitive("Jwt:SigningKey"));         // mark secrets that come from other sources
+
+logger.LogDebug("{Config}", builder.Configuration.GetRedactedDebugView()); // Key Vault values appear as ***
+```
+A per-source credential (`KeyVaultConfiguration.Credential`, `AppConfigurationOptions.Credential`) still takes precedence. Binding and conversion errors never include configuration values.
+
 #### **Web API Example**
 ```csharp
 // Program.cs

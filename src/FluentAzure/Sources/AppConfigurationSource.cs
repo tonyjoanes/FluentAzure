@@ -13,7 +13,7 @@ namespace FluentAzure.Sources;
 /// Configuration source that loads settings from Azure App Configuration, with label layering,
 /// snapshots, Key Vault reference resolution, feature flags and sentinel-key based refresh.
 /// </summary>
-public class AppConfigurationSource : IReloadableConfigurationSource
+public class AppConfigurationSource : IReloadableConfigurationSource, ISensitiveConfigurationSource
 {
     private const string FeatureFlagKeyFilter = ".appconfig.featureflag/*";
     private const string FeatureManagementSection = "FeatureManagement";
@@ -24,6 +24,7 @@ public class AppConfigurationSource : IReloadableConfigurationSource
     private readonly SemaphoreSlim _loadLock = new(1, 1);
     private readonly ConcurrentDictionary<Uri, SecretClient> _secretClients = new();
     private volatile Dictionary<string, string>? _values;
+    private volatile HashSet<string> _sensitiveKeys = new(StringComparer.OrdinalIgnoreCase);
     private ETag? _sentinelETag;
 
     /// <summary>
@@ -147,6 +148,18 @@ public class AppConfigurationSource : IReloadableConfigurationSource
         }
     }
 
+    /// <summary>
+    /// Gets the options this source was created with.
+    /// </summary>
+    internal AppConfigurationOptions Options => _options;
+
+    /// <summary>
+    /// Values resolved from Key Vault references are secrets; plain settings and feature flags are not.
+    /// </summary>
+    /// <param name="key">The configuration key.</param>
+    /// <returns>True if the key's value was resolved from a Key Vault reference.</returns>
+    public bool IsSensitive(string key) => _sensitiveKeys.Contains(key);
+
     /// <inheritdoc />
     public bool ContainsKey(string key) => _values?.ContainsKey(key) ?? false;
 
@@ -197,6 +210,10 @@ public class AppConfigurationSource : IReloadableConfigurationSource
             }
 
             _values = values;
+            _sensitiveKeys = new HashSet<string>(
+                secretReferences.Select(r => r.Key),
+                StringComparer.OrdinalIgnoreCase
+            );
             _sentinelETag = sentinelETag;
             _logger?.LogInformation(
                 "Loaded {Count} values from Azure App Configuration",

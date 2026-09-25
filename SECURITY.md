@@ -6,11 +6,12 @@ FluentAzure takes security seriously and implements multiple layers of protectio
 
 ## Security Features
 
-### 1. Secure Secret Handling
+### 1. Secret Handling
 
-- **Memory Clearing**: Secret values are securely overwritten in memory when cache entries are disposed
-- **Secure Disposal**: `KeyVaultSecretCache` and `KeyVaultSource` implement secure disposal patterns
-- **Minimal Memory Exposure**: Secrets are only kept in memory as long as necessary
+- **No values in errors**: Binding and conversion errors name the key and target type, never the configured value (parser messages that echo input are not passed through)
+- **Sensitive key tracking**: Values from Key Vault and resolved Key Vault references are tracked as sensitive; add others with `.Sensitive("Key")`
+- **Redacted debug view**: `configuration.GetRedactedDebugView()` masks sensitive values; the standard `GetDebugView()` does not
+- **Disposal**: `KeyVaultSource` and `KeyVaultSecretCache` drop their references to secret values on disposal. .NET strings are immutable, so this does not scrub memory; use OS-level protections if your threat model requires it
 
 ### 2. Async Best Practices
 
@@ -38,7 +39,7 @@ FluentAzure takes security seriously and implements multiple layers of protectio
 
 ### For Production Use
 
-1. **Managed Identity**: Use Azure Managed Identity for Key Vault authentication
+1. **Managed Identity**: Call `.UseManagedIdentity()` (or `.UseWorkloadIdentity()` on AKS) so every Azure source uses a deterministic identity. If you keep `DefaultAzureCredential`, set `AZURE_TOKEN_CREDENTIALS=prod` to exclude developer credentials from its chain
 2. **Network Security**: Configure Key Vault network access rules appropriately
 3. **Audit Logging**: Enable Key Vault audit logging for compliance
 4. **Secret Rotation**: Implement regular secret rotation policies
@@ -77,7 +78,7 @@ var connectionString = config.Match(
 // ✅ Good - Proper disposal
 using var keyVaultSource = new KeyVaultSource(vaultUrl);
 var result = await keyVaultSource.LoadAsync();
-// Disposal automatically clears sensitive data
+// Disposal drops references to secret values
 ```
 
 ## Compliance
