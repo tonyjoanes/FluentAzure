@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Azure.Core;
@@ -346,6 +347,42 @@ public class ConfigurationBuilder
     /// <returns>A task that represents the asynchronous build operation. The task result contains the built configuration or errors.</returns>
     internal async Task<Result<Dictionary<string, string>>> BuildAsync(bool reloadSources)
     {
+        using var activity = FluentAzureDiagnostics.ActivitySource.StartActivity("FluentAzure.Build");
+        activity?.SetTag(FluentAzureDiagnostics.ReloadTag, reloadSources);
+        activity?.SetTag("fluentazure.source.count", _sources.Count);
+        var started = Stopwatch.GetTimestamp();
+
+        var result = await BuildCoreAsync(reloadSources).ConfigureAwait(false);
+
+        var outcome = result.IsSuccess
+            ? FluentAzureDiagnostics.Outcomes.Success
+            : FluentAzureDiagnostics.Outcomes.Failure;
+        FluentAzureDiagnostics.BuildDuration.Record(
+            Stopwatch.GetElapsedTime(started).TotalSeconds,
+            new KeyValuePair<string, object?>(FluentAzureDiagnostics.OutcomeTag, outcome),
+            new KeyValuePair<string, object?>(FluentAzureDiagnostics.ReloadTag, reloadSources)
+        );
+
+        if (activity is not null)
+        {
+            activity.SetTag(FluentAzureDiagnostics.OutcomeTag, outcome);
+            if (result.IsSuccess)
+            {
+                activity.SetTag("fluentazure.key.count", result.Value.Count);
+            }
+            else
+            {
+                // Error messages can name keys or contain user text, so only the count is recorded
+                activity.SetTag("fluentazure.error.count", result.Errors.Count);
+                activity.SetStatus(ActivityStatusCode.Error, $"{result.Errors.Count} configuration error(s)");
+            }
+        }
+
+        return result;
+    }
+
+    private async Task<Result<Dictionary<string, string>>> BuildCoreAsync(bool reloadSources)
+    {
         var errors = new List<string>();
         var configuration = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         var sensitiveKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -355,11 +392,7 @@ public class ConfigurationBuilder
 
         foreach (var source in sortedSources)
         {
-            var result = await (
-                reloadSources && source is IReloadableConfigurationSource reloadable
-                    ? reloadable.ReloadAsync()
-                    : source.LoadAsync()
-            ).ConfigureAwait(false);
+            var result = await LoadSourceAsync(source, reloadSources).ConfigureAwait(false);
             if (result.IsSuccess)
             {
                 // Merge configuration values (higher priority sources override lower priority ones)
@@ -629,6 +662,62 @@ public class ConfigurationBuilder
             return Task.FromResult(Result<Dictionary<string, string>>.Success(newConfig));
         });
         return this;
+    }
+
+    /// <summary>
+    /// Loads (or reloads) one source, recording a trace span and its duration.
+    /// </summary>
+    private static async Task<Result<Dictionary<string, string>>> LoadSourceAsync(
+        IConfigurationSource source,
+        bool reloadSources
+    )
+    {
+        using var activity = FluentAzureDiagnostics.ActivitySource.StartActivity("FluentAzure.LoadSource");
+        activity?.SetTag(FluentAzureDiagnostics.SourceTag, source.Name);
+        activity?.SetTag(FluentAzureDiagnostics.ReloadTag, reloadSources);
+        var started = Stopwatch.GetTimestamp();
+
+        Result<Dictionary<string, string>> result;
+        try
+        {
+            result = await (
+                reloadSources && source is IReloadableConfigurationSource reloadable
+                    ? reloadable.ReloadAsync()
+                    : source.LoadAsync()
+            ).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            // Custom sources may throw; surface it as a pipeline error like the built-in sources do
+            result = Result<Dictionary<string, string>>.Error(
+                $"Configuration source '{source.Name}' failed to load: {ex.GetType().Name}"
+            );
+        }
+
+        var outcome = result.IsSuccess
+            ? FluentAzureDiagnostics.Outcomes.Success
+            : FluentAzureDiagnostics.Outcomes.Failure;
+        FluentAzureDiagnostics.SourceLoadDuration.Record(
+            Stopwatch.GetElapsedTime(started).TotalSeconds,
+            new KeyValuePair<string, object?>(FluentAzureDiagnostics.SourceTag, source.Name),
+            new KeyValuePair<string, object?>(FluentAzureDiagnostics.OutcomeTag, outcome),
+            new KeyValuePair<string, object?>(FluentAzureDiagnostics.ReloadTag, reloadSources)
+        );
+
+        if (activity is not null)
+        {
+            activity.SetTag(FluentAzureDiagnostics.OutcomeTag, outcome);
+            if (result.IsSuccess)
+            {
+                activity.SetTag("fluentazure.key.count", result.Value.Count);
+            }
+            else
+            {
+                activity.SetStatus(ActivityStatusCode.Error, $"{result.Errors.Count} source error(s)");
+            }
+        }
+
+        return result;
     }
 
     /// <summary>

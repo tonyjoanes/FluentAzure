@@ -42,6 +42,11 @@ public class FluentAzureConfigurationSource : IConfigurationSource
     /// </summary>
     internal Dictionary<string, string>? PreloadedValues { get; set; }
 
+    /// <summary>
+    /// Gets or sets the clock used for load timestamps; replaceable in tests.
+    /// </summary>
+    internal TimeProvider TimeProvider { get; set; } = TimeProvider.System;
+
     /// <inheritdoc />
     public IConfigurationProvider Build(IConfigurationBuilder builder) =>
         new FluentAzureConfigurationProvider(this);

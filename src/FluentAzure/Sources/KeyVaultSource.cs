@@ -52,6 +52,31 @@ public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigur
         : this(vaultUrl, configuration, priority, logger, true) { }
 
     /// <summary>
+    /// Initializes a new instance of the <see cref="KeyVaultSource"/> class with an existing client,
+    /// e.g. one configured with custom <see cref="SecretClientOptions"/> or a test double.
+    /// </summary>
+    /// <param name="client">The Key Vault secret client.</param>
+    /// <param name="configuration">The Key Vault configuration options. Retry and credential settings are ignored because the client is already configured.</param>
+    /// <param name="priority">The priority of this configuration source.</param>
+    /// <param name="logger">Optional logger for debugging and monitoring.</param>
+    public KeyVaultSource(
+        SecretClient client,
+        KeyVaultConfiguration? configuration = null,
+        int priority = 200,
+        ILogger? logger = null
+    )
+        : this(
+            (client ?? throw new ArgumentNullException(nameof(client))).VaultUri.ToString(),
+            configuration ?? new KeyVaultConfiguration(),
+            priority,
+            logger,
+            initializeClient: false
+        )
+    {
+        _client = client;
+    }
+
+    /// <summary>
     /// Protected constructor for testing and mocking purposes.
     /// </summary>
     /// <param name="vaultUrl">The URL of the Azure Key Vault.</param>

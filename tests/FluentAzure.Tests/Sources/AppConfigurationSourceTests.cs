@@ -5,6 +5,7 @@ using Azure.Data.AppConfiguration;
 using Azure.Security.KeyVault.Secrets;
 using FluentAssertions;
 using FluentAzure.Sources;
+using FluentAzure.Tests.TestDoubles;
 using Microsoft.Extensions.Configuration;
 using MsConfigurationBuilder = Microsoft.Extensions.Configuration.ConfigurationBuilder;
 
@@ -478,37 +479,6 @@ public class AppConfigurationSourceTests
             }
 
             return Task.FromResult(Response.FromValue(SecretModelFactory.KeyVaultSecret(SecretModelFactory.SecretProperties(name: name), value), new FakeResponse(200)));
-        }
-    }
-
-    private sealed class FakeResponse : Response
-    {
-        public FakeResponse(int status) => Status = status;
-
-        public override int Status { get; }
-
-        public override string ReasonPhrase => string.Empty;
-
-        public override Stream? ContentStream { get; set; }
-
-        public override string ClientRequestId { get; set; } = string.Empty;
-
-        public override void Dispose() { }
-
-        protected override bool ContainsHeader(string name) => false;
-
-        protected override IEnumerable<HttpHeader> EnumerateHeaders() => Array.Empty<HttpHeader>();
-
-        protected override bool TryGetHeader(string name, [NotNullWhen(true)] out string? value)
-        {
-            value = null;
-            return false;
-        }
-
-        protected override bool TryGetHeaderValues(string name, [NotNullWhen(true)] out IEnumerable<string>? values)
-        {
-            values = null;
-            return false;
         }
     }
 }

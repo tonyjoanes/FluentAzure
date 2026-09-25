@@ -34,6 +34,31 @@ public sealed class FluentAzureConfigurationProvider : ConfigurationProvider, ID
     public IReadOnlyList<string> LastReloadErrors { get; private set; } = Array.Empty<string>();
 
     /// <summary>
+    /// Gets when the pipeline last loaded successfully (initially or on reload), or null if it never has.
+    /// </summary>
+    public DateTimeOffset? LastSuccessfulLoad { get; private set; }
+
+    /// <summary>
+    /// Gets when a load or reload was last attempted, successful or not.
+    /// </summary>
+    public DateTimeOffset? LastLoadAttempt { get; private set; }
+
+    /// <summary>
+    /// Gets the configured periodic reload interval, or null if periodic reload is disabled.
+    /// </summary>
+    public TimeSpan? ReloadInterval => _source.ReloadInterval;
+
+    /// <summary>
+    /// Gets the number of configuration keys currently provided.
+    /// </summary>
+    public int KeyCount => Data.Count;
+
+    /// <summary>
+    /// Gets the clock used for load timestamps.
+    /// </summary>
+    internal TimeProvider TimeProvider => _source.TimeProvider;
+
+    /// <summary>
     /// Determines whether a key holds a secret (loaded from Key Vault, a Key Vault reference, or marked
     /// with <c>Sensitive()</c>), so it can be masked when configuration is displayed.
     /// </summary>
@@ -57,6 +82,7 @@ public sealed class FluentAzureConfigurationProvider : ConfigurationProvider, ID
             Data = ToConfigurationData(preloaded);
             _source.PreloadedValues = null;
             _loaded = true;
+            LastLoadAttempt = LastSuccessfulLoad = TimeProvider.GetUtcNow();
         }
         else
         {
@@ -92,18 +118,21 @@ public sealed class FluentAzureConfigurationProvider : ConfigurationProvider, ID
         await _loadLock.WaitAsync().ConfigureAwait(false);
         try
         {
+            var isReload = _loaded;
+            LastLoadAttempt = TimeProvider.GetUtcNow();
             var result = await _source
-                .Pipeline.BuildAsync(reloadSources: _loaded)
+                .Pipeline.BuildAsync(reloadSources: isReload)
                 .ConfigureAwait(false);
 
             if (result.IsFailure)
             {
-                if (!_loaded)
+                if (!isReload)
                 {
                     throw new FluentAzureConfigurationException(result.Errors);
                 }
 
                 LastReloadErrors = result.Errors;
+                RecordReload(FluentAzureDiagnostics.Outcomes.Failure);
                 _source.OnReloadError?.Invoke(result.Errors);
                 return false;
             }
@@ -113,6 +142,16 @@ public sealed class FluentAzureConfigurationProvider : ConfigurationProvider, ID
             var changed = !_loaded || !HasSameValues(Data, newData);
             Data = newData;
             _loaded = true;
+            LastSuccessfulLoad = LastLoadAttempt;
+
+            if (isReload)
+            {
+                RecordReload(
+                    changed
+                        ? FluentAzureDiagnostics.Outcomes.Changed
+                        : FluentAzureDiagnostics.Outcomes.Unchanged
+                );
+            }
 
             if (notifyOnChange && changed)
             {
@@ -126,6 +165,12 @@ public sealed class FluentAzureConfigurationProvider : ConfigurationProvider, ID
             _loadLock.Release();
         }
     }
+
+    private static void RecordReload(string outcome) =>
+        FluentAzureDiagnostics.ProviderReloads.Add(
+            1,
+            new KeyValuePair<string, object?>(FluentAzureDiagnostics.OutcomeTag, outcome)
+        );
 
     private void StartReloadLoop()
     {
@@ -155,6 +200,7 @@ public sealed class FluentAzureConfigurationProvider : ConfigurationProvider, ID
                     {
                         // Never let a reload failure kill the loop; keep the last good values
                         LastReloadErrors = new[] { ex.Message };
+                        RecordReload(FluentAzureDiagnostics.Outcomes.Failure);
                         _source.OnReloadError?.Invoke(LastReloadErrors);
                     }
                 }

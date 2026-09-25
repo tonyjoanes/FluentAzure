@@ -95,6 +95,64 @@ jobs:
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
+  emulator-tests:
+    name: App Configuration Emulator Tests
+    runs-on: ubuntu-latest
+
+    # Real App Configuration API semantics (labels, feature flags, sentinel refresh) via the official emulator.
+    # Connection-string requests are HMAC-signed, so the emulator is given a matching access key.
+    services:
+      appconfig:
+        image: mcr.microsoft.com/azure-app-configuration/app-configuration-emulator:1.2.0
+        ports:
+          - 8483:8483
+        env:
+          Tenant__HmacSha256Enabled: 'true'
+          Tenant__AccessKeys__0__Id: emulator
+          Tenant__AccessKeys__0__Secret: c2VjcmV0
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Build tests
+      run: dotnet build tests/FluentAzure.Tests --configuration Release
+
+    - name: Wait for emulator
+      shell: bash
+      run: |
+        for i in $(seq 1 30); do
+          curl -s -o /dev/null http://localhost:8483/ && exit 0
+          sleep 2
+        done
+        echo "::error::App Configuration emulator did not start"
+        exit 1
+
+    # Fail if the tests were skipped (e.g. the connection string was not passed through)
+    - name: Run emulator tests
+      shell: bash
+      env:
+        FLUENTAZURE_APPCONFIG_EMULATOR: Endpoint=http://localhost:8483;Id=emulator;Secret=c2VjcmV0
+      run: |
+        dotnet test tests/FluentAzure.Tests --no-build --configuration Release --filter "Category=Emulator" 2>&1 | tee emulator-tests.log
+        if grep -qE "Skipped:\s+[1-9]" emulator-tests.log || ! grep -qE "Passed:\s+[1-9]" emulator-tests.log; then
+          echo "::error::Emulator tests were skipped or did not run"
+          exit 1
+        fi
+
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest

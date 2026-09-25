@@ -199,6 +199,28 @@ logger.LogDebug("{Config}", builder.Configuration.GetRedactedDebugView()); // Ke
 ```
 A per-source credential (`KeyVaultConfiguration.Credential`, `AppConfigurationOptions.Credential`) still takes precedence. Binding and conversion errors never include configuration values.
 
+#### **Observability: OpenTelemetry & Health Checks**
+FluentAzure emits traces and metrics through `System.Diagnostics` (no extra dependency), ready for OpenTelemetry:
+```csharp
+builder.Services.AddOpenTelemetry()
+    .WithTracing(t => t.AddSource(FluentAzureDiagnostics.ActivitySourceName))
+    .WithMetrics(m => m.AddMeter(FluentAzureDiagnostics.MeterName));
+
+builder.Services.AddHealthChecks().AddFluentAzure(tags: new[] { "ready" });
+```
+| Signal | Name | Tags |
+|---|---|---|
+| Span | `FluentAzure.Build`, with a child `FluentAzure.LoadSource` per source | `fluentazure.source`, `fluentazure.outcome`, `fluentazure.reload`, key/error counts |
+| Histogram (s) | `fluentazure.build.duration`, `fluentazure.source.load.duration` | `fluentazure.source`, `fluentazure.outcome`, `fluentazure.reload` |
+| Counter | `fluentazure.provider.reloads` | `fluentazure.outcome` = `changed` / `unchanged` / `failure` |
+
+Telemetry and health data contain source names, outcomes, durations, counts and timestamps only — never configuration values or error messages.
+
+The health check does not call Azure. It reports what the configuration providers last observed:
+- **Healthy:** every load succeeded.
+- **Degraded:** the last reload failed, so the last good values are still being served.
+- **Unhealthy** (or your `failureStatus`): no FluentAzure provider is registered, or values are older than `staleAfter` (by default, three reload intervals).
+
 #### **Trimming & Native AOT**
 FluentAzure targets .NET 8 and .NET 10 and is annotated for trimming and Native AOT. The pipeline, all sources (environment, JSON, Key Vault, App Configuration) and the `IConfiguration` provider are AOT-safe. The reflection-based binders (`BuildAsync<T>()`, `Bind<T>()`, `AddFluentAzure<T>()`, `AddFluentAzureOptions<T>()`) are marked `[RequiresUnreferencedCode]`/`[RequiresDynamicCode]`, so the compiler warns if you use them in a trimmed or AOT app. In those apps, feed `IConfiguration` and bind with the configuration binding source generator:
 ```xml

@@ -3,6 +3,7 @@ using FluentAzure.Configuration;
 using FluentAzure.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using FluentPipeline = FluentAzure.Core.ConfigurationBuilder;
 
@@ -91,6 +92,42 @@ public static class FluentAzureConfigurationExtensions
                 ReloadInterval = reloadInterval,
                 PreloadedValues = result.Value,
             }
+        );
+    }
+
+    /// <summary>
+    /// Adds a health check reporting the state of the FluentAzure configuration providers in the
+    /// application's <see cref="IConfiguration"/>: Degraded when a reload failed (last good values
+    /// are still served), and <paramref name="failureStatus"/> when no provider is registered or the
+    /// values are stale. The check does not call Azure.
+    /// </summary>
+    /// <param name="builder">The health checks builder.</param>
+    /// <param name="name">The health check name.</param>
+    /// <param name="failureStatus">The status reported on failure. Defaults to Unhealthy.</param>
+    /// <param name="tags">Optional tags, e.g. "ready", to filter checks per endpoint.</param>
+    /// <param name="staleAfter">
+    /// Maximum age of the last successful load. Defaults to three reload intervals for providers
+    /// with periodic reload; providers without periodic reload are never considered stale.
+    /// </param>
+    /// <returns>The health checks builder for chaining.</returns>
+    public static IHealthChecksBuilder AddFluentAzure(
+        this IHealthChecksBuilder builder,
+        string name = "fluentazure",
+        HealthStatus? failureStatus = null,
+        IEnumerable<string>? tags = null,
+        TimeSpan? staleAfter = null
+    )
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrEmpty(name);
+
+        return builder.Add(
+            new HealthCheckRegistration(
+                name,
+                sp => new FluentAzureHealthCheck(sp.GetRequiredService<IConfiguration>(), staleAfter),
+                failureStatus,
+                tags
+            )
         );
     }
 
