@@ -11,7 +11,7 @@ namespace FluentAzure.Sources;
 /// Enhanced configuration source that loads values from Azure Key Vault with retry logic,
 /// caching, secret versioning, and advanced error handling.
 /// </summary>
-public class KeyVaultSource : IConfigurationSource, IDisposable
+public class KeyVaultSource : IReloadableConfigurationSource, IDisposable
 {
     private readonly string _vaultUrl;
     private readonly SecretClient _client;

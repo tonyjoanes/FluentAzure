@@ -225,7 +225,17 @@ public class ConfigurationBuilder
     /// Builds the configuration by loading values from all configured sources.
     /// </summary>
     /// <returns>A task that represents the asynchronous build operation. The task result contains the built configuration or errors.</returns>
-    public async Task<Result<Dictionary<string, string>>> BuildAsync()
+    public Task<Result<Dictionary<string, string>>> BuildAsync() => BuildAsync(reloadSources: false);
+
+    /// <summary>
+    /// Builds the configuration, optionally asking sources that cache their values to fetch them again.
+    /// </summary>
+    /// <param name="reloadSources">
+    /// When true, sources implementing <see cref="IReloadableConfigurationSource"/> are reloaded
+    /// rather than returning previously loaded values.
+    /// </param>
+    /// <returns>A task that represents the asynchronous build operation. The task result contains the built configuration or errors.</returns>
+    internal async Task<Result<Dictionary<string, string>>> BuildAsync(bool reloadSources)
     {
         var errors = new List<string>();
         var configuration = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -235,7 +245,11 @@ public class ConfigurationBuilder
 
         foreach (var source in sortedSources)
         {
-            var result = await source.LoadAsync().ConfigureAwait(false);
+            var result = await (
+                reloadSources && source is IReloadableConfigurationSource reloadable
+                    ? reloadable.ReloadAsync()
+                    : source.LoadAsync()
+            ).ConfigureAwait(false);
             if (result.IsSuccess)
             {
                 // Merge configuration values (higher priority sources override lower priority ones)

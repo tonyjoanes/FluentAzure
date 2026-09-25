@@ -146,6 +146,29 @@ await builder.Services.AddFluentAzureAsync<AppSettings>(config => config
 
 Configuration keys are case-insensitive, and environment variables using the standard `__` separator (e.g. `ConnectionStrings__Default`) are also available under their `:` form (`ConnectionStrings:Default`).
 
+#### **Microsoft.Extensions.Configuration + IOptionsMonitor (Recommended for ASP.NET Core / Functions)**
+Plug a FluentAzure pipeline into the standard configuration system. Required keys and validations still fail fast at startup, and values become available to `IConfiguration`, `IOptions<T>` and `IOptionsMonitor<T>`:
+```csharp
+using FluentAzure;
+
+var builder = WebApplication.CreateBuilder(args);
+
+await builder.Configuration.AddFluentAzureAsync(
+    fluent => fluent
+        .FromKeyVault(builder.Configuration["KeyVault:Url"]!)
+        .Required("Database:ConnectionString"),
+    reloadInterval: TimeSpan.FromMinutes(5) // pick up rotated secrets without a restart
+);
+
+// Binds the "Database" section, validates [Required]/[Range] etc. and fails at startup if invalid
+builder.Services.AddFluentAzureOptions<DatabaseOptions>(builder.Configuration, "Database");
+
+// Consumers: inject IOptionsMonitor<DatabaseOptions> to see reloaded values
+```
+- Keys using the `__` separator (environment variables, FluentAzure JSON flattening) are exposed with the standard `:` separator.
+- A failed reload keeps the last good values; observe failures with `options.OnReloadError` via the `AddFluentAzure(configure, configureSource)` overload.
+- `builder.Configuration.AddFluentAzure(...)` is the synchronous equivalent.
+
 #### **Web API Example**
 ```csharp
 // Program.cs
