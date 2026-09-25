@@ -69,6 +69,13 @@ public class KeyVaultConfiguration
     public bool ReloadFailedSecrets { get; set; } = true;
 
     /// <summary>
+    /// Gets or sets the maximum number of secrets fetched from Key Vault concurrently during a load.
+    /// Keeps large vaults under Key Vault's service throttling limits.
+    /// Defaults to 8.
+    /// </summary>
+    public int MaxConcurrentSecretLoads { get; set; } = 8;
+
+    /// <summary>
     /// Gets or sets the timeout for Key Vault operations.
     /// Defaults to 30 seconds.
     /// </summary>

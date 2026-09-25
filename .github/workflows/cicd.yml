@@ -16,7 +16,10 @@ permissions:
   actions: read
 
 env:
-  DOTNET_VERSION: '8.0.x'
+  # The library and tests target net8.0 and net10.0, so both SDKs/runtimes are installed
+  DOTNET_VERSION: |
+    8.0.x
+    10.0.x
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
   DOTNET_NOLOGO: true
   DOTNET_GENERATE_ASPNET_CERTIFICATE: false
@@ -68,6 +71,18 @@ jobs:
     # Run tests with coverage collection
     - name: Run tests with coverage
       run: dotnet test --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+
+    # Publish the Native AOT example and fail on any trimming/AOT warning, then run the native binary
+    - name: Native AOT compatibility check
+      if: matrix.os == 'ubuntu-latest'
+      shell: bash
+      run: |
+        dotnet publish examples/Aot.Example -c Release -r linux-x64 2>&1 | tee aot-publish.log
+        if grep -E "warning IL[0-9]+" aot-publish.log; then
+          echo "::error::Trimming/Native AOT warnings found"
+          exit 1
+        fi
+        ./examples/Aot.Example/bin/Release/net10.0/linux-x64/publish/Aot.Example
 
     # Upload coverage reports to Codecov (Ubuntu only to avoid duplicates)
     - name: Upload coverage reports to Codecov

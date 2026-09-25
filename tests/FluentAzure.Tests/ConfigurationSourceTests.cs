@@ -120,6 +120,50 @@ public class ConfigurationSourceTests
             // Assert
             result.Should().BeNull();
         }
+
+        [Fact]
+        public async Task LoadAsync_WithDoubleUnderscoreVariable_ShouldAlsoExposeColonKey()
+        {
+            // Arrange
+            Environment.SetEnvironmentVariable("FA_ENVTEST__Section__Value", "nested");
+
+            try
+            {
+                var source = new EnvironmentSource();
+
+                // Act
+                var result = await source.LoadAsync();
+
+                // Assert
+                result.IsSuccess.Should().BeTrue();
+                result.Value.Should().Contain("FA_ENVTEST:Section:Value", "nested");
+                result.Value.Should().Contain("FA_ENVTEST__Section__Value", "nested");
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("FA_ENVTEST__Section__Value", null);
+            }
+        }
+
+        [Fact]
+        public void GetValue_ShouldBeCaseInsensitive()
+        {
+            // Arrange
+            Environment.SetEnvironmentVariable("FA_ENVTEST_CASE", "value");
+
+            try
+            {
+                var source = new EnvironmentSource();
+
+                // Act & Assert
+                source.GetValue("fa_envtest_case").Should().Be("value");
+                source.ContainsKey("FA_EnvTest_Case").Should().BeTrue();
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("FA_ENVTEST_CASE", null);
+            }
+        }
     }
 
     public class JsonFileSourceTests : IDisposable

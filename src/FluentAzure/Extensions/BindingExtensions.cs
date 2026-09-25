@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using FluentAzure.Binding;
 using FluentAzure.Core;
@@ -8,6 +9,8 @@ namespace FluentAzure.Extensions;
 /// <summary>
 /// Extension methods for configuration binding using Options.
 /// </summary>
+[RequiresUnreferencedCode(AotMessages.ReflectionBinding)]
+[RequiresDynamicCode(AotMessages.ReflectionBinding)]
 public static class BindingExtensions
 {
     /// <summary>

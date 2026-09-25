@@ -11,7 +11,7 @@ namespace FluentAzure.Sources;
 /// Enhanced configuration source that loads values from Azure Key Vault with retry logic,
 /// caching, secret versioning, and advanced error handling.
 /// </summary>
-public class KeyVaultSource : IConfigurationSource, IDisposable
+public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigurationSource, IDisposable
 {
     private readonly string _vaultUrl;
     private readonly SecretClient _client;
@@ -19,10 +19,12 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
     private readonly KeyVaultSecretCache _cache;
     private readonly ILogger? _logger;
     private readonly ResiliencePipeline _retryPipeline;
-    private readonly ConcurrentDictionary<string, string> _values = new();
+    private readonly ConcurrentDictionary<string, string> _values = new(
+        StringComparer.OrdinalIgnoreCase
+    );
     private readonly List<string> _loadErrors = new();
     private volatile bool _isLoaded;
-    private readonly object _loadLock = new();
+    private readonly SemaphoreSlim _loadLock = new(1, 1);
     protected bool _disposed;
 
     /// <summary>
@@ -111,6 +113,18 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
     public int Priority { get; }
 
     /// <summary>
+    /// Gets the options this source was created with.
+    /// </summary>
+    internal KeyVaultConfiguration Configuration => _configuration;
+
+    /// <summary>
+    /// Every value loaded from Key Vault is a secret.
+    /// </summary>
+    /// <param name="key">The configuration key.</param>
+    /// <returns>Always true.</returns>
+    public bool IsSensitive(string key) => true;
+
+    /// <summary>
     /// Gets the cache statistics for monitoring purposes.
     /// </summary>
     public Dictionary<string, object> CacheStatistics => _cache.GetStatistics();
@@ -128,114 +142,26 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
             return Result<Dictionary<string, string>>.Error("KeyVaultSource has been disposed");
         }
 
-        // Thread-safe loading
+        // Fast path once loaded
         if (_isLoaded)
         {
-            return Result<Dictionary<string, string>>.Success(
-                _values.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
-            );
+            return Result<Dictionary<string, string>>.Success(SnapshotValues());
         }
 
-        lock (_loadLock)
+        // Only one caller performs the load; concurrent callers wait and then reuse its result
+        await _loadLock.WaitAsync().ConfigureAwait(false);
+        try
         {
             if (_isLoaded)
             {
-                return Result<Dictionary<string, string>>.Success(
-                    _values.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
-                );
+                return Result<Dictionary<string, string>>.Success(SnapshotValues());
             }
+
+            return await LoadCoreAsync().ConfigureAwait(false);
         }
-
-        try
+        finally
         {
-            _logger?.LogInformation("Loading secrets from Key Vault: {VaultUrl}", _vaultUrl);
-            _loadErrors.Clear();
-
-            var loadedSecrets = new Dictionary<string, string>();
-            var secretLoadTasks = new List<Task<SecretLoadResult>>();
-
-            // Get all secret properties first
-            var secretProperties = await _retryPipeline.ExecuteAsync(async _ =>
-            {
-                var secrets = new List<SecretProperties>();
-                var secretsAsync = _client.GetPropertiesOfSecretsAsync();
-
-                await foreach (var secret in secretsAsync.ConfigureAwait(false))
-                {
-                    // Apply prefix filter if specified
-                    if (
-                        !string.IsNullOrEmpty(_configuration.SecretNamePrefix)
-                        && !secret.Name.StartsWith(
-                            _configuration.SecretNamePrefix,
-                            StringComparison.OrdinalIgnoreCase
-                        )
-                    )
-                    {
-                        continue;
-                    }
-
-                    secrets.Add(secret);
-                }
-
-                return secrets;
-            }).ConfigureAwait(false);
-
-            // Load secrets in parallel with retry logic
-            foreach (var secretProperty in secretProperties)
-            {
-                var task = LoadSecretAsync(secretProperty);
-                secretLoadTasks.Add(task);
-            }
-
-            var results = await Task.WhenAll(secretLoadTasks).ConfigureAwait(false);
-
-            // Process results
-            foreach (var result in results)
-            {
-                if (result.IsSuccess)
-                {
-                    var configKey = _configuration.KeyMapper(result.SecretName);
-                    loadedSecrets[configKey] = result.Value!;
-                    _values[configKey] = result.Value!;
-
-                    // Cache the secret
-                    _cache.Set(result.SecretName, result.Value!, _configuration.CacheDuration);
-                }
-                else
-                {
-                    _loadErrors.Add(result.Error!);
-                    _logger?.LogWarning(
-                        "Failed to load secret '{SecretName}': {Error}",
-                        result.SecretName,
-                        result.Error
-                    );
-
-                    if (!_configuration.ContinueOnSecretFailure)
-                    {
-                        return Result<Dictionary<string, string>>.Error(_loadErrors);
-                    }
-                }
-            }
-
-            _isLoaded = true;
-
-            var message = $"Successfully loaded {loadedSecrets.Count} secrets from Key Vault";
-            if (_loadErrors.Count > 0)
-            {
-                message += $" (with {_loadErrors.Count} errors)";
-            }
-
-            _logger?.LogInformation("{Message}", message);
-
-            return _loadErrors.Count == 0 || _configuration.ContinueOnSecretFailure
-                ? Result<Dictionary<string, string>>.Success(loadedSecrets)
-                : Result<Dictionary<string, string>>.Error(_loadErrors);
-        }
-        catch (Exception ex)
-        {
-            var error = $"Failed to load secrets from Key Vault '{_vaultUrl}': {ex.Message}";
-            _logger?.LogError(ex, "Key Vault load operation failed");
-            return Result<Dictionary<string, string>>.Error(error);
+            _loadLock.Release();
         }
     }
 
@@ -272,11 +198,25 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
     {
         _logger?.LogInformation("Reloading secrets from Key Vault: {VaultUrl}", _vaultUrl);
 
-        _isLoaded = false;
-        _values.Clear();
-        _cache.Clear();
+        if (_disposed)
+        {
+            return Result<Dictionary<string, string>>.Error("KeyVaultSource has been disposed");
+        }
 
-        return await LoadAsync().ConfigureAwait(false);
+        // Hold the load lock so a concurrent LoadAsync never observes a half-cleared state
+        await _loadLock.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            _isLoaded = false;
+            _values.Clear();
+            _cache.Clear();
+
+            return await LoadCoreAsync().ConfigureAwait(false);
+        }
+        finally
+        {
+            _loadLock.Release();
+        }
     }
 
     /// <summary>
@@ -342,21 +282,122 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
     {
         if (!_disposed)
         {
-            // Clear sensitive data securely
+            // Drop references to secret values so they can be garbage collected. .NET strings are
+            // immutable, so they cannot be overwritten in place; this does not scrub memory.
             _cache.Clear();
-            
-            // Clear in-memory values securely
-            foreach (var key in _values.Keys.ToList())
+            _values.Clear();
+
+            _loadLock.Dispose();
+            _disposed = true;
+            _logger?.LogInformation("KeyVaultSource disposed");
+        }
+    }
+
+    private async Task<Result<Dictionary<string, string>>> LoadCoreAsync()
+    {
+        try
+        {
+            _logger?.LogInformation("Loading secrets from Key Vault: {VaultUrl}", _vaultUrl);
+            _loadErrors.Clear();
+
+            var loadedSecrets = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            // Get all secret properties first
+            var secretProperties = await _retryPipeline.ExecuteAsync(async _ =>
             {
-                if (_values.TryRemove(key, out var value) && value != null)
+                var secrets = new List<SecretProperties>();
+                var secretsAsync = _client.GetPropertiesOfSecretsAsync();
+
+                await foreach (var secret in secretsAsync.ConfigureAwait(false))
                 {
-                    // Overwrite sensitive data
-                    value = new string('\0', value.Length);
+                    if (!IsSecretActive(secret))
+                    {
+                        _logger?.LogDebug(
+                            "Skipping disabled, expired or not-yet-active secret '{SecretName}'",
+                            secret.Name
+                        );
+                        continue;
+                    }
+
+                    // Apply prefix filter if specified
+                    if (
+                        !string.IsNullOrEmpty(_configuration.SecretNamePrefix)
+                        && !secret.Name.StartsWith(
+                            _configuration.SecretNamePrefix,
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                    )
+                    {
+                        continue;
+                    }
+
+                    secrets.Add(secret);
+                }
+
+                return secrets;
+            }).ConfigureAwait(false);
+
+            // Load secrets in parallel, bounded to avoid Key Vault throttling (HTTP 429) on large vaults
+            var results = new SecretLoadResult[secretProperties.Count];
+            await Parallel
+                .ForEachAsync(
+                    Enumerable.Range(0, secretProperties.Count),
+                    new ParallelOptions
+                    {
+                        MaxDegreeOfParallelism = Math.Max(1, _configuration.MaxConcurrentSecretLoads),
+                    },
+                    async (i, _) =>
+                        results[i] = await LoadSecretAsync(secretProperties[i]).ConfigureAwait(false)
+                )
+                .ConfigureAwait(false);
+
+            // Process results
+            foreach (var result in results)
+            {
+                if (result.IsSuccess)
+                {
+                    var configKey = _configuration.KeyMapper(result.SecretName);
+                    loadedSecrets[configKey] = result.Value!;
+                    _values[configKey] = result.Value!;
+
+                    // Cache the secret
+                    _cache.Set(result.SecretName, result.Value!, _configuration.CacheDuration);
+                }
+                else
+                {
+                    _loadErrors.Add(result.Error!);
+                    _logger?.LogWarning(
+                        "Failed to load secret '{SecretName}': {Error}",
+                        result.SecretName,
+                        result.Error
+                    );
+
+                    if (!_configuration.ContinueOnSecretFailure)
+                    {
+                        return Result<Dictionary<string, string>>.Error(_loadErrors);
+                    }
                 }
             }
-            
-            _disposed = true;
-            _logger?.LogInformation("KeyVaultSource disposed securely");
+
+            _isLoaded = true;
+
+            var message = $"Successfully loaded {loadedSecrets.Count} secrets from Key Vault";
+            if (_loadErrors.Count > 0)
+            {
+                message += $" (with {_loadErrors.Count} errors)";
+            }
+
+            _logger?.LogInformation("{Message}", message);
+
+            return _loadErrors.Count == 0 || _configuration.ContinueOnSecretFailure
+                ? Result<Dictionary<string, string>>.Success(loadedSecrets)
+                : Result<Dictionary<string, string>>.Error(_loadErrors);
+        }
+        catch (Exception ex)
+        {
+            var error = $"Failed to load secrets from Key Vault '{_vaultUrl}': {ex.Message}";
+            _logger?.LogError(ex, "Key Vault load operation failed");
+            return Result<Dictionary<string, string>>.Error(error);
         }
     }
 
@@ -427,6 +468,21 @@ public class KeyVaultSource : IConfigurationSource, IDisposable
             .AddTimeout(_configuration.OperationTimeout)
             .Build();
     }
+
+    /// <summary>
+    /// Determines whether a secret is currently usable: enabled, not expired and past its activation date.
+    /// Key Vault rejects reads of disabled secrets, so loading them would only produce errors.
+    /// </summary>
+    private static bool IsSecretActive(SecretProperties secret)
+    {
+        var now = DateTimeOffset.UtcNow;
+        return secret.Enabled != false
+            && (secret.ExpiresOn is null || secret.ExpiresOn > now)
+            && (secret.NotBefore is null || secret.NotBefore <= now);
+    }
+
+    private Dictionary<string, string> SnapshotValues() =>
+        new(_values, StringComparer.OrdinalIgnoreCase);
 
     private string GetOriginalSecretName(string configKey)
     {

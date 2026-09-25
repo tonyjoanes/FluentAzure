@@ -17,7 +17,7 @@ Each feature scored 1-10 on:
 
 ### **Release Preparation**
 - [ ] Complete hot reload implementation
-- [ ] Add Azure App Configuration source
+- [x] Add Azure App Configuration source
 - [ ] Performance testing and optimization
 - [ ] Final documentation review
 - [ ] NuGet package preparation
@@ -529,7 +529,7 @@ FluentConfig.Create()
 
 ### **Month 1: Foundation Completion**
 - [ ] Complete hot reload implementation
-- [ ] Add Azure App Configuration source
+- [x] Add Azure App Configuration source
 - [ ] Performance testing and optimization
 - [ ] Final documentation review
 - [ ] NuGet package preparation

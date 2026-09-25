@@ -104,24 +104,22 @@ internal class KeyVaultSecretCache
     }
 
     /// <summary>
-    /// Clears all cached entries securely by overwriting values.
+    /// Clears all cached entries, dropping references to the secret values.
     /// </summary>
     public void Clear()
     {
         var count = _cache.Count;
         
-        // Clear sensitive data securely
         foreach (var kvp in _cache.ToList())
         {
             if (_cache.TryRemove(kvp.Key, out var entry))
             {
-                // Dispose entry to clear sensitive data
                 entry.Dispose();
             }
         }
         
         _cache.Clear();
-        _logger?.LogDebug("Cleared {Count} cache entries securely", count);
+        _logger?.LogDebug("Cleared {Count} cache entries", count);
     }
 
     /// <summary>
@@ -226,11 +224,9 @@ internal class KeyVaultSecretCache
         {
             if (!_disposed)
             {
-                // Securely clear sensitive data
-                if (Value != null)
-                {
-                    Value = new string('\0', Value.Length);
-                }
+                // Drop the reference so the secret can be garbage collected. .NET strings are
+                // immutable, so the original value cannot be overwritten in place.
+                Value = string.Empty;
                 _disposed = true;
             }
         }

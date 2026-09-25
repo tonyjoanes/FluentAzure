@@ -1,3 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using Azure.Core;
+using Azure.Identity;
 using FluentAzure.Binding;
 using FluentAzure.Extensions;
 using FluentAzure.Sources;
@@ -6,6 +10,7 @@ namespace FluentAzure.Core;
 
 /// <summary>
 /// Fluent builder for creating configuration pipelines that can load configuration from multiple sources.
+/// Configuration keys are case-insensitive, matching Microsoft.Extensions.Configuration.
 /// </summary>
 public class ConfigurationBuilder
 {
@@ -16,6 +21,78 @@ public class ConfigurationBuilder
         Func<Dictionary<string, string>, Task<Result<Dictionary<string, string>>>>
     > _transformations = new();
     private readonly List<Func<Dictionary<string, string>, Result<string>>> _validations = new();
+    private readonly PipelineCredential _credential = new();
+    private readonly HashSet<string> _markedSensitiveKeys = new(StringComparer.OrdinalIgnoreCase);
+    private volatile HashSet<string> _sourceSensitiveKeys = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Gets the credential used by Azure sources (Key Vault, App Configuration) in this pipeline that
+    /// do not specify their own. Defaults to <see cref="DefaultAzureCredential"/>; set it with
+    /// <see cref="UseCredential"/>, <see cref="UseManagedIdentity"/> or <see cref="UseWorkloadIdentity"/>.
+    /// </summary>
+    public TokenCredential Credential => _credential;
+
+    /// <summary>
+    /// Gets the sources added to this pipeline.
+    /// </summary>
+    internal IReadOnlyList<IConfigurationSource> Sources => _sources;
+
+    /// <summary>
+    /// Uses the given credential for all Azure sources in this pipeline that do not specify their own.
+    /// Can be called before or after the sources are added.
+    /// </summary>
+    /// <param name="credential">The credential to use.</param>
+    /// <returns>The configuration builder for method chaining.</returns>
+    public ConfigurationBuilder UseCredential(TokenCredential credential)
+    {
+        ArgumentNullException.ThrowIfNull(credential);
+        _credential.Configure(credential);
+        return this;
+    }
+
+    /// <summary>
+    /// Uses a managed identity for all Azure sources in this pipeline. This is the recommended identity
+    /// for App Service, Functions, Container Apps and VMs: it is deterministic and never falls back to
+    /// developer credentials the way <see cref="DefaultAzureCredential"/> can.
+    /// </summary>
+    /// <param name="clientId">The client ID of a user-assigned managed identity, or null for the system-assigned identity.</param>
+    /// <returns>The configuration builder for method chaining.</returns>
+    public ConfigurationBuilder UseManagedIdentity(string? clientId = null) =>
+        UseCredential(PipelineCredential.CreateManagedIdentity(clientId));
+
+    /// <summary>
+    /// Uses Microsoft Entra Workload ID (e.g. on AKS) for all Azure sources in this pipeline.
+    /// Reads the tenant, client ID and token file from the standard AZURE_* environment variables.
+    /// </summary>
+    /// <returns>The configuration builder for method chaining.</returns>
+    public ConfigurationBuilder UseWorkloadIdentity() => UseCredential(new WorkloadIdentityCredential());
+
+    /// <summary>
+    /// Marks configuration keys as sensitive in addition to those loaded from Key Vault, so they are
+    /// masked by <c>GetRedactedDebugView()</c>. Useful for secrets supplied through environment variables.
+    /// </summary>
+    /// <param name="keys">The keys to mark as sensitive.</param>
+    /// <returns>The configuration builder for method chaining.</returns>
+    public ConfigurationBuilder Sensitive(params string[] keys)
+    {
+        ArgumentNullException.ThrowIfNull(keys);
+        foreach (var key in keys)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(key);
+            _markedSensitiveKeys.Add(key);
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// Determines whether a key holds a secret: either marked with <see cref="Sensitive"/>, or its value
+    /// in the most recent build came from a sensitive source such as Key Vault.
+    /// </summary>
+    /// <param name="key">The configuration key.</param>
+    /// <returns>True if the key's value should be treated as a secret.</returns>
+    public bool IsSensitive(string key) =>
+        _markedSensitiveKeys.Contains(key) || _sourceSensitiveKeys.Contains(key);
 
     /// <summary>
     /// Adds an environment variable source to the configuration pipeline.
@@ -67,7 +144,41 @@ public class ConfigurationBuilder
     public ConfigurationBuilder FromKeyVault(string vaultUrl, int priority = 200)
     {
         ArgumentException.ThrowIfNullOrEmpty(vaultUrl);
-        _sources.Add(new KeyVaultSource(vaultUrl, priority));
+        _sources.Add(CreateKeyVaultSource(vaultUrl, new KeyVaultConfiguration(), priority));
+        return this;
+    }
+
+    /// <summary>
+    /// Adds an Azure App Configuration source to the configuration pipeline.
+    /// </summary>
+    /// <param name="endpointOrConnectionString">
+    /// The App Configuration endpoint (e.g. <c>https://myconfig.azconfig.io</c>, authenticated with
+    /// Microsoft Entra ID - recommended) or a connection string.
+    /// </param>
+    /// <param name="configure">Optional configuration of labels, snapshots, Key Vault references, feature flags and refresh.</param>
+    /// <param name="priority">The priority of this source. Higher priority sources override lower priority ones.</param>
+    /// <returns>The configuration builder for method chaining.</returns>
+    public ConfigurationBuilder FromAppConfiguration(
+        string endpointOrConnectionString,
+        Action<AppConfigurationOptions>? configure = null,
+        int priority = 150
+    )
+    {
+        ArgumentException.ThrowIfNullOrEmpty(endpointOrConnectionString);
+
+        var options = new AppConfigurationOptions();
+        configure?.Invoke(options);
+        options.Credential ??= _credential;
+
+        var isEndpoint =
+            Uri.TryCreate(endpointOrConnectionString, UriKind.Absolute, out var endpoint)
+            && endpoint.Scheme == Uri.UriSchemeHttps;
+
+        _sources.Add(
+            isEndpoint
+                ? new AppConfigurationSource(endpoint!, options, priority)
+                : new AppConfigurationSource(endpointOrConnectionString, options, priority)
+        );
         return this;
     }
 
@@ -161,7 +272,7 @@ public class ConfigurationBuilder
             var transformResult = transform(value);
             if (transformResult.IsSuccess)
             {
-                var newConfig = new Dictionary<string, string>(config);
+                var newConfig = CopyConfiguration(config);
                 newConfig[key] = transformResult.Value;
                 return Task.FromResult(Result<Dictionary<string, string>>.Success(newConfig));
             }
@@ -223,26 +334,46 @@ public class ConfigurationBuilder
     /// Builds the configuration by loading values from all configured sources.
     /// </summary>
     /// <returns>A task that represents the asynchronous build operation. The task result contains the built configuration or errors.</returns>
-    public async Task<Result<Dictionary<string, string>>> BuildAsync()
+    public Task<Result<Dictionary<string, string>>> BuildAsync() => BuildAsync(reloadSources: false);
+
+    /// <summary>
+    /// Builds the configuration, optionally asking sources that cache their values to fetch them again.
+    /// </summary>
+    /// <param name="reloadSources">
+    /// When true, sources implementing <see cref="IReloadableConfigurationSource"/> are reloaded
+    /// rather than returning previously loaded values.
+    /// </param>
+    /// <returns>A task that represents the asynchronous build operation. The task result contains the built configuration or errors.</returns>
+    internal async Task<Result<Dictionary<string, string>>> BuildAsync(bool reloadSources)
     {
         var errors = new List<string>();
-        var configuration = new Dictionary<string, string>();
+        var configuration = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var sensitiveKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         // Load from all sources, sorted by priority (highest first)
         var sortedSources = _sources.OrderByDescending(s => s.Priority).ToList();
 
         foreach (var source in sortedSources)
         {
-            var result = await source.LoadAsync();
+            var result = await (
+                reloadSources && source is IReloadableConfigurationSource reloadable
+                    ? reloadable.ReloadAsync()
+                    : source.LoadAsync()
+            ).ConfigureAwait(false);
             if (result.IsSuccess)
             {
                 // Merge configuration values (higher priority sources override lower priority ones)
                 // Only set values that don't already exist since we process highest priority first
+                var sensitiveSource = source as ISensitiveConfigurationSource;
                 foreach (var kvp in result.Value)
                 {
                     if (!configuration.ContainsKey(kvp.Key))
                     {
                         configuration[kvp.Key] = kvp.Value;
+                        if (sensitiveSource?.IsSensitive(kvp.Key) == true)
+                        {
+                            sensitiveKeys.Add(kvp.Key);
+                        }
                     }
                 }
             }
@@ -251,6 +382,8 @@ public class ConfigurationBuilder
                 errors.AddRange(result.Errors);
             }
         }
+
+        _sourceSensitiveKeys = sensitiveKeys;
 
         // Return early if we have source loading errors
         if (errors.Count > 0)
@@ -272,17 +405,18 @@ public class ConfigurationBuilder
         {
             if (!configuration.ContainsKey(optionalKey.Key))
             {
-                configuration[optionalKey.Key] = optionalKey.Value.ToString()!;
+                configuration[optionalKey.Key] = FormatDefaultValue(optionalKey.Value);
             }
         }
 
         // Apply transformations
         foreach (var transformation in _transformations)
         {
-            var transformResult = await transformation(configuration);
+            var transformResult = await transformation(configuration).ConfigureAwait(false);
             if (transformResult.IsSuccess)
             {
-                configuration = transformResult.Value;
+                // Custom transforms may return a case-sensitive dictionary; keep lookups case-insensitive
+                configuration = CopyConfiguration(transformResult.Value);
             }
             else
             {
@@ -310,10 +444,12 @@ public class ConfigurationBuilder
     /// </summary>
     /// <typeparam name="T">The type to bind the configuration to.</typeparam>
     /// <returns>A task that represents the asynchronous build operation. The task result contains the bound configuration object or errors.</returns>
+    [RequiresUnreferencedCode(AotMessages.ReflectionBinding)]
+    [RequiresDynamicCode(AotMessages.ReflectionBinding)]
     public async Task<Result<T>> BuildAsync<T>()
         where T : class, new()
     {
-        var configResult = await BuildAsync();
+        var configResult = await BuildAsync().ConfigureAwait(false);
         if (configResult.IsFailure)
         {
             return Result<T>.Error(configResult.Errors);
@@ -339,7 +475,7 @@ public class ConfigurationBuilder
     /// <returns>A task that represents the asynchronous build operation. The task result contains the configuration as an Option.</returns>
     public async Task<Option<Dictionary<string, string>>> BuildOptionalAsync()
     {
-        var result = await BuildAsync();
+        var result = await BuildAsync().ConfigureAwait(false);
         return result.ToOption();
     }
 
@@ -348,10 +484,12 @@ public class ConfigurationBuilder
     /// </summary>
     /// <typeparam name="T">The type to bind the configuration to.</typeparam>
     /// <returns>A task that represents the asynchronous build operation. The task result contains the bound configuration object as an Option.</returns>
+    [RequiresUnreferencedCode(AotMessages.ReflectionBinding)]
+    [RequiresDynamicCode(AotMessages.ReflectionBinding)]
     public async Task<Option<T>> BuildOptionalAsync<T>()
         where T : class, new()
     {
-        var result = await BuildAsync<T>();
+        var result = await BuildAsync<T>().ConfigureAwait(false);
         return result.ToOption();
     }
 
@@ -445,7 +583,7 @@ public class ConfigurationBuilder
             return transformOption.Match(
                 some =>
                 {
-                    var newConfig = new Dictionary<string, string>(config);
+                    var newConfig = CopyConfiguration(config);
                     newConfig[key] = some;
                     return Task.FromResult(Result<Dictionary<string, string>>.Success(newConfig));
                 },
@@ -486,10 +624,55 @@ public class ConfigurationBuilder
             }
 
             var transformOption = transform(value);
-            var newConfig = new Dictionary<string, string>(config);
+            var newConfig = CopyConfiguration(config);
             newConfig[key] = transformOption.GetValueOrDefault(fallback);
             return Task.FromResult(Result<Dictionary<string, string>>.Success(newConfig));
         });
         return this;
     }
+
+    /// <summary>
+    /// Creates a Key Vault source that uses the pipeline credential unless the configuration specifies one.
+    /// </summary>
+    internal KeyVaultSource CreateKeyVaultSource(
+        string vaultUrl,
+        KeyVaultConfiguration configuration,
+        int priority,
+        Microsoft.Extensions.Logging.ILogger? logger = null
+    )
+    {
+        configuration.Credential ??= _credential;
+        return new KeyVaultSource(vaultUrl, configuration, priority, logger);
+    }
+
+    /// <summary>
+    /// Copies configuration values into a new case-insensitive dictionary.
+    /// If the source contains keys differing only by case, the last one wins.
+    /// </summary>
+    private static Dictionary<string, string> CopyConfiguration(
+        IReadOnlyDictionary<string, string> source
+    )
+    {
+        var copy = new Dictionary<string, string>(source.Count, StringComparer.OrdinalIgnoreCase);
+        foreach (var kvp in source)
+        {
+            copy[kvp.Key] = kvp.Value;
+        }
+
+        return copy;
+    }
+
+    /// <summary>
+    /// Formats a typed default value culture-invariantly so it round-trips through binding
+    /// regardless of the current culture (e.g. 1.5 stays "1.5" rather than "1,5" in de-DE).
+    /// </summary>
+    private static string FormatDefaultValue(object value) =>
+        value switch
+        {
+            string s => s,
+            DateTime dt => dt.ToString("O", CultureInfo.InvariantCulture),
+            DateTimeOffset dto => dto.ToString("O", CultureInfo.InvariantCulture),
+            IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
+            _ => value.ToString() ?? string.Empty,
+        };
 }

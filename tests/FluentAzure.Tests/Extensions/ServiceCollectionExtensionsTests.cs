@@ -121,4 +121,108 @@ public class ServiceCollectionExtensionsTests
             services.AddFluentAzure<TestConfig>(config => config, factory!)
         );
     }
+
+    [Fact]
+    public async Task AddFluentAzureAsync_RegistersConfigurationAsSingleton()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        var values = new Dictionary<string, string> { ["Name"] = "AsyncApp", ["Value"] = "7" };
+
+        // Act
+        await services.AddFluentAzureAsync<TestConfig>(config =>
+            config.AddSource(new YieldingSource(values)).Required("Name")
+        );
+
+        // Assert
+        var settings = services.BuildServiceProvider().GetRequiredService<TestConfig>();
+        Assert.Equal("AsyncApp", settings.Name);
+        Assert.Equal(7, settings.Value);
+    }
+
+    [Fact]
+    public async Task AddFluentAzureAsync_WithMissingRequiredKey_Throws()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            services.AddFluentAzureAsync<TestConfig>(config =>
+                config.AddSource(new YieldingSource(new())).Required("Name")
+            )
+        );
+    }
+
+    [Fact]
+    public void AddFluentAzure_UnderSingleThreadedSynchronizationContext_DoesNotDeadlock()
+    {
+        // Arrange: emulate a UI/legacy ASP.NET-style context where blocking on async code
+        // that resumes on the captured context would deadlock
+        var values = new Dictionary<string, string> { ["Name"] = "NoDeadlock" };
+        TestConfig? settings = null;
+        Exception? failure = null;
+
+        var thread = new Thread(() =>
+        {
+            SynchronizationContext.SetSynchronizationContext(new BlockingSynchronizationContext());
+            try
+            {
+                var services = new ServiceCollection();
+                services.AddFluentAzure<TestConfig>(config =>
+                    config.AddSource(new YieldingSource(values)).Required("Name")
+                );
+                settings = services.BuildServiceProvider().GetRequiredService<TestConfig>();
+            }
+            catch (Exception ex)
+            {
+                failure = ex;
+            }
+        });
+
+        // Act
+        thread.Start();
+        var completed = thread.Join(TimeSpan.FromSeconds(10));
+
+        // Assert
+        Assert.True(completed, "AddFluentAzure deadlocked under a single-threaded synchronization context");
+        Assert.Null(failure);
+        Assert.Equal("NoDeadlock", settings!.Name);
+    }
+
+    /// <summary>
+    /// A source that completes asynchronously, forcing continuations through the synchronization context.
+    /// </summary>
+    private sealed class YieldingSource : IConfigurationSource
+    {
+        private readonly Dictionary<string, string> _values;
+
+        public YieldingSource(Dictionary<string, string> values) => _values = values;
+
+        public string Name => "Yielding";
+
+        public int Priority => 100;
+
+        public async Task<Result<Dictionary<string, string>>> LoadAsync()
+        {
+            await Task.Yield();
+            return Result<Dictionary<string, string>>.Success(_values);
+        }
+
+        public bool ContainsKey(string key) => _values.ContainsKey(key);
+
+        public string? GetValue(string key) => _values.TryGetValue(key, out var v) ? v : null;
+    }
+
+    /// <summary>
+    /// A synchronization context whose posted callbacks only run if its owning thread pumps them,
+    /// which it never does while blocked - so any continuation posted here never runs.
+    /// </summary>
+    private sealed class BlockingSynchronizationContext : SynchronizationContext
+    {
+        public override void Post(SendOrPostCallback d, object? state)
+        {
+            // Intentionally dropped: the owning thread is blocked and never pumps messages
+        }
+    }
 }

@@ -2,7 +2,8 @@
 
 A fluent, functional, and type-safe NuGet package for Azure configuration and secrets management.
 
-![.NET](https://img.shields.io/badge/.NET-8.0-blue.svg)
+![.NET](https://img.shields.io/badge/.NET-8.0%20%7C%2010.0-blue.svg)
+![Native AOT](https://img.shields.io/badge/Native%20AOT-compatible-brightgreen.svg)
 ![Azure](https://img.shields.io/badge/Azure-Functions%20%7C%20WebApps%20%7C%20Services-orange.svg)
 ![Fluent](https://img.shields.io/badge/Style-Fluent%20%7C%20Functional-purple.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
@@ -135,6 +136,83 @@ public class ApiController : ControllerBase
     }
 }
 ```
+
+Where you can `await` (e.g. top-level statements in `Program.cs`), prefer the async overload so remote sources such as Key Vault load without blocking a thread:
+```csharp
+await builder.Services.AddFluentAzureAsync<AppSettings>(config => config
+    .FromEnvironment()
+    .FromKeyVault(builder.Configuration["KeyVault:Url"])
+);
+```
+
+Configuration keys are case-insensitive, and environment variables using the standard `__` separator (e.g. `ConnectionStrings__Default`) are also available under their `:` form (`ConnectionStrings:Default`).
+
+#### **Microsoft.Extensions.Configuration + IOptionsMonitor (Recommended for ASP.NET Core / Functions)**
+Plug a FluentAzure pipeline into the standard configuration system. Required keys and validations still fail fast at startup, and values become available to `IConfiguration`, `IOptions<T>` and `IOptionsMonitor<T>`:
+```csharp
+using FluentAzure;
+
+var builder = WebApplication.CreateBuilder(args);
+
+await builder.Configuration.AddFluentAzureAsync(
+    fluent => fluent
+        .FromKeyVault(builder.Configuration["KeyVault:Url"]!)
+        .Required("Database:ConnectionString"),
+    reloadInterval: TimeSpan.FromMinutes(5) // pick up rotated secrets without a restart
+);
+
+// Binds the "Database" section, validates [Required]/[Range] etc. and fails at startup if invalid
+builder.Services.AddFluentAzureOptions<DatabaseOptions>(builder.Configuration, "Database");
+
+// Consumers: inject IOptionsMonitor<DatabaseOptions> to see reloaded values
+```
+- Keys using the `__` separator (environment variables, FluentAzure JSON flattening) are exposed with the standard `:` separator.
+- A failed reload keeps the last good values; observe failures with `options.OnReloadError` via the `AddFluentAzure(configure, configureSource)` overload.
+- `builder.Configuration.AddFluentAzure(...)` is the synchronous equivalent.
+
+#### **Azure App Configuration**
+Load settings, feature flags and Key Vault references from App Configuration, with label layering, snapshots and sentinel-key refresh:
+```csharp
+var config = await FluentConfig
+    .Create()
+    .FromAppConfiguration("https://myconfig.azconfig.io", options =>
+    {
+        options.Labels.Add("Production");     // overrides unlabelled defaults
+        options.IncludeFeatureFlags = true;   // exposed under FeatureManagement:*
+        options.SentinelKey = "Sentinel";     // cheap change detection when reloading
+    })
+    .Required("Database:ConnectionString")    // may be a Key Vault reference; resolved automatically
+    .BuildAsync();
+```
+See [docs/app-configuration-source.md](docs/app-configuration-source.md) for all options.
+
+#### **Identity & Secret Redaction**
+Choose one identity for every Azure source in the pipeline (in any order relative to the sources), and keep secrets out of logs:
+```csharp
+builder.Configuration.AddFluentAzure(fluent => fluent
+    .UseManagedIdentity()                  // or UseWorkloadIdentity() / UseCredential(...)
+    .FromAppConfiguration("https://myconfig.azconfig.io")
+    .FromKeyVault("https://myvault.vault.azure.net")
+    .Sensitive("Jwt:SigningKey"));         // mark secrets that come from other sources
+
+logger.LogDebug("{Config}", builder.Configuration.GetRedactedDebugView()); // Key Vault values appear as ***
+```
+A per-source credential (`KeyVaultConfiguration.Credential`, `AppConfigurationOptions.Credential`) still takes precedence. Binding and conversion errors never include configuration values.
+
+#### **Trimming & Native AOT**
+FluentAzure targets .NET 8 and .NET 10 and is annotated for trimming and Native AOT. The pipeline, all sources (environment, JSON, Key Vault, App Configuration) and the `IConfiguration` provider are AOT-safe. The reflection-based binders (`BuildAsync<T>()`, `Bind<T>()`, `AddFluentAzure<T>()`, `AddFluentAzureOptions<T>()`) are marked `[RequiresUnreferencedCode]`/`[RequiresDynamicCode]`, so the compiler warns if you use them in a trimmed or AOT app. In those apps, feed `IConfiguration` and bind with the configuration binding source generator:
+```xml
+<PublishAot>true</PublishAot>
+<EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+```
+```csharp
+IConfigurationRoot configuration = new ConfigurationBuilder()
+    .AddFluentAzure(fluent => fluent.UseManagedIdentity().FromKeyVault(vaultUrl).Required("App:Name"))
+    .Build();
+
+services.AddOptions<AppOptions>().Bind(configuration.GetSection("App")).ValidateOnStart(); // source-generated
+```
+See [examples/Aot.Example](examples/Aot.Example). CI publishes it with Native AOT and fails on any trimming or AOT warning.
 
 #### **Web API Example**
 ```csharp
