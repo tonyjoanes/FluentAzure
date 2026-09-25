@@ -4,16 +4,16 @@ The FluentAzure enhanced configuration binding system provides a powerful, type-
 
 ## Features
 
-- âœ… **Flat to Nested Object Conversion**: Automatically converts flat configuration keys to nested object structures
-- âœ… **Record Type Support**: Full support for C# record types with positional and init-only properties
-- âœ… **Collection Binding**: Bind arrays, lists, and other collection types
-- âœ… **Validation**: Built-in Data Annotations validation with clear error messages
-- âœ… **JSON Serialization**: Uses System.Text.Json for complex object binding
-- âœ… **Init-Only Properties**: Support for C# 9+ init-only properties
-- âœ… **Nullable Types**: Full support for nullable value and reference types
-- âœ… **Enum Support**: Automatic enum parsing from string values
-- âœ… **Custom Validation**: Extensible validation with custom validation functions
-- âœ… **Error Handling**: Comprehensive error reporting with property paths
+- ✅ **Flat to Nested Object Conversion**: Automatically converts flat configuration keys to nested object structures
+- ✅ **Record Type Support**: Full support for C# record types with positional and init-only properties
+- ✅ **Collection Binding**: Bind arrays, lists, and other collection types
+- ✅ **Validation**: Built-in Data Annotations validation with clear error messages
+- ✅ **JSON Serialization**: Uses System.Text.Json for complex object binding
+- ✅ **Init-Only Properties**: Support for C# 9+ init-only properties
+- ✅ **Nullable Types**: Full support for nullable value and reference types
+- ✅ **Enum Support**: Automatic enum parsing from string values
+- ✅ **Custom Validation**: Extensible validation with custom validation functions
+- ✅ **Error Handling**: Comprehensive error reporting with property paths
 
 ## Quick Start
 
@@ -349,12 +349,12 @@ Services__database__Timeout = "60"
 result.Match(
     success =>
     {
-        Console.WriteLine("âœ… Binding successful!");
+        Console.WriteLine("✅ Binding successful!");
         // Use the bound configuration
     },
     errors =>
     {
-        Console.WriteLine("âŒ Binding failed:");
+        Console.WriteLine("❌ Binding failed:");
         foreach (var error in errors)
         {
             Console.WriteLine($"  - {error}");
@@ -399,14 +399,14 @@ var result = await config.BindAsync<AppConfig>();
 ### 1. Use Strongly-Typed Configuration
 
 ```csharp
-// âœ… Good
+// ✅ Good
 public class DatabaseConfig
 {
     public string ConnectionString { get; set; } = string.Empty;
     public int MaxConnections { get; set; }
 }
 
-// âŒ Avoid
+// ❌ Avoid
 var connectionString = config["Database:ConnectionString"];
 var maxConnections = int.Parse(config["Database:MaxConnections"]);
 ```

@@ -36,6 +36,11 @@
     <PackageReference Include="System.Text.Json" Version="$(MicrosoftExtensionsVersion)" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Ship the FluentAzure analyzers inside the package so every consumer gets them -->
+    <ProjectReference Include="..\FluentAzure.Analyzers\FluentAzure.Analyzers.csproj" ReferenceOutputAssembly="false" PrivateAssets="all" />
+    <None Include="..\FluentAzure.Analyzers\bin\$(Configuration)\netstandard2.0\FluentAzure.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="/" />
     <None Include="..\..\icon.png" Pack="true" PackagePath="/" />
     <AdditionalFiles Include="..\..\stylecop.json" />

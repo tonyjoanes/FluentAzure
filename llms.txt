@@ -1,0 +1,26 @@
+# FluentAzure
+
+> Fluent, Result-based configuration for .NET 8/10 that works as a standalone pipeline or as a Microsoft.Extensions.Configuration provider. It loads from environment variables, JSON, Azure Key Vault and Azure App Configuration; enforces required keys and validations; supports managed identity, secret redaction, reload into IOptionsMonitor<T>, OpenTelemetry, health checks, and Native AOT.
+
+Key APIs: `FluentConfig.Create()` returns a `FluentAzure.Core.ConfigurationBuilder`, configured with `.FromEnvironment()`, `.FromJsonFile()`, `.FromKeyVault()`, `.FromAppConfiguration()`, `.UseManagedIdentity()`, `.Required()`, `.Optional()`, `.Validate()`, `.Transform()` and `.Sensitive()`, then built with `.BuildAsync()`. For ASP.NET Core and Functions, prefer `builder.Configuration.AddFluentAzureAsync(fluent => ..., reloadInterval)` plus `services.AddFluentAzureOptions<T>(configuration, "Section")`. In trimmed or Native AOT apps, avoid the reflection binders (`BuildAsync<T>()`, `Bind<T>()`) and bind options with the configuration binding source generator.
+
+## Docs
+
+- [README](https://github.com/tonyjoanes/FluentAzure/blob/main/README.md): installation, usage patterns, IConfiguration integration, identity, redaction, observability, AOT
+- [App Configuration source](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/app-configuration-source.md): labels, snapshots, Key Vault references, feature flags, sentinel refresh
+- [Key Vault source](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/key-vault-configuration-source.md): options, key mapping, retries, caching
+- [Enhanced configuration binding](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/enhanced-configuration-binding.md): records, collections, validation
+- [Analyzers](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/analyzers.md): FAZ0001–FAZ0004 compile-time checks
+- [Security](https://github.com/tonyjoanes/FluentAzure/blob/main/SECURITY.md): secret handling and what redaction does and does not cover
+
+## Examples
+
+- [Native AOT example](https://github.com/tonyjoanes/FluentAzure/tree/main/examples/Aot.Example): IConfiguration provider, source-generated options binding, health check
+- [Web API example](https://github.com/tonyjoanes/FluentAzure/tree/main/examples/WebApi.Example)
+- [Azure Functions example](https://github.com/tonyjoanes/FluentAzure/tree/main/examples/AzureFunctions.Example)
+
+## Optional
+
+- [Contributing](https://github.com/tonyjoanes/FluentAzure/blob/main/CONTRIBUTING.md): build, tests, App Configuration emulator
+- [Agent guidance](https://github.com/tonyjoanes/FluentAzure/blob/main/AGENTS.md): repository rules and gotchas for AI coding agents
+- [Roadmap](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/roadmap.md)
