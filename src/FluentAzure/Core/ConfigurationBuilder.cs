@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Azure.Core;
 using Azure.Identity;
@@ -57,11 +58,7 @@ public class ConfigurationBuilder
     /// <param name="clientId">The client ID of a user-assigned managed identity, or null for the system-assigned identity.</param>
     /// <returns>The configuration builder for method chaining.</returns>
     public ConfigurationBuilder UseManagedIdentity(string? clientId = null) =>
-        UseCredential(
-            string.IsNullOrEmpty(clientId)
-                ? new ManagedIdentityCredential()
-                : new ManagedIdentityCredential(clientId)
-        );
+        UseCredential(PipelineCredential.CreateManagedIdentity(clientId));
 
     /// <summary>
     /// Uses Microsoft Entra Workload ID (e.g. on AKS) for all Azure sources in this pipeline.
@@ -447,6 +444,8 @@ public class ConfigurationBuilder
     /// </summary>
     /// <typeparam name="T">The type to bind the configuration to.</typeparam>
     /// <returns>A task that represents the asynchronous build operation. The task result contains the bound configuration object or errors.</returns>
+    [RequiresUnreferencedCode(AotMessages.ReflectionBinding)]
+    [RequiresDynamicCode(AotMessages.ReflectionBinding)]
     public async Task<Result<T>> BuildAsync<T>()
         where T : class, new()
     {
@@ -485,6 +484,8 @@ public class ConfigurationBuilder
     /// </summary>
     /// <typeparam name="T">The type to bind the configuration to.</typeparam>
     /// <returns>A task that represents the asynchronous build operation. The task result contains the bound configuration object as an Option.</returns>
+    [RequiresUnreferencedCode(AotMessages.ReflectionBinding)]
+    [RequiresDynamicCode(AotMessages.ReflectionBinding)]
     public async Task<Option<T>> BuildOptionalAsync<T>()
         where T : class, new()
     {

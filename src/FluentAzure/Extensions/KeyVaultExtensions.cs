@@ -105,10 +105,7 @@ public static class KeyVaultExtensions
         int priority = 200
     )
     {
-        var credential =
-            managedIdentityClientId != null
-                ? new ManagedIdentityCredential(managedIdentityClientId)
-                : new ManagedIdentityCredential();
+        var credential = PipelineCredential.CreateManagedIdentity(managedIdentityClientId);
 
         var configuration = new KeyVaultConfiguration { Credential = credential };
         return builder.AddSource(builder.CreateKeyVaultSource(vaultUrl, configuration, priority));

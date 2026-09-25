@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -11,6 +12,8 @@ namespace FluentAzure.Binding;
 /// <summary>
 /// Provides functionality to bind configuration values to strongly-typed objects.
 /// </summary>
+[RequiresUnreferencedCode(AotMessages.ReflectionBinding)]
+[RequiresDynamicCode(AotMessages.ReflectionBinding)]
 public static class ConfigurationBinder
 {
     /// <summary>

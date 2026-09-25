@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using FluentAzure.Binding;
 using FluentAzure.Core;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,6 +34,8 @@ public static class FluentConfig
     /// <param name="configure">The configuration builder action.</param>
     /// <returns>The service collection for chaining.</returns>
     /// <exception cref="InvalidOperationException">Thrown when configuration binding fails.</exception>
+    [RequiresUnreferencedCode(AotMessages.ReflectionBinding)]
+    [RequiresDynamicCode(AotMessages.ReflectionBinding)]
     public static IServiceCollection AddFluentAzure<T>(
         this IServiceCollection services,
         Func<Core.ConfigurationBuilder, Core.ConfigurationBuilder> configure
@@ -51,6 +54,8 @@ public static class FluentConfig
     /// <param name="configure">The configuration builder action.</param>
     /// <returns>A task whose result is the service collection for chaining.</returns>
     /// <exception cref="InvalidOperationException">Thrown when configuration binding fails.</exception>
+    [RequiresUnreferencedCode(AotMessages.ReflectionBinding)]
+    [RequiresDynamicCode(AotMessages.ReflectionBinding)]
     public static Task<IServiceCollection> AddFluentAzureAsync<T>(
         this IServiceCollection services,
         Func<Core.ConfigurationBuilder, Core.ConfigurationBuilder> configure
@@ -70,6 +75,8 @@ public static class FluentConfig
     /// <param name="factory">Factory method to create the configuration object.</param>
     /// <returns>The service collection for chaining.</returns>
     /// <exception cref="InvalidOperationException">Thrown when configuration binding fails.</exception>
+    [RequiresUnreferencedCode(AotMessages.ReflectionBinding)]
+    [RequiresDynamicCode(AotMessages.ReflectionBinding)]
     public static IServiceCollection AddFluentAzure<T>(
         this IServiceCollection services,
         Func<Core.ConfigurationBuilder, Core.ConfigurationBuilder> configure,
@@ -97,6 +104,8 @@ public static class BindingExtensions
     /// <typeparam name="T">The type to bind to</typeparam>
     /// <param name="result">The configuration result</param>
     /// <returns>A result containing the bound object or errors</returns>
+    [RequiresUnreferencedCode(AotMessages.ReflectionBinding)]
+    [RequiresDynamicCode(AotMessages.ReflectionBinding)]
     public static Result<T> Bind<T>(this Result<Dictionary<string, string>> result)
         where T : class, new()
     {

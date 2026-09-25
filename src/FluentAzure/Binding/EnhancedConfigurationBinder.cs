@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
@@ -13,6 +14,8 @@ namespace FluentAzure.Binding;
 /// <summary>
 /// Enhanced configuration binding system that supports record types, collections, validation, and JSON serialization.
 /// </summary>
+[RequiresUnreferencedCode(AotMessages.ReflectionBinding)]
+[RequiresDynamicCode(AotMessages.ReflectionBinding)]
 public static class EnhancedConfigurationBinder
 {
     private static readonly JsonSerializerOptions DefaultJsonOptions = new()

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using FluentAzure.Core;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -6,6 +7,8 @@ namespace FluentAzure.Extensions;
 /// <summary>
 /// Extension methods for integrating FluentAzure with Microsoft.Extensions.DependencyInjection.
 /// </summary>
+[RequiresUnreferencedCode(AotMessages.ReflectionBinding)]
+[RequiresDynamicCode(AotMessages.ReflectionBinding)]
 public static class ServiceCollectionExtensions
 {
     /// <summary>

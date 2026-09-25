@@ -244,6 +244,37 @@ public class AppConfigurationSourceTests
     }
 
     [Fact]
+    public async Task LoadAsync_WithNestedFeatureFilterParameters_FlattensWithoutReflection()
+    {
+        // Arrange
+        var client = new FakeConfigurationClient();
+        var flag = client.AddFeatureFlag("Targeted", enabled: true);
+        using var audience = System.Text.Json.JsonDocument.Parse("""{"Users":["alice","bob"],"DefaultRolloutPercentage":10}""");
+        flag.ClientFilters.Add(
+            new FeatureFlagFilter(
+                "Microsoft.Targeting",
+                new Dictionary<string, object>
+                {
+                    ["Audience"] = audience.RootElement.Clone(),
+                    ["Options"] = new Dictionary<string, object?> { ["IgnoreCase"] = true, ["Ratio"] = 0.5 },
+                }
+            )
+        );
+
+        var source = new AppConfigurationSource(client, new AppConfigurationOptions { IncludeFeatureFlags = true });
+
+        // Act
+        var result = await source.LoadAsync();
+
+        // Assert
+        const string parameters = "FeatureManagement:Targeted:EnabledFor:0:Parameters";
+        result.Value[$"{parameters}:Audience:Users:1"].Should().Be("bob");
+        result.Value[$"{parameters}:Audience:DefaultRolloutPercentage"].Should().Be("10");
+        result.Value[$"{parameters}:Options:IgnoreCase"].Should().Be("true");
+        result.Value[$"{parameters}:Options:Ratio"].Should().Be("0.5");
+    }
+
+    [Fact]
     public async Task ReloadAsync_WithUnchangedSentinel_DoesNotReloadSettings()
     {
         // Arrange

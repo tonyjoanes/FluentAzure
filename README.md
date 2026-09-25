@@ -2,7 +2,8 @@
 
 A fluent, functional, and type-safe NuGet package for Azure configuration and secrets management.
 
-![.NET](https://img.shields.io/badge/.NET-8.0-blue.svg)
+![.NET](https://img.shields.io/badge/.NET-8.0%20%7C%2010.0-blue.svg)
+![Native AOT](https://img.shields.io/badge/Native%20AOT-compatible-brightgreen.svg)
 ![Azure](https://img.shields.io/badge/Azure-Functions%20%7C%20WebApps%20%7C%20Services-orange.svg)
 ![Fluent](https://img.shields.io/badge/Style-Fluent%20%7C%20Functional-purple.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
@@ -197,6 +198,21 @@ builder.Configuration.AddFluentAzure(fluent => fluent
 logger.LogDebug("{Config}", builder.Configuration.GetRedactedDebugView()); // Key Vault values appear as ***
 ```
 A per-source credential (`KeyVaultConfiguration.Credential`, `AppConfigurationOptions.Credential`) still takes precedence. Binding and conversion errors never include configuration values.
+
+#### **Trimming & Native AOT**
+FluentAzure targets .NET 8 and .NET 10 and is annotated for trimming and Native AOT. The pipeline, all sources (environment, JSON, Key Vault, App Configuration) and the `IConfiguration` provider are AOT-safe. The reflection-based binders (`BuildAsync<T>()`, `Bind<T>()`, `AddFluentAzure<T>()`, `AddFluentAzureOptions<T>()`) are marked `[RequiresUnreferencedCode]`/`[RequiresDynamicCode]`, so the compiler warns if you use them in a trimmed or AOT app. In those apps, feed `IConfiguration` and bind with the configuration binding source generator:
+```xml
+<PublishAot>true</PublishAot>
+<EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+```
+```csharp
+IConfigurationRoot configuration = new ConfigurationBuilder()
+    .AddFluentAzure(fluent => fluent.UseManagedIdentity().FromKeyVault(vaultUrl).Required("App:Name"))
+    .Build();
+
+services.AddOptions<AppOptions>().Bind(configuration.GetSection("App")).ValidateOnStart(); // source-generated
+```
+See [examples/Aot.Example](examples/Aot.Example). CI publishes it with Native AOT and fails on any trimming or AOT warning.
 
 #### **Web API Example**
 ```csharp

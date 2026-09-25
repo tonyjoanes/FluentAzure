@@ -1,4 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
 using FluentAzure.Configuration;
+using FluentAzure.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -109,7 +111,7 @@ public static class FluentAzureConfigurationExtensions
             context.ConfigurationProvider is FluentAzureConfigurationProvider provider
             && provider.IsSensitive(context.Path)
                 ? mask
-                : context.Value
+                : context.Value ?? string.Empty
         );
     }
 
@@ -124,7 +126,16 @@ public static class FluentAzureConfigurationExtensions
     /// <param name="configuration">The configuration to bind from.</param>
     /// <param name="sectionName">The section to bind, or null to bind from the root.</param>
     /// <returns>The options builder, for adding further validation.</returns>
-    public static OptionsBuilder<T> AddFluentAzureOptions<T>(
+    [RequiresUnreferencedCode(AotMessages.ReflectionBinding)]
+    [RequiresDynamicCode(AotMessages.ReflectionBinding)]
+    public static OptionsBuilder<T> AddFluentAzureOptions<
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicParameterlessConstructor
+                | DynamicallyAccessedMemberTypes.PublicProperties
+                | DynamicallyAccessedMemberTypes.NonPublicProperties
+        )]
+            T
+    >(
         this IServiceCollection services,
         IConfiguration configuration,
         string? sectionName = null

@@ -47,6 +47,16 @@ internal sealed class PipelineCredential : TokenCredential
     /// </summary>
     public TokenCredential Resolve() => _inner.Value;
 
+    /// <summary>
+    /// Creates a managed identity credential: system-assigned when no client ID is given, otherwise user-assigned.
+    /// </summary>
+    public static ManagedIdentityCredential CreateManagedIdentity(string? clientId) =>
+        new(
+            string.IsNullOrEmpty(clientId)
+                ? ManagedIdentityId.SystemAssigned
+                : ManagedIdentityId.FromUserAssignedClientId(clientId)
+        );
+
     public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken) =>
         Resolve().GetToken(requestContext, cancellationToken);
 

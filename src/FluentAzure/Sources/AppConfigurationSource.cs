@@ -405,10 +405,9 @@ public class AppConfigurationSource : IReloadableConfigurationSource, ISensitive
             var filterKey = $"{flagKey}:EnabledFor:{i}";
             values[$"{filterKey}:Name"] = filter.Name;
 
-            if (filter.Parameters.Count > 0)
+            foreach (var parameter in filter.Parameters)
             {
-                var parameters = JsonSerializer.SerializeToElement(filter.Parameters);
-                Flatten(values, $"{filterKey}:Parameters", parameters);
+                FlattenObject(values, $"{filterKey}:Parameters:{parameter.Key}", parameter.Value);
             }
         }
     }
@@ -467,6 +466,55 @@ public class AppConfigurationSource : IReloadableConfigurationSource, ISensitive
 
             default:
                 values[prefix] = element.GetRawText();
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Flattens a feature filter parameter value (a <see cref="JsonElement"/>, primitive, dictionary or list)
+    /// without reflection-based serialization, so the source stays trimming and Native AOT safe.
+    /// </summary>
+    private static void FlattenObject(Dictionary<string, string> values, string prefix, object? value)
+    {
+        switch (value)
+        {
+            case null:
+                values[prefix] = string.Empty;
+                break;
+
+            case JsonElement element:
+                Flatten(values, prefix, element);
+                break;
+
+            case string text:
+                values[prefix] = text;
+                break;
+
+            case bool flag:
+                values[prefix] = flag ? "true" : "false";
+                break;
+
+            case IDictionary<string, object?> dictionary:
+                foreach (var kvp in dictionary)
+                {
+                    FlattenObject(values, $"{prefix}:{kvp.Key}", kvp.Value);
+                }
+                break;
+
+            case System.Collections.IEnumerable items:
+                var index = 0;
+                foreach (var item in items)
+                {
+                    FlattenObject(values, $"{prefix}:{index++}", item);
+                }
+                break;
+
+            case IFormattable formattable:
+                values[prefix] = formattable.ToString(null, System.Globalization.CultureInfo.InvariantCulture);
+                break;
+
+            default:
+                values[prefix] = value.ToString() ?? string.Empty;
                 break;
         }
     }
