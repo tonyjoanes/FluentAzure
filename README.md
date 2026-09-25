@@ -169,6 +169,22 @@ builder.Services.AddFluentAzureOptions<DatabaseOptions>(builder.Configuration, "
 - A failed reload keeps the last good values; observe failures with `options.OnReloadError` via the `AddFluentAzure(configure, configureSource)` overload.
 - `builder.Configuration.AddFluentAzure(...)` is the synchronous equivalent.
 
+#### **Azure App Configuration**
+Load settings, feature flags and Key Vault references from App Configuration, with label layering, snapshots and sentinel-key refresh:
+```csharp
+var config = await FluentConfig
+    .Create()
+    .FromAppConfiguration("https://myconfig.azconfig.io", options =>
+    {
+        options.Labels.Add("Production");     // overrides unlabelled defaults
+        options.IncludeFeatureFlags = true;   // exposed under FeatureManagement:*
+        options.SentinelKey = "Sentinel";     // cheap change detection when reloading
+    })
+    .Required("Database:ConnectionString")    // may be a Key Vault reference; resolved automatically
+    .BuildAsync();
+```
+See [docs/app-configuration-source.md](docs/app-configuration-source.md) for all options.
+
 #### **Web API Example**
 ```csharp
 // Program.cs

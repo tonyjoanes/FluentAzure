@@ -74,6 +74,39 @@ public class ConfigurationBuilder
     }
 
     /// <summary>
+    /// Adds an Azure App Configuration source to the configuration pipeline.
+    /// </summary>
+    /// <param name="endpointOrConnectionString">
+    /// The App Configuration endpoint (e.g. <c>https://myconfig.azconfig.io</c>, authenticated with
+    /// Microsoft Entra ID - recommended) or a connection string.
+    /// </param>
+    /// <param name="configure">Optional configuration of labels, snapshots, Key Vault references, feature flags and refresh.</param>
+    /// <param name="priority">The priority of this source. Higher priority sources override lower priority ones.</param>
+    /// <returns>The configuration builder for method chaining.</returns>
+    public ConfigurationBuilder FromAppConfiguration(
+        string endpointOrConnectionString,
+        Action<AppConfigurationOptions>? configure = null,
+        int priority = 150
+    )
+    {
+        ArgumentException.ThrowIfNullOrEmpty(endpointOrConnectionString);
+
+        var options = new AppConfigurationOptions();
+        configure?.Invoke(options);
+
+        var isEndpoint =
+            Uri.TryCreate(endpointOrConnectionString, UriKind.Absolute, out var endpoint)
+            && endpoint.Scheme == Uri.UriSchemeHttps;
+
+        _sources.Add(
+            isEndpoint
+                ? new AppConfigurationSource(endpoint!, options, priority)
+                : new AppConfigurationSource(endpointOrConnectionString, options, priority)
+        );
+        return this;
+    }
+
+    /// <summary>
     /// Specifies a required configuration key. The build will fail if this key is not found.
     /// </summary>
     /// <param name="key">The configuration key that must be present.</param>
