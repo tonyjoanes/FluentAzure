@@ -1,0 +1,11 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+  <PropertyGroup>
+    <!-- Example apps are not libraries; XML docs on their public types add no value -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Examples reference FluentAzure as a project, so wire up its analyzers the way the NuGet package does -->
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\src\FluentAzure.Analyzers\FluentAzure.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+</Project>

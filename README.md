@@ -2,6 +2,7 @@
 
 A fluent, functional, and type-safe NuGet package for Azure configuration and secrets management.
 
+[![NuGet](https://img.shields.io/nuget/vpre/FluentAzure.svg)](https://www.nuget.org/packages/FluentAzure)
 ![.NET](https://img.shields.io/badge/.NET-8.0%20%7C%2010.0-blue.svg)
 ![Native AOT](https://img.shields.io/badge/Native%20AOT-compatible-brightgreen.svg)
 ![Azure](https://img.shields.io/badge/Azure-Functions%20%7C%20WebApps%20%7C%20Services-orange.svg)
@@ -60,13 +61,10 @@ var config = configResult.Match(
 ## 📦 Installation
 
 ```bash
-dotnet add package FluentAzure
+dotnet add package FluentAzure --prerelease
 ```
 
-Or add to your `.csproj`:
-```xml
-<PackageReference Include="FluentAzure" Version="0.2.0-rc.5" />
-```
+The current version is shown on the NuGet badge above. The package includes the FluentAzure analyzers (see [docs/analyzers.md](docs/analyzers.md)).
 
 ## 🔢 Version Information
 
@@ -76,13 +74,13 @@ You can access the current version programmatically:
 using FluentAzure;
 
 // Get the current version
-string version = FluentConfig.CurrentVersion; // "0.2.0-rc.5"
+string version = FluentConfig.CurrentVersion; // e.g. "1.2.0" or "1.3.0-rc.1"
 
 // Or access version details directly
-int major = FluentAzure.Version.Major;     // 0
-int minor = FluentAzure.Version.Minor;     // 2
-int patch = FluentAzure.Version.Patch;     // 0
-bool isPreRelease = FluentAzure.Version.IsPreRelease; // true
+int major = FluentAzure.Version.Major;
+int minor = FluentAzure.Version.Minor;
+int patch = FluentAzure.Version.Patch;
+bool isPreRelease = FluentAzure.Version.IsPreRelease;
 ```
 
 ## 📖 Example Usage Patterns
@@ -199,6 +197,28 @@ logger.LogDebug("{Config}", builder.Configuration.GetRedactedDebugView()); // Ke
 ```
 A per-source credential (`KeyVaultConfiguration.Credential`, `AppConfigurationOptions.Credential`) still takes precedence. Binding and conversion errors never include configuration values.
 
+#### **Observability: OpenTelemetry & Health Checks**
+FluentAzure emits traces and metrics through `System.Diagnostics` (no extra dependency), ready for OpenTelemetry:
+```csharp
+builder.Services.AddOpenTelemetry()
+    .WithTracing(t => t.AddSource(FluentAzureDiagnostics.ActivitySourceName))
+    .WithMetrics(m => m.AddMeter(FluentAzureDiagnostics.MeterName));
+
+builder.Services.AddHealthChecks().AddFluentAzure(tags: new[] { "ready" });
+```
+| Signal | Name | Tags |
+|---|---|---|
+| Span | `FluentAzure.Build`, with a child `FluentAzure.LoadSource` per source | `fluentazure.source`, `fluentazure.outcome`, `fluentazure.reload`, key/error counts |
+| Histogram (s) | `fluentazure.build.duration`, `fluentazure.source.load.duration` | `fluentazure.source`, `fluentazure.outcome`, `fluentazure.reload` |
+| Counter | `fluentazure.provider.reloads` | `fluentazure.outcome` = `changed` / `unchanged` / `failure` |
+
+Telemetry and health data contain source names, outcomes, durations, counts and timestamps only — never configuration values or error messages.
+
+The health check does not call Azure. It reports what the configuration providers last observed:
+- **Healthy:** every load succeeded.
+- **Degraded:** the last reload failed, so the last good values are still being served.
+- **Unhealthy** (or your `failureStatus`): no FluentAzure provider is registered, or values are older than `staleAfter` (by default, three reload intervals).
+
 #### **Trimming & Native AOT**
 FluentAzure targets .NET 8 and .NET 10 and is annotated for trimming and Native AOT. The pipeline, all sources (environment, JSON, Key Vault, App Configuration) and the `IConfiguration` provider are AOT-safe. The reflection-based binders (`BuildAsync<T>()`, `Bind<T>()`, `AddFluentAzure<T>()`, `AddFluentAzureOptions<T>()`) are marked `[RequiresUnreferencedCode]`/`[RequiresDynamicCode]`, so the compiler warns if you use them in a trimmed or AOT app. In those apps, feed `IConfiguration` and bind with the configuration binding source generator:
 ```xml
@@ -213,6 +233,14 @@ IConfigurationRoot configuration = new ConfigurationBuilder()
 services.AddOptions<AppOptions>().Bind(configuration.GetSection("App")).ValidateOnStart(); // source-generated
 ```
 See [examples/Aot.Example](examples/Aot.Example). CI publishes it with Native AOT and fails on any trimming or AOT warning.
+
+#### **Analyzers**
+The package includes compile-time analyzers ([docs/analyzers.md](docs/analyzers.md)):
+
+- **FAZ0001:** a `Required("key")` that the `BuildAsync<T>()` type never binds (usually a typo).
+- **FAZ0002:** a Key Vault or App Configuration endpoint that isn't HTTPS.
+- **FAZ0003:** a hard-coded App Configuration connection string containing a secret.
+- **FAZ0004:** `GetDebugView()`, which prints secrets; use `GetRedactedDebugView()` instead.
 
 #### **Web API Example**
 ```csharp

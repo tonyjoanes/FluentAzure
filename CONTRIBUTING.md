@@ -5,9 +5,12 @@ Thank you for your interest in contributing to FluentAzure! This guide will help
 ## 🚀 Development Setup
 
 ### Prerequisites
-- .NET 8.0 SDK
-- Azure subscription (for Key Vault/App Configuration testing)
+- .NET 8.0 and .NET 10.0 SDKs (the library and tests target both)
+- Docker (optional, for the App Configuration emulator tests)
 - Git
+
+No Azure subscription is needed: Key Vault and App Configuration are covered by in-memory fakes of the
+Azure SDK clients (`tests/FluentAzure.Tests/TestDoubles`) and by the App Configuration emulator.
 
 ### Quick Start
 1. Clone this repository: `git clone https://github.com/yourusername/FluentAzure.git`
@@ -45,6 +48,25 @@ dotnet test --collect:"XPlat Code Coverage"
 # Run specific test project
 dotnet test tests/FluentAzure.Tests/
 ```
+
+### App Configuration Emulator Tests
+Tests marked `[EmulatorFact]` (category `Emulator`) run against the official
+[Azure App Configuration emulator](https://github.com/Azure/AppConfiguration-Emulator) and are skipped
+unless `FLUENTAZURE_APPCONFIG_EMULATOR` is set. The SDK signs connection-string requests with HMAC, so the
+emulator needs a matching access key (`c2VjcmV0` is base64 for `secret`):
+
+```bash
+docker run -d -p 8483:8483 \
+  -e Tenant__HmacSha256Enabled=true \
+  -e Tenant__AccessKeys__0__Id=emulator \
+  -e Tenant__AccessKeys__0__Secret=c2VjcmV0 \
+  mcr.microsoft.com/azure-app-configuration/app-configuration-emulator:1.2.0
+
+FLUENTAZURE_APPCONFIG_EMULATOR="Endpoint=http://localhost:8483;Id=emulator;Secret=c2VjcmV0" \
+  dotnet test tests/FluentAzure.Tests --filter "Category=Emulator"
+```
+
+CI runs these in the `App Configuration Emulator Tests` job and fails if they are skipped.
 
 ## 📋 Code Style and Standards
 

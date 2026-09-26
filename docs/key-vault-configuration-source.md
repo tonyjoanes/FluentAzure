@@ -2,20 +2,20 @@
 
 The FluentAzure Key Vault configuration source provides a robust, production-ready solution for loading secrets from Azure Key Vault with advanced features like retry logic, caching, secret versioning, and comprehensive error handling.
 
-## ðŸŽ¯ Key Features
+## 🎯 Key Features
 
-âœ… **DefaultAzureCredential Support** - Seamless authentication across development and production environments  
-âœ… **Exponential Backoff Retry** - Configurable retry logic with jitter for resilient API calls  
-âœ… **Secret Versioning** - Support for specific secret versions or latest version  
-âœ… **In-Memory Caching** - Configurable TTL caching to reduce API calls and improve performance  
-âœ… **Graceful Error Handling** - Partial success scenarios with detailed error reporting  
-âœ… **Advanced Key Mapping** - Flexible transformation of Key Vault secret names to configuration keys  
-âœ… **Prefix Filtering** - Load only secrets matching a specific prefix  
-âœ… **Thread-Safe Operations** - Concurrent access support with thread-safe caching  
-âœ… **Comprehensive Logging** - Detailed logging for monitoring and debugging  
-âœ… **Multiple Authentication Methods** - Support for Managed Identity, Service Principal, and more  
+✅ **DefaultAzureCredential Support** - Seamless authentication across development and production environments  
+✅ **Exponential Backoff Retry** - Configurable retry logic with jitter for resilient API calls  
+✅ **Secret Versioning** - Support for specific secret versions or latest version  
+✅ **In-Memory Caching** - Configurable TTL caching to reduce API calls and improve performance  
+✅ **Graceful Error Handling** - Partial success scenarios with detailed error reporting  
+✅ **Advanced Key Mapping** - Flexible transformation of Key Vault secret names to configuration keys  
+✅ **Prefix Filtering** - Load only secrets matching a specific prefix  
+✅ **Thread-Safe Operations** - Concurrent access support with thread-safe caching  
+✅ **Comprehensive Logging** - Detailed logging for monitoring and debugging  
+✅ **Multiple Authentication Methods** - Support for Managed Identity, Service Principal, and more  
 
-## ðŸš€ Quick Start
+## 🚀 Quick Start
 
 ### Basic Usage
 
@@ -50,7 +50,7 @@ var config = await FluentAzure
     .BuildAsync();
 ```
 
-## ðŸ”§ Configuration Options
+## 🔧 Configuration Options
 
 ### KeyVaultConfiguration Properties
 
@@ -69,7 +69,7 @@ var config = await FluentAzure
 | `OperationTimeout` | `TimeSpan` | `30 seconds` | Timeout for Key Vault operations |
 | `MaxConcurrentSecretLoads` | `int` | `8` | Maximum secrets fetched concurrently during a load, to stay under Key Vault throttling limits |
 
-## ðŸ” Authentication Methods
+## 🔐 Authentication Methods
 
 ### 1. Default Azure Credential (Recommended)
 
@@ -106,17 +106,17 @@ var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
 .FromKeyVault("https://your-keyvault.vault.azure.net/", credential)
 ```
 
-## ðŸ—‚ï¸ Key Mapping Examples
+## 🗂️ Key Mapping Examples
 
 ### Default Mapping (Hierarchical Configuration)
 
 Key Vault secret names with `--` are converted to hierarchical configuration keys:
 
 ```
-Key Vault Secret    â†’    Configuration Key
-Database--Host      â†’    Database:Host
-Database--Port      â†’    Database:Port
-Api--Key            â†’    Api:Key
+Key Vault Secret    →    Configuration Key
+Database--Host      →    Database:Host
+Database--Port      →    Database:Port
+Api--Key            →    Api:Key
 ```
 
 ### Custom Key Mapping
@@ -136,7 +136,7 @@ Api--Key            â†’    Api:Key
 .FromKeyVaultWithPrefix("https://your-keyvault.vault.azure.net/", "Prod-")
 ```
 
-## ðŸ“Š Caching and Performance
+## 📊 Caching and Performance
 
 ### Cache Configuration
 
@@ -171,7 +171,7 @@ kvSource.ClearCache();
 await kvSource.ReloadAsync();
 ```
 
-## ðŸ”„ Retry Logic and Error Handling
+## 🔄 Retry Logic and Error Handling
 
 ### Retry Configuration
 
@@ -209,7 +209,7 @@ if (kvSource.LoadErrors.Count > 0)
 }
 ```
 
-## ðŸ·ï¸ Secret Versioning
+## 🏷️ Secret Versioning
 
 ### Latest Version (Default)
 
@@ -230,7 +230,7 @@ var kvSource = new KeyVaultSource(vaultUrl);
 var specificSecret = await kvSource.GetSecretAsync("MySecret", "version-123");
 ```
 
-## ðŸ” Monitoring and Diagnostics
+## 🔍 Monitoring and Diagnostics
 
 ### Logging Integration
 
@@ -249,55 +249,55 @@ var logger = loggerFactory.CreateLogger<Program>();
 - **Error**: Authentication failures, network errors, configuration failures
 - **Debug**: Detailed cache operations, individual secret loading
 
-## ðŸ“‹ Best Practices
+## 📋 Best Practices
 
 ### 1. Authentication
 
 ```csharp
-// âœ… Use DefaultAzureCredential for automatic credential detection
+// ✅ Use DefaultAzureCredential for automatic credential detection
 .FromKeyVault(vaultUrl)
 
-// âœ… Use Managed Identity in Azure environments
+// ✅ Use Managed Identity in Azure environments
 .FromKeyVaultWithManagedIdentity(vaultUrl)
 
-// âŒ Avoid hardcoding credentials
+// ❌ Avoid hardcoding credentials
 // Don't: new ClientSecretCredential("tenant", "client", "hardcoded-secret")
 ```
 
 ### 2. Naming Conventions
 
 ```csharp
-// âœ… Use hierarchical naming with '--' separator
+// ✅ Use hierarchical naming with '--' separator
 // Key Vault: "MyApp--Database--ConnectionString"
 // Config Key: "MyApp:Database:ConnectionString"
 
-// âœ… Use environment prefixes
+// ✅ Use environment prefixes
 // "Prod--Database--Host", "Dev--Database--Host"
 ```
 
 ### 3. Error Handling
 
 ```csharp
-// âœ… Handle both success and failure cases
+// ✅ Handle both success and failure cases
 config.Match(
     success => ConfigureApplication(success),
     errors => LogErrorsAndUseDefaults(errors)
 );
 
-// âœ… Use partial success for non-critical secrets
+// ✅ Use partial success for non-critical secrets
 options.ContinueOnSecretFailure = true;
 ```
 
 ### 4. Performance Optimization
 
 ```csharp
-// âœ… Use appropriate cache duration
+// ✅ Use appropriate cache duration
 options.CacheDuration = TimeSpan.FromMinutes(5); // Balance between performance and freshness
 
-// âœ… Use prefix filtering to reduce API calls
+// ✅ Use prefix filtering to reduce API calls
 options.SecretNamePrefix = "MyApp-";
 
-// âœ… Configure reasonable retry settings
+// ✅ Configure reasonable retry settings
 options.MaxRetryAttempts = 3;
 options.BaseRetryDelay = TimeSpan.FromSeconds(1);
 ```
@@ -305,16 +305,16 @@ options.BaseRetryDelay = TimeSpan.FromSeconds(1);
 ### 5. Security Considerations
 
 ```csharp
-// âœ… Use least privilege access policies in Key Vault
-// âœ… Rotate secrets regularly
-// âœ… Monitor Key Vault access logs
-// âœ… Use Azure RBAC for fine-grained permissions
+// ✅ Use least privilege access policies in Key Vault
+// ✅ Rotate secrets regularly
+// ✅ Monitor Key Vault access logs
+// ✅ Use Azure RBAC for fine-grained permissions
 
-// âŒ Don't log sensitive values
+// ❌ Don't log sensitive values
 // Don't: logger.LogInformation("Secret value: {Value}", secretValue);
 ```
 
-## ðŸ§ª Testing
+## 🧪 Testing
 
 ### Unit Testing with Mock Data
 
@@ -345,7 +345,7 @@ var config = await FluentAzure
     .BuildAsync();
 ```
 
-## ðŸ“š Common Scenarios
+## 📚 Common Scenarios
 
 ### 1. ASP.NET Core Integration
 
@@ -413,14 +413,14 @@ public class Worker : BackgroundService
 }
 ```
 
-## ðŸ”— Related Resources
+## 🔗 Related Resources
 
 - [Azure Key Vault Documentation](https://docs.microsoft.com/en-us/azure/key-vault/)
 - [DefaultAzureCredential Documentation](https://docs.microsoft.com/en-us/dotnet/api/azure.identity.defaultazurecredential)
 - [Polly Retry Library](https://github.com/App-vNext/Polly)
 - [FluentAzure Configuration Builder](./configuration-builder.md)
 
-## ðŸ› Troubleshooting
+## 🐛 Troubleshooting
 
 ### Common Issues
 
@@ -453,4 +453,4 @@ public class Worker : BackgroundService
 
 ---
 
-*Built with â¤ï¸ by the FluentAzure team* 
+*Built with ❤️ by the FluentAzure team* 

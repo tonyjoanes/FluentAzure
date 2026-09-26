@@ -10,6 +10,7 @@ using FluentAzure.Configuration;
 using FluentAzure.Sources;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 
 var keyVaultUrl = Environment.GetEnvironmentVariable("KEYVAULT_URL");
@@ -52,6 +53,9 @@ IConfigurationRoot configuration = new ConfigurationBuilder()
 
 var services = new ServiceCollection();
 services.AddOptions<AppOptions>().Bind(configuration.GetSection("App")).ValidateOnStart();
+services.AddSingleton<IConfiguration>(configuration);
+services.AddLogging();
+services.AddHealthChecks().AddFluentAzure();
 
 using var provider = services.BuildServiceProvider();
 var options = provider.GetRequiredService<IOptions<AppOptions>>().Value;
@@ -63,7 +67,10 @@ var fluentProvider = configuration.Providers.OfType<FluentAzureConfigurationProv
 Console.WriteLine($"Name={options.Name} Port={options.Port}");
 Console.WriteLine($"App:ApiKey loaded={options.ApiKey.Length > 0} sensitive={fluentProvider.IsSensitive("App:ApiKey")}");
 
-return options.Name.Length > 0 && options.Port > 0 ? 0 : 1;
+var health = await provider.GetRequiredService<HealthCheckService>().CheckHealthAsync();
+Console.WriteLine($"Health={health.Status}");
+
+return options.Name.Length > 0 && options.Port > 0 && health.Status == HealthStatus.Healthy ? 0 : 1;
 
 internal sealed class AppOptions
 {
