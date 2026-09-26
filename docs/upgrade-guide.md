@@ -12,6 +12,7 @@ Most applications upgrade without code changes. This page lists the changes that
 | **Disabled / expired Key Vault secrets are skipped** | If you relied on loading an expired or disabled secret, re-enable or renew it. |
 | **Errors no longer contain values** | Code or tests that parsed values out of binding error messages need updating. |
 | **Basic binder reads `:` keys** | `BuildAsync<T>()`, `Bind<T>()` and `AddFluentAzure<T>()` now bind nested properties from `Database:Host` as well as `Database__Host`. Nested Key Vault and App Configuration values that were silently ignored before are now bound, and override your class defaults. |
+| **Enhanced binder matches full key paths** | `EnhancedConfigurationBinder.Bind<T>()` binds a property only from its exact path (`Database:Name`), no longer from a root key with the same name or a key with the separators elsewhere. Missing keys now keep class defaults instead of resetting them (set `BindingOptions.IgnoreMissingOptional = false` for the old behaviour). |
 | **Custom sources that throw** | `BuildAsync()` now returns an error result instead of throwing, so check `IsFailure`. |
 | **Analyzers** | FAZ0001–FAZ0004 report warnings. With `TreatWarningsAsErrors`, fix them or set severities in `.editorconfig` ([docs](analyzers.md)). |
 | **Trimming/AOT warnings** | Projects with trimming or AOT analyzers enabled now see IL2026/IL3050 on reflection-based binding APIs, which are unsafe in those modes. See [Native AOT](configuration-integration.md#native-aot). |

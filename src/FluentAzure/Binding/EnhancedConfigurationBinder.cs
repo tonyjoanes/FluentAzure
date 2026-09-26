@@ -254,18 +254,11 @@ public static class EnhancedConfigurationBinder
 
                 if (isSimple)
                 {
-                    bool found = TryFindConfigValue(
-                        configuration,
-                        propertyPath,
-                        property.Name,
-                        options.CaseSensitive,
-                        out var configValue
-                    );
-                    if (found && configValue != null)
+                    if (TryGetValueAtPath(configuration, propertyPath, options.CaseSensitive, out var configValue))
                     {
                         try
                         {
-                            var convertedValue = ConvertValue(configValue!, property.PropertyType);
+                            var convertedValue = ConvertValue(configValue, property.PropertyType);
                             SetPropertyValue(instance, property, convertedValue);
                         }
                         catch (Exception ex)
@@ -281,9 +274,11 @@ public static class EnhancedConfigurationBinder
                     }
                     else
                     {
-                        // Set to default value (or null for nullable types)
-                        var defaultValue = GetDefaultValue(property.PropertyType);
-                        SetPropertyValue(instance, property, defaultValue);
+                        // Keep the property's initial value (e.g. a class default) unless asked to reset it
+                        if (!options.IgnoreMissingOptional)
+                        {
+                            SetPropertyValue(instance, property, GetDefaultValue(property.PropertyType));
+                        }
 
                         if (IsRequiredProperty(property) && options.EnableValidation)
                         {
@@ -348,17 +343,9 @@ public static class EnhancedConfigurationBinder
         else if (IsSimpleType(property.PropertyType))
         {
             // Handle simple types
-            if (
-                TryFindConfigValue(
-                    configuration,
-                    propertyPath,
-                    property.Name,
-                    options.CaseSensitive,
-                    out var value
-                )
-            )
+            if (TryGetValueAtPath(configuration, propertyPath, options.CaseSensitive, out var value))
             {
-                var convertedValue = ConvertValue(value!, property.PropertyType);
+                var convertedValue = ConvertValue(value, property.PropertyType);
                 SetPropertyValue(instance, property, convertedValue);
             }
         }
@@ -835,13 +822,6 @@ public static class EnhancedConfigurationBinder
             current[lastKey] = ParseValue(kvp.Value);
         }
 
-        // Ensure the JSON has the expected structure for the test classes
-        // If we have a "Name" key at the root, make sure it's accessible
-        if (jsonObject.ContainsKey("Name") && !jsonObject.ContainsKey("StringProperty"))
-        {
-            jsonObject["StringProperty"] = jsonObject["Name"];
-        }
-
         return JsonSerializer.Serialize(jsonObject, DefaultJsonOptions);
     }
 
@@ -858,34 +838,6 @@ public static class EnhancedConfigurationBinder
             return dateValue;
 
         return value;
-    }
-
-    // Utility: Try to find a configuration value for a property/parameter name, supporting all key variants
-    private static bool TryFindConfigValue(
-        Dictionary<string, string> config,
-        string[] propertyPath,
-        string propertyName,
-        bool caseSensitive,
-        out string? value
-    )
-    {
-        // Always try normalized key matching (remove separators, lower-case)
-        string Normalize(string s) =>
-            new string(s.Where(char.IsLetterOrDigit).ToArray()).ToLowerInvariant();
-        var normalizedPath = Normalize(string.Join("", propertyPath));
-        var normalizedName = Normalize(propertyName);
-        foreach (var kvp in config)
-        {
-            var normKey = Normalize(kvp.Key);
-            if (normKey == normalizedPath || normKey == normalizedName)
-            {
-                value = kvp.Value;
-                return true;
-            }
-        }
-
-        value = null;
-        return false;
     }
 
     private static object? ConvertValue(string value, Type targetType)
@@ -1256,7 +1208,9 @@ public class BindingOptions
     public JsonSerializerOptions? JsonOptions { get; set; }
 
     /// <summary>
-    /// Gets or sets whether to ignore missing optional properties.
+    /// Gets or sets whether a property with no configuration key keeps its current value, such as a
+    /// default set by its initializer. When <c>false</c>, it is reset to <c>null</c> or <c>0</c>.
+    /// Defaults to <c>true</c>.
     /// </summary>
     public bool IgnoreMissingOptional { get; set; } = true;
 

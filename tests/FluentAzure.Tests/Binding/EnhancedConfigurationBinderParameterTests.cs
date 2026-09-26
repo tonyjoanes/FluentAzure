@@ -212,8 +212,8 @@ public class EnhancedConfigurationBinderParameterTests
         // Arrange
         var config = new Dictionary<string, string>
         {
-            ["Nested:Property:Name"] = name, // colon separator
-            ["Nested__Property__Value"] = value.ToString(), // underscore separator
+            ["NestedProperty:Name"] = name, // colon separator
+            ["NestedProperty__Value"] = value.ToString(), // underscore separator
         };
 
         // Act
@@ -264,7 +264,7 @@ public class EnhancedConfigurationBinderParameterTests
         // Arrange
         var config = new Dictionary<string, string>
         {
-            ["Name"] = name,
+            ["StringProperty"] = name,
             ["Version"] = version,
             ["Database:Host"] = "localhost",
             ["Database:Port"] = "5432",

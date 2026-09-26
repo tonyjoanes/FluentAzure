@@ -56,6 +56,9 @@ Upgrading from 0.2.0-rc.5? See the [upgrade guide](docs/upgrade-guide.md).
 
 - **Basic binder `:` keys:** `BuildAsync<T>()`, `Bind<T>()` and `AddFluentAzure<T>()` now bind nested properties from `:` keys (as produced by Key Vault and App Configuration) as well as `__` keys. If both forms of a key are present, the `:` key wins, as in the `IConfiguration` provider.
 - **Enhanced binder collections:** lists and arrays of simple types (`List<string>`, `string[]`, `int[]`, …) are now bound instead of failing or staying `0`, and dictionaries (`Dictionary<,>`, `IDictionary<,>`, `IReadOnlyDictionary<,>`) with simple or object values are now bound. Existing dictionary entries are kept; dictionaries the binder creates with `string` keys ignore key case.
+- **Enhanced binder key matching:** a property is now bound only from the key whose full path matches it. Before, the binder ignored separators when comparing (`Data:BaseHost` matched `Database:Host`) and fell back to any key with the property's bare name, so a nested `Database:Name` or a list element's `Name` could pick up a root `Name` key. `BindingOptions.CaseSensitive` is now honoured.
+- **Enhanced binder defaults:** a property with no configuration key now keeps its initial value (such as `Timeout { get; set; } = 30`) instead of being reset to `null`/`0`. This is what `BindingOptions.IgnoreMissingOptional` (default `true`) now controls; set it to `false` for the old reset behaviour.
+- **`BindJson` test shim:** `BindJson<T>()` no longer copies a root `Name` key into a `StringProperty` property; that code only existed for the test classes.
 - **Deadlock:** the synchronous `AddFluentAzure*` registrations could deadlock under a synchronization context.
 - **Key Vault race:** concurrent `KeyVaultSource.LoadAsync` / `ReloadAsync` calls could both run a full load.
 - **Culture:** values such as `1.5` were misread in cultures that use a decimal comma.
