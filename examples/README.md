@@ -135,7 +135,7 @@ var configResult = await FluentConfig
     .FromJsonFile("appsettings.json")
     .FromEnvironment()
     .FromKeyVault(builder.Configuration["KeyVault:Url"])
-    .Required("ConnectionStrings:DefaultConnection")
+    .Required("Database:ConnectionString")
     .Required("Jwt:SecretKey")
     .Required("Jwt:Issuer")
     .Required("Jwt:Audience")
@@ -206,7 +206,7 @@ ServiceBusConnectionString="Endpoint=..."
 StorageConnectionString="DefaultEndpointsProtocol=..."
 
 # Web API
-ConnectionStrings__DefaultConnection="Server=..."
+Database__ConnectionString="Server=..."
 Jwt__SecretKey="your-secret-key"
 Jwt__Issuer="https://your-api.com"
 ```

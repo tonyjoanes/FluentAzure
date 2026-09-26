@@ -251,13 +251,4 @@ public static class ConfigurationBinder
 
         throw new InvalidOperationException($"Cannot convert the configured value to type {targetType.Name}");
     }
-
-    private static bool IsRequiredProperty(PropertyInfo property)
-    {
-        // In configuration binding, all properties are optional by default
-        // They will use their default values if not specified in configuration
-        // In a more sophisticated implementation, you might check for [Required] attributes
-        // or other explicit requirement indicators
-        return false;
-    }
 }

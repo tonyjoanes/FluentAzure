@@ -1,6 +1,4 @@
 using System.Collections;
-using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -181,59 +179,7 @@ public static class EnhancedConfigurationBinder
     }
 
     private static T? CreateInstance<T>(BindingOptions options, List<BindingError> errors)
-        where T : class
-    {
-        var type = typeof(T);
-        try
-        {
-            if (IsRecordType(type))
-            {
-                return (T?)CreateRecordInstance(type, options, errors);
-            }
-
-            if (HasInitOnlyProperties(type))
-            {
-                return (T?)CreateInitOnlyInstance(type, options, errors);
-            }
-
-            return Activator.CreateInstance<T>();
-        }
-        catch (Exception ex)
-        {
-            errors.Add(
-                new BindingError(
-                    $"Failed to create instance of type '{type.Name}': {ex.Message}",
-                    string.Empty
-                )
-            );
-            return null;
-        }
-    }
-
-    private static T? CreateRecordInstance<T>(BindingOptions options, List<BindingError> errors)
-        where T : class
-    {
-        var type = typeof(T);
-        return (T?)CreateRecordInstance(type, options, errors);
-    }
-
-    private static T? CreateInitOnlyInstance<T>(BindingOptions options, List<BindingError> errors)
-        where T : class
-    {
-        var type = typeof(T);
-
-        try
-        {
-            // Create a temporary instance for property discovery
-            var tempInstance = Activator.CreateInstance<T>();
-            return tempInstance;
-        }
-        catch (Exception ex)
-        {
-            errors.Add(new BindingError($"Failed to create init-only instance: {ex.Message}", string.Empty));
-            return null;
-        }
-    }
+        where T : class => (T?)CreateInstance(typeof(T), options, errors);
 
     private static void BindConfiguration(
         Dictionary<string, string> configuration,
@@ -249,83 +195,76 @@ public static class EnhancedConfigurationBinder
 
         foreach (var property in properties)
         {
-            try
+            var isSimple = IsSimpleType(property.PropertyType);
+            var propertyPath = prefixPath.Concat(new[] { property.Name }).ToArray();
+
+            if (isSimple)
             {
-                var isSimple = IsSimpleType(property.PropertyType);
-                var propertyPath = prefixPath.Concat(new[] { property.Name }).ToArray();
-
-                if (isSimple)
+                if (TryGetValueAtPath(configuration, propertyPath, options.CaseSensitive, out var configValue))
                 {
-                    if (TryGetValueAtPath(configuration, propertyPath, options.CaseSensitive, out var configValue))
+                    try
                     {
-                        try
-                        {
-                            var convertedValue = ConvertValue(configValue, property.PropertyType);
-                            SetPropertyValue(instance, property, convertedValue);
-                        }
-                        catch (Exception ex)
-                        {
-                            // Never echo the value: it may be a secret
-                            errors.Add(
-                                new BindingError(
-                                    $"Failed to bind property '{string.Join(":", propertyPath)}': {ex.Message}",
-                                    string.Join(":", propertyPath)
-                                )
-                            );
-                        }
+                        var convertedValue = ConvertValue(configValue, property.PropertyType);
+                        SetPropertyValue(instance, property, convertedValue);
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        // Keep the property's initial value (e.g. a class default) unless asked to reset it
-                        if (!options.IgnoreMissingOptional)
-                        {
-                            SetPropertyValue(instance, property, GetDefaultValue(property.PropertyType));
-                        }
-
-                        if (IsRequiredProperty(property) && options.EnableValidation)
-                        {
-                            errors.Add(
-                                new BindingError(
-                                    $"Required property '{string.Join(":", propertyPath)}' not found in configuration",
-                                    string.Join(":", propertyPath)
-                                )
-                            );
-                        }
+                        // Never echo the value: it may be a secret
+                        errors.Add(
+                            new BindingError(
+                                $"Failed to bind property '{string.Join(":", propertyPath)}': {ex.Message}",
+                                string.Join(":", propertyPath)
+                            )
+                        );
+                    }
+                }
+                else
+                {
+                    // Keep the property's initial value (e.g. a class default) unless asked to reset it
+                    if (!options.IgnoreMissingOptional)
+                    {
+                        SetPropertyValue(instance, property, GetDefaultValue(property.PropertyType));
                     }
 
-                    continue;
+                    if (IsRequiredProperty(property) && options.EnableValidation)
+                    {
+                        errors.Add(
+                            new BindingError(
+                                $"Required property '{string.Join(":", propertyPath)}' not found in configuration",
+                                string.Join(":", propertyPath)
+                            )
+                        );
+                    }
                 }
 
-                // Handle collections
-                if (IsCollectionType(property.PropertyType))
-                {
-                    BindCollection(
-                        configuration,
-                        instance,
-                        property,
-                        propertyPath,
-                        options,
-                        errors
-                    );
-                    continue;
-                }
-
-                // Handle complex objects
-                if (property.PropertyType.IsClass && property.PropertyType != typeof(string))
-                {
-                    BindComplexProperty(
-                        configuration,
-                        instance,
-                        property,
-                        propertyPath,
-                        options,
-                        errors
-                    );
-                }
+                continue;
             }
-            catch
+
+            // Handle collections
+            if (IsCollectionType(property.PropertyType))
             {
-                throw;
+                BindCollection(
+                    configuration,
+                    instance,
+                    property,
+                    propertyPath,
+                    options,
+                    errors
+                );
+                continue;
+            }
+
+            // Handle complex objects
+            if (property.PropertyType.IsClass && property.PropertyType != typeof(string))
+            {
+                BindComplexProperty(
+                    configuration,
+                    instance,
+                    property,
+                    propertyPath,
+                    options,
+                    errors
+                );
             }
         }
     }
@@ -339,33 +278,11 @@ public static class EnhancedConfigurationBinder
         List<BindingError> errors
     )
     {
-        if (IsCollectionType(property.PropertyType))
+        // Simple values and collections are handled by the caller, so this is always a nested object
+        var nestedInstance = GetOrCreateNestedInstance(instance, property, errors);
+        if (nestedInstance != null)
         {
-            BindCollection(configuration, instance, property, propertyPath, options, errors);
-        }
-        else if (IsSimpleType(property.PropertyType))
-        {
-            // Handle simple types
-            if (TryGetValueAtPath(configuration, propertyPath, options.CaseSensitive, out var value))
-            {
-                var convertedValue = ConvertValue(value, property.PropertyType);
-                SetPropertyValue(instance, property, convertedValue);
-            }
-        }
-        else
-        {
-            // Handle complex nested objects
-            var nestedInstance = GetOrCreateNestedInstance(instance, property, errors);
-            if (nestedInstance != null)
-            {
-                BindConfiguration(
-                    configuration,
-                    nestedInstance,
-                    string.Join(":", propertyPath),
-                    options,
-                    errors
-                );
-            }
+            BindConfiguration(configuration, nestedInstance, string.Join(":", propertyPath), options, errors);
         }
     }
 
@@ -1040,11 +957,6 @@ public static class EnhancedConfigurationBinder
         return isRecord;
     }
 
-    private static bool HasInitOnlyProperties(Type type)
-    {
-        return type.GetProperties().Any(p => IsInitOnlyProperty(p));
-    }
-
     private static bool IsInitOnlyProperty(PropertyInfo property)
     {
         return property.SetMethod?.Attributes.HasFlag(MethodAttributes.SpecialName) == true
@@ -1053,9 +965,7 @@ public static class EnhancedConfigurationBinder
 
     private static bool IsRequiredProperty(PropertyInfo property)
     {
-        return property.GetCustomAttribute<RequiredAttribute>() != null
-            || property.GetCustomAttribute<System.ComponentModel.DataAnnotations.RequiredAttribute>()
-                != null;
+        return property.GetCustomAttribute<RequiredAttribute>() != null;
     }
 
     private static object? CreateRecordInstance(
@@ -1172,24 +1082,6 @@ public static class EnhancedConfigurationBinder
         }
     }
 
-    private static object? CreateInitOnlyInstance(
-        Type type,
-        BindingOptions options,
-        List<BindingError> errors
-    )
-    {
-        try
-        {
-            // Create a temporary instance for property discovery
-            return Activator.CreateInstance(type);
-        }
-        catch (Exception ex)
-        {
-            errors.Add(new BindingError($"Failed to create init-only instance: {ex.Message}", string.Empty));
-            return null;
-        }
-    }
-
     private static IEnumerable<PropertyInfo> GetBindableProperties(Type type)
     {
         return type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
@@ -1213,7 +1105,8 @@ public static class EnhancedConfigurationBinder
         return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
     }
 
-    // Add this helper method to support non-generic CreateInstance
+    // Records are created through their constructor; other types (including those with init-only
+    // properties, which are set afterwards) through their parameterless constructor
     private static object? CreateInstance(
         Type type,
         BindingOptions options,
@@ -1224,26 +1117,20 @@ public static class EnhancedConfigurationBinder
         {
             return CreateRecordInstance(type, options, errors);
         }
-        else if (HasInitOnlyProperties(type))
+
+        try
         {
-            return CreateInitOnlyInstance(type, options, errors);
+            return Activator.CreateInstance(type);
         }
-        else
+        catch (Exception ex)
         {
-            try
-            {
-                return Activator.CreateInstance(type);
-            }
-            catch (Exception ex)
-            {
-                errors.Add(
-                    new BindingError(
-                        $"Failed to create instance of type '{type.Name}': {ex.Message}",
-                        string.Empty
-                    )
-                );
-                return null;
-            }
+            errors.Add(
+                new BindingError(
+                    $"Failed to create instance of type '{type.Name}': {ex.Message}",
+                    string.Empty
+                )
+            );
+            return null;
         }
     }
 }

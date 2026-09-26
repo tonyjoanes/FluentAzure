@@ -69,7 +69,7 @@ var config = await FluentConfig
 | `KeyMapper` | `Func<string, string>` | `Replace("--", ":")` | Function to transform secret names to config keys |
 | `SecretVersion` | `string?` | `null` | Specific secret version to retrieve |
 | `SecretNamePrefix` | `string?` | `null` | Prefix filter for secret names |
-| `ReloadFailedSecrets` | `bool` | `true` | Reserved; currently has no effect |
+| `ReloadFailedSecrets` | `bool` | `true` | Obsolete; has no effect, because every reload fetches all secrets. Will be removed in 1.0 |
 | `OperationTimeout` | `TimeSpan` | `30 seconds` | Timeout for Key Vault operations |
 | `MaxConcurrentSecretLoads` | `int` | `8` | Maximum secrets fetched concurrently during a load, to stay under Key Vault throttling limits |
 

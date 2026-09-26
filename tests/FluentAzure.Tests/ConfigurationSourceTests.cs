@@ -247,6 +247,43 @@ public class ConfigurationSourceTests
         }
 
         [Fact]
+        public async Task LoadAsync_WithNestedJson_ShouldAlsoExposeColonKeys()
+        {
+            // Arrange
+            var filePath = Path.Combine(_testDirectory, "nested.json");
+            await File.WriteAllTextAsync(filePath, """{ "ConnectionStrings": { "Default": "Server=db" }, "Hosts": ["a"] }""");
+            var source = new JsonFileSource(filePath);
+
+            // Act
+            var result = await source.LoadAsync();
+
+            // Assert
+            result.Value.Should().Contain("ConnectionStrings:Default", "Server=db");
+            result.Value.Should().Contain("ConnectionStrings__Default", "Server=db");
+            result.Value.Should().Contain("Hosts:0", "a");
+            source.GetValue("connectionstrings:default").Should().Be("Server=db", "keys are case-insensitive");
+        }
+
+        [Fact]
+        public async Task BuildAsync_WithRequiredColonKeyFromJson_ShouldSucceed()
+        {
+            // Arrange
+            var filePath = Path.Combine(_testDirectory, "required.json");
+            await File.WriteAllTextAsync(filePath, """{ "ConnectionStrings": { "Default": "Server=db" } }""");
+
+            // Act
+            var result = await FluentConfig
+                .Create()
+                .FromJsonFile(filePath)
+                .Required("ConnectionStrings:Default")
+                .Required("ConnectionStrings__Default")
+                .BuildAsync();
+
+            // Assert
+            result.IsSuccess.Should().BeTrue(result.IsFailure ? string.Join("; ", result.Errors) : string.Empty);
+        }
+
+        [Fact]
         public async Task LoadAsync_WithEmptyJsonFile_ShouldReturnEmptyConfiguration()
         {
             // Arrange

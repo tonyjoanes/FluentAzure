@@ -87,7 +87,6 @@ public class KeyVaultSourceTests
         config.MaxRetryDelay.Should().Be(TimeSpan.FromSeconds(30));
         config.CacheDuration.Should().Be(TimeSpan.FromMinutes(5));
         config.ContinueOnSecretFailure.Should().BeTrue();
-        config.ReloadFailedSecrets.Should().BeTrue();
         config.OperationTimeout.Should().Be(TimeSpan.FromSeconds(30));
         config.KeyMapper.Should().NotBeNull();
         config.KeyMapper("test--key").Should().Be("test:key");

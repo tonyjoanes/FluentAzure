@@ -11,6 +11,8 @@ using WebApi.Example.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure FluentAzure with strongly-typed configuration
+// Required keys match the WebApiConfiguration properties they bind to. In Key Vault, name the
+// secrets with "--" instead of ":" (e.g. Database--ConnectionString).
 var buildResult = await FluentConfig
     .Create()
     .FromJsonFile("appsettings.json")
@@ -19,9 +21,9 @@ var buildResult = await FluentConfig
         builder.Configuration["KeyVault:Url"]
             ?? throw new InvalidOperationException("The KeyVault:Url setting is required.")
     )
-    .Required("ConnectionStrings:DefaultConnection")
-    .Required("ConnectionStrings:StorageConnection")
-    .Required("ConnectionStrings:ServiceBusConnection")
+    .Required("Database:ConnectionString")
+    .Required("Storage:ConnectionString")
+    .Required("ServiceBus:ConnectionString")
     .Required("Jwt:SecretKey")
     .Required("Jwt:Issuer")
     .Required("Jwt:Audience")

@@ -8,7 +8,8 @@ using FluentAzure.Core;
 namespace FluentAzure.Sources;
 
 /// <summary>
-/// Configuration source that loads values from JSON files.
+/// Configuration source that loads values from JSON files. Nested values are flattened to "__"-separated
+/// keys (e.g. <c>ConnectionStrings__Default</c>) and also exposed under their ":" form.
 /// </summary>
 public class JsonFileSource : IConfigurationSource
 {
@@ -44,7 +45,7 @@ public class JsonFileSource : IConfigurationSource
             {
                 if (_optional)
                 {
-                    _values = new Dictionary<string, string>();
+                    _values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                     return Result<Dictionary<string, string>>.Success(_values);
                 }
                 else
@@ -58,12 +59,24 @@ public class JsonFileSource : IConfigurationSource
             var jsonContent = await File.ReadAllTextAsync(_filePath).ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(jsonContent))
             {
-                _values = new Dictionary<string, string>();
+                _values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 return Result<Dictionary<string, string>>.Success(_values);
             }
 
-            var jsonDocument = JsonDocument.Parse(jsonContent);
-            _values = FlattenJsonDocument(jsonDocument.RootElement);
+            using var jsonDocument = JsonDocument.Parse(jsonContent);
+            var values = new Dictionary<string, string>(
+                FlattenJsonDocument(jsonDocument.RootElement),
+                StringComparer.OrdinalIgnoreCase
+            );
+
+            // Also expose each "A__B" key as "A:B", as EnvironmentSource does, so Required("A:B") and
+            // the other ":" lookups find nested JSON values
+            foreach (var kvp in values.Where(kvp => kvp.Key.Contains("__", StringComparison.Ordinal)).ToList())
+            {
+                values.TryAdd(kvp.Key.Replace("__", ":", StringComparison.Ordinal), kvp.Value);
+            }
+
+            _values = values;
 
             return Result<Dictionary<string, string>>.Success(_values);
         }
