@@ -40,14 +40,14 @@
     <!-- Version Management using explicit constants -->
     <!-- Version is managed in src/FluentAzure/Version.cs -->
     <!-- Assembly version (major.minor.0.0 for compatibility) -->
-    <AssemblyVersion>0.2.0.0</AssemblyVersion>
+    <AssemblyVersion>0.3.0.0</AssemblyVersion>
     <!-- File version (full version for debugging) -->
-    <FileVersion>0.2.0.0</FileVersion>
+    <FileVersion>0.3.0.0</FileVersion>
     <!-- Informational version (full version with metadata) -->
-    <InformationalVersion>0.2.0-rc.5</InformationalVersion>
+    <InformationalVersion>0.3.0-rc.1</InformationalVersion>
     <!-- Package version -->
-    <Version>0.2.0-rc.5</Version>
-    <PackageVersion>0.2.0-rc.5</PackageVersion>
+    <Version>0.3.0-rc.1</Version>
+    <PackageVersion>0.3.0-rc.1</PackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <!-- Essential code analysis packages -->

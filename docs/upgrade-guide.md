@@ -1,4 +1,4 @@
-# Upgrade Guide: 0.2.0-rc.5 → next release
+# Upgrade Guide: 0.2.0-rc.5 → 0.3.0-rc.1
 
 Most applications upgrade without code changes. This page lists the changes that can affect existing code, and the new recommended setup. The full list is in the [changelog](../CHANGELOG.md).
 
