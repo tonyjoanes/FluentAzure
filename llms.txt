@@ -8,6 +8,7 @@ Key APIs: `FluentConfig.Create()` returns a `FluentAzure.Core.ConfigurationBuild
 
 - [README](https://github.com/tonyjoanes/FluentAzure/blob/main/README.md): installation, usage patterns, IConfiguration integration, identity, redaction, observability, AOT
 - [IConfiguration integration](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/configuration-integration.md): AddFluentAzure/AddFluentAzureAsync, reload into IOptionsMonitor, AddFluentAzureOptions, Native AOT
+- [Configuration guard](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/configuration-guard.md): AddFluentAzureGuard startup validation, health check and redaction over any IConfiguration, including Microsoft AddAzureAppConfiguration/AddAzureKeyVault
 - [Identity & secrets](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/identity-and-redaction.md): UseManagedIdentity/UseWorkloadIdentity/UseCredential, Sensitive, GetRedactedDebugView
 - [Observability](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/observability.md): OpenTelemetry trace/metric names and tags, health check statuses
 - [App Configuration source](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/app-configuration-source.md): labels, snapshots, Key Vault references, feature flags, sentinel refresh

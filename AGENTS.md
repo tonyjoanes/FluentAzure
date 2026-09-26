@@ -20,6 +20,7 @@ The pipeline enforces required keys, transforms and validations. It can be used 
 | `src/FluentAzure/Core` | `ConfigurationBuilder` (the pipeline), `Result<T>`, `Option<T>`, source interfaces, `PipelineCredential` |
 | `src/FluentAzure/Sources` | Environment, JSON, in-memory, Key Vault and App Configuration sources |
 | `src/FluentAzure/Configuration` | `IConfiguration` provider/source, `FluentAzureHealthCheck` |
+| `src/FluentAzure/Guard` | `ConfigurationGuard`: startup validation, health check and redaction for any `IConfiguration`, including Microsoft's Azure providers |
 | `src/FluentAzure/Binding` | Reflection-based binders (annotated `RequiresUnreferencedCode`/`RequiresDynamicCode`) |
 | `src/FluentAzure/FluentAzureDiagnostics.cs` | OpenTelemetry `ActivitySource`/`Meter` named `FluentAzure` |
 | `src/FluentAzure.Analyzers` | Roslyn analyzers FAZ0001–FAZ0004 (netstandard2.0, Roslyn 4.8), packed into the FluentAzure package |

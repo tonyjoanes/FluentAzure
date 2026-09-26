@@ -38,9 +38,11 @@ These methods can be called before or after `FromKeyVault` / `FromAppConfigurati
 
 | Source | Treated as secret |
 |---|---|
-| Key Vault (`FromKeyVault`) | Every value |
-| App Configuration | Values resolved from Key Vault references |
-| Anything else | Keys you mark with `.Sensitive("Key")` |
+| Key Vault (`FromKeyVault`, or Microsoft's `AddAzureKeyVault`) | Every value |
+| FluentAzure's App Configuration source | Values resolved from Key Vault references |
+| Anything else | Keys you mark with `.Sensitive("Key")` on the pipeline or the [configuration guard](configuration-guard.md) |
+
+`GetRedactedDebugView()` also masks keys and values that look like credentials, whatever their source. See [Configuration guard: Redaction](configuration-guard.md#redaction) for the rules.
 
 ```csharp
 var pipeline = FluentConfig.Create()
@@ -66,7 +68,7 @@ logger.LogDebug("{Config}", builder.Configuration.GetRedactedDebugView("[hidden]
 
 The FAZ0004 analyzer warns wherever `GetDebugView()` is used in a project that uses FluentAzure's provider.
 
-> Redaction only masks keys FluentAzure *knows* are secrets. `FromEnvironment()` loads every environment variable on the machine or in the container, and those are not masked unless you mark them with `.Sensitive(...)`. Avoid dumping the whole configuration in production logs.
+> Redaction masks values FluentAzure knows or can tell are secrets. It can't recognise every secret: an environment variable called `MYAPP_X` holding a token looks like any other value. Mark such keys with `.Sensitive(...)`, and avoid dumping the whole configuration in production logs.
 
 ### What FluentAzure never outputs
 

@@ -72,6 +72,7 @@ var config = configResult.Match(
 
 | You are building… | Use | Docs |
 |---|---|---|
+| An app that already uses Microsoft's `AddAzureAppConfiguration()` / `AddAzureKeyVault()` | The **configuration guard**: `builder.Services.AddFluentAzureGuard(...)` adds fail-fast startup validation, a health check and secret redaction on top of what you have | [Configuration guard](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/configuration-guard.md) |
 | An ASP.NET Core app, Azure Functions (isolated) or a worker service | The **`IConfiguration` provider**: `builder.Configuration.AddFluentAzureAsync(...)` + `AddFluentAzureOptions<T>()`. You get reload, `IOptionsMonitor<T>`, health checks and fail-fast startup | [Configuration integration](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/configuration-integration.md) |
 | A console tool, script or test | The **standalone pipeline**: `FluentConfig.Create()...BuildAsync()` returns a `Result` you can `Match` | [Examples below](#-example-usage-patterns) |
 | A trimmed or Native AOT app | The **provider** + the configuration binding source generator | [Native AOT](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/configuration-integration.md#native-aot) |
@@ -314,6 +315,7 @@ A missing required key stops startup with a `FluentAzureConfigurationException` 
 
 | Topic | Page |
 |---|---|
+| Configuration guard: startup validation, health check and redaction for any provider | [docs/configuration-guard.md](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/configuration-guard.md) |
 | `IConfiguration` provider, reload, options, AOT | [docs/configuration-integration.md](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/configuration-integration.md) |
 | Azure App Configuration | [docs/app-configuration-source.md](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/app-configuration-source.md) |
 | Azure Key Vault | [docs/key-vault-configuration-source.md](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/key-vault-configuration-source.md) |

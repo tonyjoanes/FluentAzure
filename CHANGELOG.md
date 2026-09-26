@@ -6,6 +6,10 @@ Upgrading from 0.2.0-rc.5 to 0.3.0-rc.1? See the [upgrade guide](docs/upgrade-gu
 
 ## [Unreleased]
 
+### Added
+
+- **Configuration guard:** `services.AddFluentAzureGuard(g => g.Required(...).Validate(...).Sensitive(...))` validates the application's final `IConfiguration` at host startup, whichever providers supplied it, including Microsoft's `AddAzureAppConfiguration()` and `AddAzureKeyVault()`. Startup fails with every failure listed by key, never by value. `AddHealthChecks().AddFluentAzureGuard()` re-runs the rules after reloads, and `ConfigurationGuard.Check()` / `ThrowIfInvalid()` work without a host. [Docs](docs/configuration-guard.md)
+
 ### Fixed
 
 - **`InMemorySource` keys:** `ContainsKey`, `GetValue` and `LoadAsync()` matched keys case-sensitively, unlike every other source. They now ignore case. The source still reads the dictionary it was given, so later changes to it are visible.
@@ -13,6 +17,7 @@ Upgrading from 0.2.0-rc.5 to 0.3.0-rc.1? See the [upgrade guide](docs/upgrade-gu
 
 ### Changed
 
+- **Redaction:** `GetRedactedDebugView()` now also masks values from Microsoft's Key Vault provider, keys that look like credentials (`...Password`, `...Secret`, `...Token`, anything under `ConnectionStrings`) and values that look like credentials (connection strings with a key or password, SAS signatures, PEM keys). Previously only values FluentAzure loaded itself were masked.
 - **Build:** the public API is tracked with `Microsoft.CodeAnalysis.PublicApiAnalyzers` (`src/FluentAzure/PublicAPI.*.txt`), and `dotnet pack` runs package validation.
 
 ## [0.3.0-rc.1] - 2026-09-26

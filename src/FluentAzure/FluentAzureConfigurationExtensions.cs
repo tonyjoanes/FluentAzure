@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using FluentAzure.Configuration;
 using FluentAzure.Core;
+using FluentAzure.Guard;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -132,23 +133,90 @@ public static class FluentAzureConfigurationExtensions
     }
 
     /// <summary>
-    /// Produces the same output as <c>GetDebugView()</c>, but masks values that FluentAzure knows are
-    /// secrets (loaded from Key Vault, resolved from Key Vault references, or marked with
-    /// <c>Sensitive()</c>). Use this instead of <c>GetDebugView()</c> when logging configuration.
+    /// Produces the same output as <c>GetDebugView()</c>, but masks secret values. A value is masked when:
+    /// <list type="bullet">
+    /// <item>FluentAzure knows it is a secret (loaded from Key Vault, resolved from a Key Vault reference,
+    /// or marked with <c>Sensitive()</c> on a pipeline);</item>
+    /// <item>it came from Microsoft's Key Vault provider (<c>AddAzureKeyVault()</c>);</item>
+    /// <item>its key looks like a credential (e.g. <c>Jwt:SecretKey</c>, <c>Db:Password</c>, anything under
+    /// <c>ConnectionStrings</c>); or</item>
+    /// <item>the value looks like one (a connection string with a key or password, a SAS signature, a PEM key).</item>
+    /// </list>
+    /// Use this instead of <c>GetDebugView()</c> when logging configuration.
     /// </summary>
     /// <param name="root">The configuration root.</param>
     /// <param name="mask">The text shown in place of secret values.</param>
     /// <returns>A human-readable view of the configuration with secrets masked.</returns>
-    public static string GetRedactedDebugView(this IConfigurationRoot root, string mask = "***")
-    {
-        ArgumentNullException.ThrowIfNull(root);
-        ArgumentNullException.ThrowIfNull(mask);
+    public static string GetRedactedDebugView(this IConfigurationRoot root, string mask = "***") =>
+        ConfigurationRedaction.GetRedactedDebugView(root, guard: null, mask);
 
-        return root.GetDebugView(context =>
-            context.ConfigurationProvider is FluentAzureConfigurationProvider provider
-            && provider.IsSensitive(context.Path)
-                ? mask
-                : context.Value ?? string.Empty
+    /// <summary>
+    /// Registers a <see cref="ConfigurationGuard"/> that checks the application's final configuration when
+    /// the host starts, whichever providers supplied it (Microsoft's Azure App Configuration and Key Vault
+    /// providers, JSON, environment variables or FluentAzure's own). If any rule fails, startup stops with an
+    /// <see cref="OptionsValidationException"/> listing every failure by key, never by value.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">Declares required keys, value rules and sensitive keys.</param>
+    /// <returns>The service collection, for chaining.</returns>
+    /// <example>
+    /// <code>
+    /// builder.Services.AddFluentAzureGuard(guard => guard
+    ///     .Required("Database:ConnectionString", "Jwt:SecretKey")
+    ///     .Validate("Jwt:SecretKey", v => v.Length >= 32, "must be at least 32 characters")
+    ///     .Sensitive("Payments:*"));
+    /// </code>
+    /// </example>
+    public static IServiceCollection AddFluentAzureGuard(
+        this IServiceCollection services,
+        Action<ConfigurationGuardOptions> configure
+    )
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        var options = new ConfigurationGuardOptions();
+        configure(options);
+        var guard = new ConfigurationGuard(options);
+
+        services.AddSingleton(guard);
+        services.AddSingleton<IValidateOptions<ConfigurationGuardStartupCheck>>(sp =>
+            new ConfigurationGuardStartupValidator(guard, sp.GetRequiredService<IConfiguration>())
+        );
+        services.AddOptions<ConfigurationGuardStartupCheck>().ValidateOnStart();
+        return services;
+    }
+
+    /// <summary>
+    /// Adds a health check that re-runs the rules registered with <c>AddFluentAzureGuard()</c> against the
+    /// current configuration, so a reload that removes a required key or brings in an invalid value is
+    /// reported. It does not call Azure.
+    /// </summary>
+    /// <param name="builder">The health checks builder.</param>
+    /// <param name="name">The health check name.</param>
+    /// <param name="failureStatus">The status reported on failure. Defaults to Unhealthy.</param>
+    /// <param name="tags">Optional tags, e.g. "ready", to filter checks per endpoint.</param>
+    /// <returns>The health checks builder for chaining.</returns>
+    public static IHealthChecksBuilder AddFluentAzureGuard(
+        this IHealthChecksBuilder builder,
+        string name = "fluentazure-guard",
+        HealthStatus? failureStatus = null,
+        IEnumerable<string>? tags = null
+    )
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentException.ThrowIfNullOrEmpty(name);
+
+        return builder.Add(
+            new HealthCheckRegistration(
+                name,
+                sp => new ConfigurationGuardHealthCheck(
+                    sp.GetRequiredService<ConfigurationGuard>(),
+                    sp.GetRequiredService<IConfiguration>()
+                ),
+                failureStatus,
+                tags
+            )
         );
     }
 
