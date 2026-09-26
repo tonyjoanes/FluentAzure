@@ -17,7 +17,7 @@ A fluent, functional, and type-safe NuGet package for Azure configuration and se
 > - Compile-time analyzers.
 > - .NET 10 and Native AOT support.
 >
-> See the [changelog](CHANGELOG.md) and the [upgrade guide](docs/upgrade-guide.md).
+> See the [changelog](https://github.com/tonyjoanes/FluentAzure/blob/main/CHANGELOG.md) and the [upgrade guide](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/upgrade-guide.md).
 
 ## 🎯 Problem This Solves
 
@@ -72,13 +72,13 @@ var config = configResult.Match(
 
 | You are building… | Use | Docs |
 |---|---|---|
-| An ASP.NET Core app, Azure Functions (isolated) or a worker service | The **`IConfiguration` provider**: `builder.Configuration.AddFluentAzureAsync(...)` + `AddFluentAzureOptions<T>()`. You get reload, `IOptionsMonitor<T>`, health checks and fail-fast startup | [Configuration integration](docs/configuration-integration.md) |
+| An ASP.NET Core app, Azure Functions (isolated) or a worker service | The **`IConfiguration` provider**: `builder.Configuration.AddFluentAzureAsync(...)` + `AddFluentAzureOptions<T>()`. You get reload, `IOptionsMonitor<T>`, health checks and fail-fast startup | [Configuration integration](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/configuration-integration.md) |
 | A console tool, script or test | The **standalone pipeline**: `FluentConfig.Create()...BuildAsync()` returns a `Result` you can `Match` | [Examples below](#-example-usage-patterns) |
-| A trimmed or Native AOT app | The **provider** + the configuration binding source generator | [Native AOT](docs/configuration-integration.md#native-aot) |
+| A trimmed or Native AOT app | The **provider** + the configuration binding source generator | [Native AOT](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/configuration-integration.md#native-aot) |
 
 Whichever you choose:
-- **Identity:** pick one identity for Azure with `UseManagedIdentity()`. [Identity & secrets](docs/identity-and-redaction.md)
-- **Where settings live:** put settings and feature flags in App Configuration and secrets in Key Vault. [App Configuration](docs/app-configuration-source.md), [Key Vault](docs/key-vault-configuration-source.md)
+- **Identity:** pick one identity for Azure with `UseManagedIdentity()`. [Identity & secrets](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/identity-and-redaction.md)
+- **Where settings live:** put settings and feature flags in App Configuration and secrets in Key Vault. [App Configuration](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/app-configuration-source.md), [Key Vault](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/key-vault-configuration-source.md)
 
 ## 📦 Installation
 
@@ -86,7 +86,7 @@ Whichever you choose:
 dotnet add package FluentAzure --prerelease
 ```
 
-The current version is shown on the NuGet badge above. The package includes the FluentAzure analyzers (see [docs/analyzers.md](docs/analyzers.md)).
+The current version is shown on the NuGet badge above. The package includes the FluentAzure analyzers (see [docs/analyzers.md](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/analyzers.md)).
 
 ## 🔢 Version Information
 
@@ -167,7 +167,7 @@ await builder.Services.AddFluentAzureAsync<AppSettings>(config => config
 
 Configuration keys are case-insensitive, and environment variables using the standard `__` separator (e.g. `ConnectionStrings__Default`) are also available under their `:` form (`ConnectionStrings:Default`).
 
-> `AddFluentAzure<T>` builds once at startup and registers `T` as a singleton, with no reload. It uses the basic binder, which binds nested objects but not collections or dictionaries. For new code, prefer the provider below with `AddFluentAzureOptions<T>()`. See [Configuration binding](docs/enhanced-configuration-binding.md).
+> `AddFluentAzure<T>` builds once at startup and registers `T` as a singleton, with no reload. It uses the basic binder, which binds nested objects but not collections or dictionaries. For new code, prefer the provider below with `AddFluentAzureOptions<T>()`. See [Configuration binding](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/enhanced-configuration-binding.md).
 
 #### **Microsoft.Extensions.Configuration + IOptionsMonitor (Recommended for ASP.NET Core / Functions)**
 Plug a FluentAzure pipeline into the standard configuration system. Required keys and validations still fail fast at startup, and values become available to `IConfiguration`, `IOptions<T>` and `IOptionsMonitor<T>`:
@@ -206,7 +206,7 @@ var config = await FluentConfig
     .Required("Database:ConnectionString")    // may be a Key Vault reference; resolved automatically
     .BuildAsync();
 ```
-See [docs/app-configuration-source.md](docs/app-configuration-source.md) for all options.
+See [docs/app-configuration-source.md](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/app-configuration-source.md) for all options.
 
 #### **Identity & Secret Redaction**
 Choose one identity for every Azure source in the pipeline (in any order relative to the sources), and keep secrets out of logs:
@@ -256,10 +256,10 @@ IConfigurationRoot configuration = new ConfigurationBuilder()
 
 services.AddOptions<AppOptions>().Bind(configuration.GetSection("App")).ValidateOnStart(); // source-generated
 ```
-See [examples/Aot.Example](examples/Aot.Example). CI publishes it with Native AOT and fails on any trimming or AOT warning.
+See [examples/Aot.Example](https://github.com/tonyjoanes/FluentAzure/tree/main/examples/Aot.Example). CI publishes it with Native AOT and fails on any trimming or AOT warning.
 
 #### **Analyzers**
-The package includes compile-time analyzers ([docs/analyzers.md](docs/analyzers.md)):
+The package includes compile-time analyzers ([docs/analyzers.md](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/analyzers.md)):
 
 - **FAZ0001:** a `Required("key")` that the `BuildAsync<T>()` type never binds (usually a typo).
 - **FAZ0002:** a Key Vault or App Configuration endpoint that isn't HTTPS.
@@ -292,7 +292,7 @@ A missing required key stops startup with a `FluentAzureConfigurationException` 
 
 ### Prerequisites
 - .NET 8 or .NET 10.
-- For Azure sources: an identity with access to your Key Vault and/or App Configuration store. No Azure subscription is needed for environment, JSON or in-memory sources. For local work, the [App Configuration emulator](CONTRIBUTING.md#app-configuration-emulator-tests) runs in Docker.
+- For Azure sources: an identity with access to your Key Vault and/or App Configuration store. No Azure subscription is needed for environment, JSON or in-memory sources. For local work, the [App Configuration emulator](https://github.com/tonyjoanes/FluentAzure/blob/main/CONTRIBUTING.md#app-configuration-emulator-tests) runs in Docker.
 
 ### Quick Start
 1. Install the package: `dotnet add package FluentAzure --prerelease`.
@@ -314,20 +314,20 @@ A missing required key stops startup with a `FluentAzureConfigurationException` 
 
 | Topic | Page |
 |---|---|
-| `IConfiguration` provider, reload, options, AOT | [docs/configuration-integration.md](docs/configuration-integration.md) |
-| Azure App Configuration | [docs/app-configuration-source.md](docs/app-configuration-source.md) |
-| Azure Key Vault | [docs/key-vault-configuration-source.md](docs/key-vault-configuration-source.md) |
-| Identity & secret redaction | [docs/identity-and-redaction.md](docs/identity-and-redaction.md) |
-| OpenTelemetry & health checks | [docs/observability.md](docs/observability.md) |
-| Binding to typed objects | [docs/enhanced-configuration-binding.md](docs/enhanced-configuration-binding.md) |
-| Analyzers FAZ0001–FAZ0004 | [docs/analyzers.md](docs/analyzers.md) |
-| Changelog & upgrading | [CHANGELOG.md](CHANGELOG.md), [docs/upgrade-guide.md](docs/upgrade-guide.md) |
-| Examples | [examples/](examples/README.md) |
-| Security | [SECURITY.md](SECURITY.md) |
+| `IConfiguration` provider, reload, options, AOT | [docs/configuration-integration.md](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/configuration-integration.md) |
+| Azure App Configuration | [docs/app-configuration-source.md](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/app-configuration-source.md) |
+| Azure Key Vault | [docs/key-vault-configuration-source.md](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/key-vault-configuration-source.md) |
+| Identity & secret redaction | [docs/identity-and-redaction.md](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/identity-and-redaction.md) |
+| OpenTelemetry & health checks | [docs/observability.md](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/observability.md) |
+| Binding to typed objects | [docs/enhanced-configuration-binding.md](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/enhanced-configuration-binding.md) |
+| Analyzers FAZ0001–FAZ0004 | [docs/analyzers.md](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/analyzers.md) |
+| Changelog & upgrading | [CHANGELOG.md](https://github.com/tonyjoanes/FluentAzure/blob/main/CHANGELOG.md), [docs/upgrade-guide.md](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/upgrade-guide.md) |
+| Examples | [examples/](https://github.com/tonyjoanes/FluentAzure/blob/main/examples/README.md) |
+| Security | [SECURITY.md](https://github.com/tonyjoanes/FluentAzure/blob/main/SECURITY.md) |
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on:
+We welcome contributions! Please see our [Contributing Guide](https://github.com/tonyjoanes/FluentAzure/blob/main/CONTRIBUTING.md) for details on:
 - Code style and standards
 - Testing requirements
 - Pull request process

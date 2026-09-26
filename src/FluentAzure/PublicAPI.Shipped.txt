@@ -1,0 +1,380 @@
+#nullable enable
+FluentAzure.Binding.BindingError
+FluentAzure.Binding.BindingError.BindingError(string! message, string! propertyPath) -> void
+FluentAzure.Binding.BindingError.Message.get -> string!
+FluentAzure.Binding.BindingError.PropertyPath.get -> string!
+FluentAzure.Binding.BindingOptions
+FluentAzure.Binding.BindingOptions.BindingOptions() -> void
+FluentAzure.Binding.BindingOptions.CaseSensitive.get -> bool
+FluentAzure.Binding.BindingOptions.CaseSensitive.set -> void
+FluentAzure.Binding.BindingOptions.Configuration.get -> System.Collections.Generic.Dictionary<string!, string!>?
+FluentAzure.Binding.BindingOptions.Configuration.set -> void
+FluentAzure.Binding.BindingOptions.EnableValidation.get -> bool
+FluentAzure.Binding.BindingOptions.EnableValidation.set -> void
+FluentAzure.Binding.BindingOptions.IgnoreMissingOptional.get -> bool
+FluentAzure.Binding.BindingOptions.IgnoreMissingOptional.set -> void
+FluentAzure.Binding.BindingOptions.JsonOptions.get -> System.Text.Json.JsonSerializerOptions?
+FluentAzure.Binding.BindingOptions.JsonOptions.set -> void
+FluentAzure.Binding.ConfigurationBinder
+FluentAzure.Binding.EnhancedConfigurationBinder
+FluentAzure.BindingExtensions
+FluentAzure.Configuration.FluentAzureConfigurationException
+FluentAzure.Configuration.FluentAzureConfigurationException.Errors.get -> System.Collections.Generic.IReadOnlyList<string!>!
+FluentAzure.Configuration.FluentAzureConfigurationException.FluentAzureConfigurationException(System.Collections.Generic.IReadOnlyList<string!>! errors) -> void
+FluentAzure.Configuration.FluentAzureConfigurationProvider
+FluentAzure.Configuration.FluentAzureConfigurationProvider.Dispose() -> void
+FluentAzure.Configuration.FluentAzureConfigurationProvider.FluentAzureConfigurationProvider(FluentAzure.Configuration.FluentAzureConfigurationSource! source) -> void
+FluentAzure.Configuration.FluentAzureConfigurationProvider.IsSensitive(string! key) -> bool
+FluentAzure.Configuration.FluentAzureConfigurationProvider.KeyCount.get -> int
+FluentAzure.Configuration.FluentAzureConfigurationProvider.LastLoadAttempt.get -> System.DateTimeOffset?
+FluentAzure.Configuration.FluentAzureConfigurationProvider.LastReloadErrors.get -> System.Collections.Generic.IReadOnlyList<string!>!
+FluentAzure.Configuration.FluentAzureConfigurationProvider.LastSuccessfulLoad.get -> System.DateTimeOffset?
+FluentAzure.Configuration.FluentAzureConfigurationProvider.ReloadAsync() -> System.Threading.Tasks.Task<bool>!
+FluentAzure.Configuration.FluentAzureConfigurationProvider.ReloadInterval.get -> System.TimeSpan?
+FluentAzure.Configuration.FluentAzureConfigurationSource
+FluentAzure.Configuration.FluentAzureConfigurationSource.Build(Microsoft.Extensions.Configuration.IConfigurationBuilder! builder) -> Microsoft.Extensions.Configuration.IConfigurationProvider!
+FluentAzure.Configuration.FluentAzureConfigurationSource.FluentAzureConfigurationSource(FluentAzure.Core.ConfigurationBuilder! pipeline) -> void
+FluentAzure.Configuration.FluentAzureConfigurationSource.OnReloadError.get -> System.Action<System.Collections.Generic.IReadOnlyList<string!>!>?
+FluentAzure.Configuration.FluentAzureConfigurationSource.OnReloadError.set -> void
+FluentAzure.Configuration.FluentAzureConfigurationSource.Pipeline.get -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Configuration.FluentAzureConfigurationSource.ReloadInterval.get -> System.TimeSpan?
+FluentAzure.Configuration.FluentAzureConfigurationSource.ReloadInterval.set -> void
+FluentAzure.Configuration.FluentAzureHealthCheck
+FluentAzure.Configuration.FluentAzureHealthCheck.CheckHealthAsync(Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckContext! context, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult>!
+FluentAzure.Configuration.FluentAzureHealthCheck.FluentAzureHealthCheck(Microsoft.Extensions.Configuration.IConfiguration! configuration, System.TimeSpan? staleAfter = null) -> void
+FluentAzure.Core.ConfigurationBuilder
+FluentAzure.Core.ConfigurationBuilder.AddSource(FluentAzure.Core.IConfigurationSource! source) -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.ConfigurationBuilder.BuildAsync() -> System.Threading.Tasks.Task<FluentAzure.Core.Result<System.Collections.Generic.Dictionary<string!, string!>!>>!
+FluentAzure.Core.ConfigurationBuilder.BuildAsync<T>() -> System.Threading.Tasks.Task<FluentAzure.Core.Result<T!>>!
+FluentAzure.Core.ConfigurationBuilder.BuildOptionalAsync() -> System.Threading.Tasks.Task<FluentAzure.Core.Option<System.Collections.Generic.Dictionary<string!, string!>!>>!
+FluentAzure.Core.ConfigurationBuilder.BuildOptionalAsync<T>() -> System.Threading.Tasks.Task<FluentAzure.Core.Option<T!>>!
+FluentAzure.Core.ConfigurationBuilder.ConfigurationBuilder() -> void
+FluentAzure.Core.ConfigurationBuilder.Credential.get -> Azure.Core.TokenCredential!
+FluentAzure.Core.ConfigurationBuilder.FromAppConfiguration(string! endpointOrConnectionString, System.Action<FluentAzure.Sources.AppConfigurationOptions!>? configure = null, int priority = 150) -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.ConfigurationBuilder.FromEnvironment(int priority = 100) -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.ConfigurationBuilder.FromJsonFile(string! filePath, int priority = 50, bool optional = false) -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.ConfigurationBuilder.FromKeyVault(string! vaultUrl, int priority = 200) -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.ConfigurationBuilder.IsSensitive(string! key) -> bool
+FluentAzure.Core.ConfigurationBuilder.Optional(string! key) -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.ConfigurationBuilder.Optional(string! key, string! defaultValue) -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.ConfigurationBuilder.Optional<T>(string! key, T defaultValue) -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.ConfigurationBuilder.Required(string! key) -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.ConfigurationBuilder.Required<T>(string! key) -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.ConfigurationBuilder.Sensitive(params string![]! keys) -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.ConfigurationBuilder.Transform(System.Func<System.Collections.Generic.Dictionary<string!, string!>!, System.Threading.Tasks.Task<FluentAzure.Core.Result<System.Collections.Generic.Dictionary<string!, string!>!>>!>! transform) -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.ConfigurationBuilder.Transform(string! key, System.Func<string!, FluentAzure.Core.Result<string!>>! transform) -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.ConfigurationBuilder.TransformOptional(string! key, System.Func<string!, FluentAzure.Core.Option<string!>>! transform) -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.ConfigurationBuilder.TransformWithFallback(string! key, System.Func<string!, FluentAzure.Core.Option<string!>>! transform, string! fallback) -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.ConfigurationBuilder.UseCredential(Azure.Core.TokenCredential! credential) -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.ConfigurationBuilder.UseManagedIdentity(string? clientId = null) -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.ConfigurationBuilder.UseWorkloadIdentity() -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.ConfigurationBuilder.Validate(System.Func<System.Collections.Generic.Dictionary<string!, string!>!, string?>! validate) -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.ConfigurationBuilder.Validate(string! key, System.Func<string!, FluentAzure.Core.Result<string!>>! validate) -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.ConfigurationBuilder.ValidateOptional(string! key, System.Func<string!, FluentAzure.Core.Option<string!>>! validator) -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.ConfigurationBuilder.ValidateOptional(string! key, System.Func<string!, bool>! predicate, string! errorMessage) -> FluentAzure.Core.ConfigurationBuilder!
+FluentAzure.Core.IConfigurationSource
+FluentAzure.Core.IConfigurationSource.ContainsKey(string! key) -> bool
+FluentAzure.Core.IConfigurationSource.GetValue(string! key) -> string?
+FluentAzure.Core.IConfigurationSource.LoadAsync() -> System.Threading.Tasks.Task<FluentAzure.Core.Result<System.Collections.Generic.Dictionary<string!, string!>!>>!
+FluentAzure.Core.IConfigurationSource.Name.get -> string!
+FluentAzure.Core.IConfigurationSource.Priority.get -> int
+FluentAzure.Core.IReloadableConfigurationSource
+FluentAzure.Core.IReloadableConfigurationSource.ReloadAsync() -> System.Threading.Tasks.Task<FluentAzure.Core.Result<System.Collections.Generic.Dictionary<string!, string!>!>>!
+FluentAzure.Core.ISensitiveConfigurationSource
+FluentAzure.Core.ISensitiveConfigurationSource.IsSensitive(string! key) -> bool
+FluentAzure.Core.Option
+FluentAzure.Core.Option<T>
+FluentAzure.Core.Option<T>.Bind<TResult>(System.Func<T, FluentAzure.Core.Option<TResult>>! binder) -> FluentAzure.Core.Option<TResult>
+FluentAzure.Core.Option<T>.Do(System.Action<T>! action) -> FluentAzure.Core.Option<T>
+FluentAzure.Core.Option<T>.Equals(FluentAzure.Core.Option<T> other) -> bool
+FluentAzure.Core.Option<T>.Filter(System.Func<T, bool>! predicate) -> FluentAzure.Core.Option<T>
+FluentAzure.Core.Option<T>.FlatMap<TResult>(System.Func<T, FluentAzure.Core.Option<TResult>>! binder) -> FluentAzure.Core.Option<TResult>
+FluentAzure.Core.Option<T>.GetValueOrDefault(System.Func<T>! defaultFactory) -> T
+FluentAzure.Core.Option<T>.GetValueOrDefault(T defaultValue) -> T
+FluentAzure.Core.Option<T>.HasValue.get -> bool
+FluentAzure.Core.Option<T>.IsNone.get -> bool
+FluentAzure.Core.Option<T>.Map<TResult>(System.Func<T, TResult>! mapper) -> FluentAzure.Core.Option<TResult>
+FluentAzure.Core.Option<T>.Match(System.Action<T>! some, System.Action! none) -> void
+FluentAzure.Core.Option<T>.Match<TResult>(System.Func<T, TResult>! some, System.Func<TResult>! none) -> TResult
+FluentAzure.Core.Option<T>.Option() -> void
+FluentAzure.Core.Option<T>.Or(FluentAzure.Core.Option<T> alternative) -> FluentAzure.Core.Option<T>
+FluentAzure.Core.Option<T>.Or(System.Func<FluentAzure.Core.Option<T>>! alternativeFactory) -> FluentAzure.Core.Option<T>
+FluentAzure.Core.Option<T>.Tap(System.Action<T>! action) -> FluentAzure.Core.Option<T>
+FluentAzure.Core.Option<T>.ToEnumerable() -> System.Collections.Generic.IEnumerable<T>!
+FluentAzure.Core.Option<T>.ToNullable() -> T?
+FluentAzure.Core.Option<T>.ToResult(System.Func<string!>! errorFactory) -> FluentAzure.Core.Result<T>
+FluentAzure.Core.Option<T>.ToResult(string! errorMessage) -> FluentAzure.Core.Result<T>
+FluentAzure.Core.Option<T>.Value.get -> T
+FluentAzure.Core.Option<T>.Where(System.Func<T, bool>! predicate) -> FluentAzure.Core.Option<T>
+FluentAzure.Core.Result
+FluentAzure.Core.Result<T>
+FluentAzure.Core.Result<T>.Bind<TResult>(System.Func<T, FluentAzure.Core.Result<TResult>>! transform) -> FluentAzure.Core.Result<TResult>
+FluentAzure.Core.Result<T>.Combine<TOther, TResult>(FluentAzure.Core.Result<TOther> other, System.Func<T, TOther, TResult>! combiner) -> FluentAzure.Core.Result<TResult>
+FluentAzure.Core.Result<T>.Equals(FluentAzure.Core.Result<T> other) -> bool
+FluentAzure.Core.Result<T>.Errors.get -> System.Collections.Generic.IReadOnlyList<string!>!
+FluentAzure.Core.Result<T>.IsFailure.get -> bool
+FluentAzure.Core.Result<T>.IsSuccess.get -> bool
+FluentAzure.Core.Result<T>.Map<TResult>(System.Func<T, TResult>! transform) -> FluentAzure.Core.Result<TResult>
+FluentAzure.Core.Result<T>.Match(System.Action<T>! onSuccess, System.Action<System.Collections.Generic.IReadOnlyList<string!>!>! onFailure) -> void
+FluentAzure.Core.Result<T>.Match<TResult>(System.Func<T, TResult>! onSuccess, System.Func<System.Collections.Generic.IReadOnlyList<string!>!, TResult>! onFailure) -> TResult
+FluentAzure.Core.Result<T>.Result() -> void
+FluentAzure.Core.Result<T>.Value.get -> T
+FluentAzure.Extensions.BindingExtensions
+FluentAzure.Extensions.ConfigurationExtensions
+FluentAzure.Extensions.KeyVaultExtensions
+FluentAzure.Extensions.OptionExtensions
+FluentAzure.Extensions.ServiceCollectionExtensions
+FluentAzure.Extensions.TryParse<T>
+FluentAzure.Extensions.TypeExtensions
+FluentAzure.FluentAzureConfigurationExtensions
+FluentAzure.FluentAzureDiagnostics
+FluentAzure.FluentConfig
+FluentAzure.Sources.AppConfigurationOptions
+FluentAzure.Sources.AppConfigurationOptions.AppConfigurationOptions() -> void
+FluentAzure.Sources.AppConfigurationOptions.Credential.get -> Azure.Core.TokenCredential?
+FluentAzure.Sources.AppConfigurationOptions.Credential.set -> void
+FluentAzure.Sources.AppConfigurationOptions.IncludeFeatureFlags.get -> bool
+FluentAzure.Sources.AppConfigurationOptions.IncludeFeatureFlags.set -> void
+FluentAzure.Sources.AppConfigurationOptions.KeyFilter.get -> string!
+FluentAzure.Sources.AppConfigurationOptions.KeyFilter.set -> void
+FluentAzure.Sources.AppConfigurationOptions.Labels.get -> System.Collections.Generic.IList<string!>!
+FluentAzure.Sources.AppConfigurationOptions.MaxConcurrentSecretResolutions.get -> int
+FluentAzure.Sources.AppConfigurationOptions.MaxConcurrentSecretResolutions.set -> void
+FluentAzure.Sources.AppConfigurationOptions.ResolveKeyVaultReferences.get -> bool
+FluentAzure.Sources.AppConfigurationOptions.ResolveKeyVaultReferences.set -> void
+FluentAzure.Sources.AppConfigurationOptions.SecretClientFactory.get -> System.Func<System.Uri!, Azure.Security.KeyVault.Secrets.SecretClient!>?
+FluentAzure.Sources.AppConfigurationOptions.SecretClientFactory.set -> void
+FluentAzure.Sources.AppConfigurationOptions.SentinelKey.get -> string?
+FluentAzure.Sources.AppConfigurationOptions.SentinelKey.set -> void
+FluentAzure.Sources.AppConfigurationOptions.SentinelLabel.get -> string?
+FluentAzure.Sources.AppConfigurationOptions.SentinelLabel.set -> void
+FluentAzure.Sources.AppConfigurationOptions.SnapshotName.get -> string?
+FluentAzure.Sources.AppConfigurationOptions.SnapshotName.set -> void
+FluentAzure.Sources.AppConfigurationOptions.TrimKeyPrefixes.get -> System.Collections.Generic.IList<string!>!
+FluentAzure.Sources.AppConfigurationSource
+FluentAzure.Sources.AppConfigurationSource.AppConfigurationSource(Azure.Data.AppConfiguration.ConfigurationClient! client, FluentAzure.Sources.AppConfigurationOptions? options = null, int priority = 150, Microsoft.Extensions.Logging.ILogger? logger = null) -> void
+FluentAzure.Sources.AppConfigurationSource.AppConfigurationSource(System.Uri! endpoint, FluentAzure.Sources.AppConfigurationOptions? options = null, int priority = 150, Microsoft.Extensions.Logging.ILogger? logger = null) -> void
+FluentAzure.Sources.AppConfigurationSource.AppConfigurationSource(string! connectionString, FluentAzure.Sources.AppConfigurationOptions? options = null, int priority = 150, Microsoft.Extensions.Logging.ILogger? logger = null) -> void
+FluentAzure.Sources.AppConfigurationSource.ContainsKey(string! key) -> bool
+FluentAzure.Sources.AppConfigurationSource.GetValue(string! key) -> string?
+FluentAzure.Sources.AppConfigurationSource.IsSensitive(string! key) -> bool
+FluentAzure.Sources.AppConfigurationSource.LoadAsync() -> System.Threading.Tasks.Task<FluentAzure.Core.Result<System.Collections.Generic.Dictionary<string!, string!>!>>!
+FluentAzure.Sources.AppConfigurationSource.Name.get -> string!
+FluentAzure.Sources.AppConfigurationSource.Priority.get -> int
+FluentAzure.Sources.AppConfigurationSource.ReloadAsync() -> System.Threading.Tasks.Task<FluentAzure.Core.Result<System.Collections.Generic.Dictionary<string!, string!>!>>!
+FluentAzure.Sources.EnvironmentSource
+FluentAzure.Sources.EnvironmentSource.ContainsKey(string! key) -> bool
+FluentAzure.Sources.EnvironmentSource.EnvironmentSource(int priority = 100) -> void
+FluentAzure.Sources.EnvironmentSource.GetValue(string! key) -> string?
+FluentAzure.Sources.EnvironmentSource.LoadAsync() -> System.Threading.Tasks.Task<FluentAzure.Core.Result<System.Collections.Generic.Dictionary<string!, string!>!>>!
+FluentAzure.Sources.EnvironmentSource.Name.get -> string!
+FluentAzure.Sources.EnvironmentSource.Priority.get -> int
+FluentAzure.Sources.EnvironmentSource.ReloadAsync() -> System.Threading.Tasks.Task<FluentAzure.Core.Result<System.Collections.Generic.Dictionary<string!, string!>!>>!
+FluentAzure.Sources.InMemorySource
+FluentAzure.Sources.InMemorySource.ContainsKey(string! key) -> bool
+FluentAzure.Sources.InMemorySource.GetValue(string! key) -> string?
+FluentAzure.Sources.InMemorySource.InMemorySource(System.Collections.Generic.Dictionary<string!, string!>! values, int priority = 1000) -> void
+FluentAzure.Sources.InMemorySource.LoadAsync() -> System.Threading.Tasks.Task<FluentAzure.Core.Result<System.Collections.Generic.Dictionary<string!, string!>!>>!
+FluentAzure.Sources.InMemorySource.Name.get -> string!
+FluentAzure.Sources.InMemorySource.Priority.get -> int
+FluentAzure.Sources.JsonFileSource
+FluentAzure.Sources.JsonFileSource.ContainsKey(string! key) -> bool
+FluentAzure.Sources.JsonFileSource.GetValue(string! key) -> string?
+FluentAzure.Sources.JsonFileSource.JsonFileSource(string! filePath, int priority = 50, bool optional = false) -> void
+FluentAzure.Sources.JsonFileSource.LoadAsync() -> System.Threading.Tasks.Task<FluentAzure.Core.Result<System.Collections.Generic.Dictionary<string!, string!>!>>!
+FluentAzure.Sources.JsonFileSource.Name.get -> string!
+FluentAzure.Sources.JsonFileSource.Priority.get -> int
+FluentAzure.Sources.KeyVaultConfiguration
+FluentAzure.Sources.KeyVaultConfiguration.BaseRetryDelay.get -> System.TimeSpan
+FluentAzure.Sources.KeyVaultConfiguration.BaseRetryDelay.set -> void
+FluentAzure.Sources.KeyVaultConfiguration.CacheDuration.get -> System.TimeSpan
+FluentAzure.Sources.KeyVaultConfiguration.CacheDuration.set -> void
+FluentAzure.Sources.KeyVaultConfiguration.ContinueOnSecretFailure.get -> bool
+FluentAzure.Sources.KeyVaultConfiguration.ContinueOnSecretFailure.set -> void
+FluentAzure.Sources.KeyVaultConfiguration.Credential.get -> Azure.Core.TokenCredential?
+FluentAzure.Sources.KeyVaultConfiguration.Credential.set -> void
+FluentAzure.Sources.KeyVaultConfiguration.KeyMapper.get -> System.Func<string!, string!>!
+FluentAzure.Sources.KeyVaultConfiguration.KeyMapper.set -> void
+FluentAzure.Sources.KeyVaultConfiguration.KeyVaultConfiguration() -> void
+FluentAzure.Sources.KeyVaultConfiguration.MaxConcurrentSecretLoads.get -> int
+FluentAzure.Sources.KeyVaultConfiguration.MaxConcurrentSecretLoads.set -> void
+FluentAzure.Sources.KeyVaultConfiguration.MaxRetryAttempts.get -> int
+FluentAzure.Sources.KeyVaultConfiguration.MaxRetryAttempts.set -> void
+FluentAzure.Sources.KeyVaultConfiguration.MaxRetryDelay.get -> System.TimeSpan
+FluentAzure.Sources.KeyVaultConfiguration.MaxRetryDelay.set -> void
+FluentAzure.Sources.KeyVaultConfiguration.OperationTimeout.get -> System.TimeSpan
+FluentAzure.Sources.KeyVaultConfiguration.OperationTimeout.set -> void
+FluentAzure.Sources.KeyVaultConfiguration.ReloadFailedSecrets.get -> bool
+FluentAzure.Sources.KeyVaultConfiguration.ReloadFailedSecrets.set -> void
+FluentAzure.Sources.KeyVaultConfiguration.SecretNamePrefix.get -> string?
+FluentAzure.Sources.KeyVaultConfiguration.SecretNamePrefix.set -> void
+FluentAzure.Sources.KeyVaultConfiguration.SecretVersion.get -> string?
+FluentAzure.Sources.KeyVaultConfiguration.SecretVersion.set -> void
+FluentAzure.Sources.KeyVaultSource
+FluentAzure.Sources.KeyVaultSource.CacheStatistics.get -> System.Collections.Generic.Dictionary<string!, object!>!
+FluentAzure.Sources.KeyVaultSource.ClearCache() -> void
+FluentAzure.Sources.KeyVaultSource.Dispose() -> void
+FluentAzure.Sources.KeyVaultSource.IsDisposed.get -> bool
+FluentAzure.Sources.KeyVaultSource.IsSensitive(string! key) -> bool
+FluentAzure.Sources.KeyVaultSource.KeyVaultSource(Azure.Security.KeyVault.Secrets.SecretClient! client, FluentAzure.Sources.KeyVaultConfiguration? configuration = null, int priority = 200, Microsoft.Extensions.Logging.ILogger? logger = null) -> void
+FluentAzure.Sources.KeyVaultSource.KeyVaultSource(string! vaultUrl, FluentAzure.Sources.KeyVaultConfiguration! configuration, int priority = 200, Microsoft.Extensions.Logging.ILogger? logger = null) -> void
+FluentAzure.Sources.KeyVaultSource.KeyVaultSource(string! vaultUrl, FluentAzure.Sources.KeyVaultConfiguration! configuration, int priority, Microsoft.Extensions.Logging.ILogger? logger, bool initializeClient) -> void
+FluentAzure.Sources.KeyVaultSource.KeyVaultSource(string! vaultUrl, int priority = 200, Microsoft.Extensions.Logging.ILogger? logger = null) -> void
+FluentAzure.Sources.KeyVaultSource.LoadErrors.get -> System.Collections.Generic.IReadOnlyList<string!>!
+FluentAzure.Sources.KeyVaultSource.Name.get -> string!
+FluentAzure.Sources.KeyVaultSource.Priority.get -> int
+FluentAzure.Sources.KeyVaultSource.ReloadAsync() -> System.Threading.Tasks.Task<FluentAzure.Core.Result<System.Collections.Generic.Dictionary<string!, string!>!>>!
+FluentAzure.Version
+const FluentAzure.FluentAzureDiagnostics.ActivitySourceName = "FluentAzure" -> string!
+const FluentAzure.FluentAzureDiagnostics.MeterName = "FluentAzure" -> string!
+const FluentAzure.Sources.AppConfigurationOptions.NoLabel = "\0" -> string!
+const FluentAzure.Version.Major = 0 -> int
+const FluentAzure.Version.Minor = 3 -> int
+const FluentAzure.Version.Patch = 0 -> int
+const FluentAzure.Version.PreRelease = "rc.1" -> string?
+override FluentAzure.Binding.BindingError.ToString() -> string!
+override FluentAzure.Configuration.FluentAzureConfigurationProvider.Load() -> void
+override FluentAzure.Configuration.FluentAzureConfigurationProvider.ToString() -> string!
+override FluentAzure.Core.Option<T>.Equals(object? obj) -> bool
+override FluentAzure.Core.Option<T>.GetHashCode() -> int
+override FluentAzure.Core.Option<T>.ToString() -> string!
+override FluentAzure.Core.Result<T>.Equals(object? obj) -> bool
+override FluentAzure.Core.Result<T>.GetHashCode() -> int
+override FluentAzure.Core.Result<T>.ToString() -> string!
+static FluentAzure.Binding.ConfigurationBinder.Bind<T>(System.Collections.Generic.Dictionary<string!, string!>! configuration) -> FluentAzure.Core.Result<T!>
+static FluentAzure.Binding.ConfigurationBinder.Bind<T>(System.Collections.Generic.Dictionary<string!, string!>! configuration, T! instance) -> FluentAzure.Core.Result<T!>
+static FluentAzure.Binding.EnhancedConfigurationBinder.Bind<T>(System.Collections.Generic.Dictionary<string!, string!>! configuration, FluentAzure.Binding.BindingOptions? options = null) -> FluentAzure.Core.Result<T!>
+static FluentAzure.Binding.EnhancedConfigurationBinder.BindJson<T>(System.Collections.Generic.Dictionary<string!, string!>! configuration, FluentAzure.Binding.BindingOptions? options = null) -> FluentAzure.Core.Result<T!>
+static FluentAzure.Binding.EnhancedConfigurationBinder.BindToInstance<T>(System.Collections.Generic.Dictionary<string!, string!>! configuration, T! instance, FluentAzure.Binding.BindingOptions? options = null) -> FluentAzure.Core.Result<T!>
+static FluentAzure.BindingExtensions.Bind<T>(this FluentAzure.Core.Result<System.Collections.Generic.Dictionary<string!, string!>!> result) -> FluentAzure.Core.Result<T!>
+static FluentAzure.Core.Option.Combine<T>(System.Collections.Generic.IEnumerable<FluentAzure.Core.Option<T>>! options) -> FluentAzure.Core.Option<System.Collections.Generic.IReadOnlyList<T>!>
+static FluentAzure.Core.Option.Combine<T>(params FluentAzure.Core.Option<T>[]! options) -> FluentAzure.Core.Option<System.Collections.Generic.IReadOnlyList<T>!>
+static FluentAzure.Core.Option.FirstSome<T>(System.Collections.Generic.IEnumerable<FluentAzure.Core.Option<T>>! options) -> FluentAzure.Core.Option<T>
+static FluentAzure.Core.Option.FirstSome<T>(params FluentAzure.Core.Option<T>[]! options) -> FluentAzure.Core.Option<T>
+static FluentAzure.Core.Option.FromNullable<T>(T? value) -> FluentAzure.Core.Option<T>
+static FluentAzure.Core.Option.None<T>() -> FluentAzure.Core.Option<T>
+static FluentAzure.Core.Option.Some<T>(T value) -> FluentAzure.Core.Option<T>
+static FluentAzure.Core.Option.Traverse<T, TResult>(System.Collections.Generic.IEnumerable<T>! items, System.Func<T, FluentAzure.Core.Option<TResult>>! mapper) -> FluentAzure.Core.Option<System.Collections.Generic.IReadOnlyList<TResult>!>
+static FluentAzure.Core.Option<T>.FromNullable(T? value) -> FluentAzure.Core.Option<T>
+static FluentAzure.Core.Option<T>.None() -> FluentAzure.Core.Option<T>
+static FluentAzure.Core.Option<T>.Some(T value) -> FluentAzure.Core.Option<T>
+static FluentAzure.Core.Option<T>.explicit operator T?(FluentAzure.Core.Option<T> option) -> T?
+static FluentAzure.Core.Option<T>.implicit operator FluentAzure.Core.Option<T>(T value) -> FluentAzure.Core.Option<T>
+static FluentAzure.Core.Option<T>.operator !=(FluentAzure.Core.Option<T> left, FluentAzure.Core.Option<T> right) -> bool
+static FluentAzure.Core.Option<T>.operator ==(FluentAzure.Core.Option<T> left, FluentAzure.Core.Option<T> right) -> bool
+static FluentAzure.Core.Result.Combine<T>(System.Collections.Generic.IEnumerable<FluentAzure.Core.Result<T>>! results) -> FluentAzure.Core.Result<System.Collections.Generic.IReadOnlyList<T>!>
+static FluentAzure.Core.Result.Combine<T>(params FluentAzure.Core.Result<T>[]! results) -> FluentAzure.Core.Result<System.Collections.Generic.IReadOnlyList<T>!>
+static FluentAzure.Core.Result.Error<T>(System.Collections.Generic.IEnumerable<string!>! errors) -> FluentAzure.Core.Result<T>
+static FluentAzure.Core.Result.Error<T>(params string![]! errors) -> FluentAzure.Core.Result<T>
+static FluentAzure.Core.Result.Error<T>(string! error) -> FluentAzure.Core.Result<T>
+static FluentAzure.Core.Result.Success<T>(T value) -> FluentAzure.Core.Result<T>
+static FluentAzure.Core.Result<T>.Error(System.Collections.Generic.IEnumerable<string!>! errors) -> FluentAzure.Core.Result<T>
+static FluentAzure.Core.Result<T>.Error(params string![]! errors) -> FluentAzure.Core.Result<T>
+static FluentAzure.Core.Result<T>.Error(string! error) -> FluentAzure.Core.Result<T>
+static FluentAzure.Core.Result<T>.Success(T value) -> FluentAzure.Core.Result<T>
+static FluentAzure.Core.Result<T>.implicit operator FluentAzure.Core.Result<T>(T value) -> FluentAzure.Core.Result<T>
+static FluentAzure.Core.Result<T>.implicit operator FluentAzure.Core.Result<T>(string! error) -> FluentAzure.Core.Result<T>
+static FluentAzure.Core.Result<T>.implicit operator FluentAzure.Core.Result<T>(string![]! errors) -> FluentAzure.Core.Result<T>
+static FluentAzure.Core.Result<T>.operator !=(FluentAzure.Core.Result<T> left, FluentAzure.Core.Result<T> right) -> bool
+static FluentAzure.Core.Result<T>.operator ==(FluentAzure.Core.Result<T> left, FluentAzure.Core.Result<T> right) -> bool
+static FluentAzure.Extensions.BindingExtensions.BindAndTransform<T, TResult>(this System.Collections.Generic.Dictionary<string!, string!>! configuration, System.Func<T!, TResult>! transformer) -> FluentAzure.Core.Option<TResult>
+static FluentAzure.Extensions.BindingExtensions.BindAndTransformWithFallback<T, TResult>(this System.Collections.Generic.Dictionary<string!, string!>! configuration, System.Func<T!, TResult>! transformer, TResult fallback) -> TResult
+static FluentAzure.Extensions.BindingExtensions.BindConditional<T>(this System.Collections.Generic.Dictionary<string!, string!>! configuration, System.Func<T!, bool>! condition, T! fallback) -> T!
+static FluentAzure.Extensions.BindingExtensions.BindJsonOptional<T>(this System.Collections.Generic.Dictionary<string!, string!>! configuration, FluentAzure.Binding.BindingOptions? options = null) -> FluentAzure.Core.Option<T!>
+static FluentAzure.Extensions.BindingExtensions.BindOptional<T>(this System.Collections.Generic.Dictionary<string!, string!>! configuration) -> FluentAzure.Core.Option<T!>
+static FluentAzure.Extensions.BindingExtensions.BindOptional<T>(this System.Collections.Generic.Dictionary<string!, string!>! configuration, FluentAzure.Binding.BindingOptions! options) -> FluentAzure.Core.Option<T!>
+static FluentAzure.Extensions.BindingExtensions.BindWithFallback<T>(this System.Collections.Generic.Dictionary<string!, string!>! configuration, System.Func<T!>! fallbackFactory) -> T!
+static FluentAzure.Extensions.BindingExtensions.BindWithFallback<T>(this System.Collections.Generic.Dictionary<string!, string!>! configuration, T! fallback) -> T!
+static FluentAzure.Extensions.BindingExtensions.BindWithValidation<T>(this System.Collections.Generic.Dictionary<string!, string!>! configuration, System.Func<T!, bool>! validator) -> FluentAzure.Core.Option<T!>
+static FluentAzure.Extensions.BindingExtensions.BindWithValidation<T>(this System.Collections.Generic.Dictionary<string!, string!>! configuration, System.Func<T!, bool>! validator, System.Func<T!, string!>! errorFactory) -> FluentAzure.Core.Result<T!>
+static FluentAzure.Extensions.ConfigurationExtensions.GetOrDefault(this System.Collections.Generic.Dictionary<string!, string!>! config, string! key, System.Func<string!>! defaultFactory) -> string!
+static FluentAzure.Extensions.ConfigurationExtensions.GetOrDefault(this System.Collections.Generic.Dictionary<string!, string!>! config, string! key, string! defaultValue) -> string!
+static FluentAzure.Extensions.ConfigurationExtensions.GetOrDefault<T>(this System.Collections.Generic.Dictionary<string!, string!>! config, string! key, System.Func<T>! defaultFactory) -> T
+static FluentAzure.Extensions.ConfigurationExtensions.GetOrDefault<T>(this System.Collections.Generic.Dictionary<string!, string!>! config, string! key, T defaultValue) -> T
+static FluentAzure.Extensions.ConfigurationExtensions.GetRequired(this System.Collections.Generic.Dictionary<string!, string!>! config, string! key) -> FluentAzure.Core.Result<string!>
+static FluentAzure.Extensions.ConfigurationExtensions.GetRequired<T>(this System.Collections.Generic.Dictionary<string!, string!>! config, string! key) -> FluentAzure.Core.Result<T>
+static FluentAzure.Extensions.ConfigurationExtensions.Validate(this System.Collections.Generic.Dictionary<string!, string!>! config, string! key, System.Func<string!, bool>! validator, System.Func<string!, string!>! errorFactory) -> FluentAzure.Core.Result<string!>
+static FluentAzure.Extensions.ConfigurationExtensions.Validate(this System.Collections.Generic.Dictionary<string!, string!>! config, string! key, System.Func<string!, bool>! validator, string! errorMessage) -> FluentAzure.Core.Result<string!>
+static FluentAzure.Extensions.KeyVaultExtensions.FromInMemory(this FluentAzure.Core.ConfigurationBuilder! builder, System.Collections.Generic.Dictionary<string!, string!>! values, int priority = 1000) -> FluentAzure.Core.ConfigurationBuilder!
+static FluentAzure.Extensions.KeyVaultExtensions.FromKeyVault(this FluentAzure.Core.ConfigurationBuilder! builder, string! vaultUrl, Azure.Core.TokenCredential! credential, int priority = 200) -> FluentAzure.Core.ConfigurationBuilder!
+static FluentAzure.Extensions.KeyVaultExtensions.FromKeyVault(this FluentAzure.Core.ConfigurationBuilder! builder, string! vaultUrl, System.Action<FluentAzure.Sources.KeyVaultConfiguration!>! configure, Microsoft.Extensions.Logging.ILogger! logger, int priority = 200) -> FluentAzure.Core.ConfigurationBuilder!
+static FluentAzure.Extensions.KeyVaultExtensions.FromKeyVault(this FluentAzure.Core.ConfigurationBuilder! builder, string! vaultUrl, System.Action<FluentAzure.Sources.KeyVaultConfiguration!>! configure, int priority = 200) -> FluentAzure.Core.ConfigurationBuilder!
+static FluentAzure.Extensions.KeyVaultExtensions.FromKeyVault(this FluentAzure.Core.ConfigurationBuilder! builder, string! vaultUrl, System.Func<string!, string!>! keyMapper, int priority = 200) -> FluentAzure.Core.ConfigurationBuilder!
+static FluentAzure.Extensions.KeyVaultExtensions.FromKeyVault(this FluentAzure.Core.ConfigurationBuilder! builder, string! vaultUrl, int priority = 200) -> FluentAzure.Core.ConfigurationBuilder!
+static FluentAzure.Extensions.KeyVaultExtensions.FromKeyVault(this FluentAzure.Core.ConfigurationBuilder! builder, string! vaultUrl, string! secretVersion, int priority = 200) -> FluentAzure.Core.ConfigurationBuilder!
+static FluentAzure.Extensions.KeyVaultExtensions.FromKeyVaultWithCaching(this FluentAzure.Core.ConfigurationBuilder! builder, string! vaultUrl, System.TimeSpan cacheDuration, int priority = 200) -> FluentAzure.Core.ConfigurationBuilder!
+static FluentAzure.Extensions.KeyVaultExtensions.FromKeyVaultWithManagedIdentity(this FluentAzure.Core.ConfigurationBuilder! builder, string! vaultUrl, string? managedIdentityClientId = null, int priority = 200) -> FluentAzure.Core.ConfigurationBuilder!
+static FluentAzure.Extensions.KeyVaultExtensions.FromKeyVaultWithPrefix(this FluentAzure.Core.ConfigurationBuilder! builder, string! vaultUrl, string! secretNamePrefix, int priority = 200) -> FluentAzure.Core.ConfigurationBuilder!
+static FluentAzure.Extensions.KeyVaultExtensions.FromKeyVaultWithRetry(this FluentAzure.Core.ConfigurationBuilder! builder, string! vaultUrl, int maxRetryAttempts, System.TimeSpan baseRetryDelay, System.TimeSpan maxRetryDelay, int priority = 200) -> FluentAzure.Core.ConfigurationBuilder!
+static FluentAzure.Extensions.KeyVaultExtensions.FromKeyVaultWithServicePrincipal(this FluentAzure.Core.ConfigurationBuilder! builder, string! vaultUrl, string! clientId, string! clientSecret, string! tenantId, int priority = 200) -> FluentAzure.Core.ConfigurationBuilder!
+static FluentAzure.Extensions.OptionExtensions.Apply<T, TResult>(this FluentAzure.Core.Option<T> option, System.Func<T, FluentAzure.Core.Option<TResult>>! func) -> FluentAzure.Core.Option<TResult>
+static FluentAzure.Extensions.OptionExtensions.Apply<T, TResult>(this FluentAzure.Core.Option<T> option, System.Func<T, TResult>! func) -> FluentAzure.Core.Option<TResult>
+static FluentAzure.Extensions.OptionExtensions.AsEnumerable<T>(this FluentAzure.Core.Option<T> option) -> System.Collections.Generic.IEnumerable<T>!
+static FluentAzure.Extensions.OptionExtensions.BindAsync<T, TResult>(this FluentAzure.Core.Option<T> option, System.Func<T, System.Threading.Tasks.Task<FluentAzure.Core.Option<TResult>>!>! binder) -> System.Threading.Tasks.Task<FluentAzure.Core.Option<TResult>>!
+static FluentAzure.Extensions.OptionExtensions.Choose<T, TResult>(this System.Collections.Generic.IEnumerable<T>! items, System.Func<T, FluentAzure.Core.Option<TResult>>! mapper) -> System.Collections.Generic.IEnumerable<TResult>!
+static FluentAzure.Extensions.OptionExtensions.Choose<T>(this System.Collections.Generic.IEnumerable<FluentAzure.Core.Option<T>>! options) -> System.Collections.Generic.IEnumerable<T>!
+static FluentAzure.Extensions.OptionExtensions.Combine<T1, T2, T3, TResult>(this FluentAzure.Core.Option<T1> option1, FluentAzure.Core.Option<T2> option2, FluentAzure.Core.Option<T3> option3, System.Func<T1, T2, T3, TResult>! combiner) -> FluentAzure.Core.Option<TResult>
+static FluentAzure.Extensions.OptionExtensions.Combine<T1, T2, TResult>(this FluentAzure.Core.Option<T1> option1, FluentAzure.Core.Option<T2> option2, System.Func<T1, T2, TResult>! combiner) -> FluentAzure.Core.Option<TResult>
+static FluentAzure.Extensions.OptionExtensions.DoAsync<T>(this FluentAzure.Core.Option<T> option, System.Func<T, System.Threading.Tasks.Task!>! action) -> System.Threading.Tasks.Task!
+static FluentAzure.Extensions.OptionExtensions.DoIf<T>(this FluentAzure.Core.Option<T> option, System.Func<T, bool>! predicate, System.Action<T>! action) -> FluentAzure.Core.Option<T>
+static FluentAzure.Extensions.OptionExtensions.ElementAtOrNone<T>(this System.Collections.Generic.IReadOnlyList<T>! list, int index) -> FluentAzure.Core.Option<T>
+static FluentAzure.Extensions.OptionExtensions.FirstOrNone<T>(this System.Collections.Generic.IEnumerable<T>! collection) -> FluentAzure.Core.Option<T>
+static FluentAzure.Extensions.OptionExtensions.FirstOrNone<T>(this System.Collections.Generic.IEnumerable<T>! collection, System.Func<T, bool>! predicate) -> FluentAzure.Core.Option<T>
+static FluentAzure.Extensions.OptionExtensions.FirstSome<T>(this System.Collections.Generic.IEnumerable<FluentAzure.Core.Option<T>>! options) -> FluentAzure.Core.Option<T>
+static FluentAzure.Extensions.OptionExtensions.Flatten<T>(this FluentAzure.Core.Option<FluentAzure.Core.Option<T>> option) -> FluentAzure.Core.Option<T>
+static FluentAzure.Extensions.OptionExtensions.GetOptional(this System.Collections.Generic.Dictionary<string!, string!>! config, string! key) -> FluentAzure.Core.Option<string!>
+static FluentAzure.Extensions.OptionExtensions.GetOptional<T>(this System.Collections.Generic.Dictionary<string!, string!>! config, string! key) -> FluentAzure.Core.Option<T>
+static FluentAzure.Extensions.OptionExtensions.GetOptional<T>(this System.Collections.Generic.Dictionary<string!, string!>! config, string! key, FluentAzure.Extensions.TryParse<T>! tryParser) -> FluentAzure.Core.Option<T>
+static FluentAzure.Extensions.OptionExtensions.GetOptional<T>(this System.Collections.Generic.Dictionary<string!, string!>! config, string! key, System.Func<string!, T>! parser) -> FluentAzure.Core.Option<T>
+static FluentAzure.Extensions.OptionExtensions.GetValueOrThrow<T>(this FluentAzure.Core.Option<T> option) -> T
+static FluentAzure.Extensions.OptionExtensions.GetValueOrThrow<T>(this FluentAzure.Core.Option<T> option, System.Func<System.Exception!>! exceptionFactory) -> T
+static FluentAzure.Extensions.OptionExtensions.GetValueOrThrow<T>(this FluentAzure.Core.Option<T> option, string! errorMessage) -> T
+static FluentAzure.Extensions.OptionExtensions.LastOrNone<T>(this System.Collections.Generic.IEnumerable<T>! collection) -> FluentAzure.Core.Option<T>
+static FluentAzure.Extensions.OptionExtensions.MapAsync<T, TResult>(this FluentAzure.Core.Option<T> option, System.Func<T, System.Threading.Tasks.Task<TResult>!>! mapper) -> System.Threading.Tasks.Task<FluentAzure.Core.Option<TResult>>!
+static FluentAzure.Extensions.OptionExtensions.Partition<T>(this System.Collections.Generic.IEnumerable<FluentAzure.Core.Option<T>>! options) -> (System.Collections.Generic.IReadOnlyList<T>! Some, int NoneCount)
+static FluentAzure.Extensions.OptionExtensions.SingleOrNone<T>(this System.Collections.Generic.IEnumerable<T>! collection) -> FluentAzure.Core.Option<T>
+static FluentAzure.Extensions.OptionExtensions.SingleOrNone<T>(this System.Collections.Generic.IEnumerable<T>! collection, System.Func<T, bool>! predicate) -> FluentAzure.Core.Option<T>
+static FluentAzure.Extensions.OptionExtensions.TapIf<T>(this FluentAzure.Core.Option<T> option, System.Func<T, bool>! predicate, System.Action<T>! action) -> FluentAzure.Core.Option<T>
+static FluentAzure.Extensions.OptionExtensions.ToOption<T>(this FluentAzure.Core.Result<T> result) -> FluentAzure.Core.Option<T>
+static FluentAzure.Extensions.OptionExtensions.ToOption<T>(this T? value) -> FluentAzure.Core.Option<T!>
+static FluentAzure.Extensions.OptionExtensions.ToOption<T>(this T? value) -> FluentAzure.Core.Option<T>
+static FluentAzure.Extensions.OptionExtensions.ToOption<T>(this bool condition, System.Func<T>! valueFactory) -> FluentAzure.Core.Option<T>
+static FluentAzure.Extensions.OptionExtensions.ToOption<T>(this bool condition, T value) -> FluentAzure.Core.Option<T>
+static FluentAzure.Extensions.OptionExtensions.ToTask<T>(this FluentAzure.Core.Option<T> option, System.Func<System.Exception!>! exceptionFactory) -> System.Threading.Tasks.Task<T>!
+static FluentAzure.Extensions.OptionExtensions.ToTask<T>(this FluentAzure.Core.Option<T> option, string! errorMessage) -> System.Threading.Tasks.Task<T>!
+static FluentAzure.Extensions.OptionExtensions.TryGetValue<TKey, TValue>(this System.Collections.Generic.Dictionary<TKey, TValue>! dictionary, TKey key) -> FluentAzure.Core.Option<TValue>
+static FluentAzure.Extensions.OptionExtensions.TryGetValue<TKey, TValue>(this System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>! dictionary, TKey key) -> FluentAzure.Core.Option<TValue>
+static FluentAzure.Extensions.OptionExtensions.Validate<T>(this FluentAzure.Core.Option<T> option, System.Func<T, bool>! validator, System.Func<T, string!>! errorFactory) -> FluentAzure.Core.Result<T>
+static FluentAzure.Extensions.OptionExtensions.Validate<T>(this FluentAzure.Core.Option<T> option, System.Func<T, bool>! validator, string! errorMessage) -> FluentAzure.Core.Result<T>
+static FluentAzure.Extensions.ServiceCollectionExtensions.AddFluentAzure<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Func<FluentAzure.Core.ConfigurationBuilder!, FluentAzure.Core.ConfigurationBuilder!>! configure) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static FluentAzure.Extensions.ServiceCollectionExtensions.AddFluentAzure<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Func<FluentAzure.Core.ConfigurationBuilder!, FluentAzure.Core.ConfigurationBuilder!>! configure, System.Func<T!, T!>! factory) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static FluentAzure.Extensions.ServiceCollectionExtensions.AddFluentAzureAsync<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Func<FluentAzure.Core.ConfigurationBuilder!, FluentAzure.Core.ConfigurationBuilder!>! configure) -> System.Threading.Tasks.Task<Microsoft.Extensions.DependencyInjection.IServiceCollection!>!
+static FluentAzure.Extensions.ServiceCollectionExtensions.AddFluentAzureConditional<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Func<FluentAzure.Core.ConfigurationBuilder!, FluentAzure.Core.ConfigurationBuilder!>! configure, System.Func<T!, bool>! condition, T! fallback) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static FluentAzure.Extensions.ServiceCollectionExtensions.AddFluentAzureOptional<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Func<FluentAzure.Core.ConfigurationBuilder!, FluentAzure.Core.ConfigurationBuilder!>! configure) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static FluentAzure.Extensions.ServiceCollectionExtensions.AddFluentAzureOptional<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Func<FluentAzure.Core.ConfigurationBuilder!, FluentAzure.Core.ConfigurationBuilder!>! configure, System.Func<T!, T!>! factory) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static FluentAzure.Extensions.ServiceCollectionExtensions.AddFluentAzureWithFallback<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Func<FluentAzure.Core.ConfigurationBuilder!, FluentAzure.Core.ConfigurationBuilder!>! configure, System.Func<T!>! fallbackFactory) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static FluentAzure.Extensions.ServiceCollectionExtensions.AddFluentAzureWithFallback<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Func<FluentAzure.Core.ConfigurationBuilder!, FluentAzure.Core.ConfigurationBuilder!>! configure, T! fallback) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static FluentAzure.Extensions.TypeExtensions.IsCollectionType(this System.Type! type) -> bool
+static FluentAzure.FluentAzureConfigurationExtensions.AddFluentAzure(this Microsoft.Extensions.Configuration.IConfigurationBuilder! builder, System.Func<FluentAzure.Core.ConfigurationBuilder!, FluentAzure.Core.ConfigurationBuilder!>! configure, System.Action<FluentAzure.Configuration.FluentAzureConfigurationSource!>! configureSource) -> Microsoft.Extensions.Configuration.IConfigurationBuilder!
+static FluentAzure.FluentAzureConfigurationExtensions.AddFluentAzure(this Microsoft.Extensions.Configuration.IConfigurationBuilder! builder, System.Func<FluentAzure.Core.ConfigurationBuilder!, FluentAzure.Core.ConfigurationBuilder!>! configure, System.TimeSpan? reloadInterval = null) -> Microsoft.Extensions.Configuration.IConfigurationBuilder!
+static FluentAzure.FluentAzureConfigurationExtensions.AddFluentAzure(this Microsoft.Extensions.DependencyInjection.IHealthChecksBuilder! builder, string! name = "fluentazure", Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus? failureStatus = null, System.Collections.Generic.IEnumerable<string!>? tags = null, System.TimeSpan? staleAfter = null) -> Microsoft.Extensions.DependencyInjection.IHealthChecksBuilder!
+static FluentAzure.FluentAzureConfigurationExtensions.AddFluentAzureAsync(this Microsoft.Extensions.Configuration.IConfigurationBuilder! builder, System.Func<FluentAzure.Core.ConfigurationBuilder!, FluentAzure.Core.ConfigurationBuilder!>! configure, System.TimeSpan? reloadInterval = null) -> System.Threading.Tasks.Task<Microsoft.Extensions.Configuration.IConfigurationBuilder!>!
+static FluentAzure.FluentAzureConfigurationExtensions.AddFluentAzureOptions<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, Microsoft.Extensions.Configuration.IConfiguration! configuration, string? sectionName = null) -> Microsoft.Extensions.Options.OptionsBuilder<T!>!
+static FluentAzure.FluentAzureConfigurationExtensions.GetRedactedDebugView(this Microsoft.Extensions.Configuration.IConfigurationRoot! root, string! mask = "***") -> string!
+static FluentAzure.FluentConfig.AddFluentAzure<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Func<FluentAzure.Core.ConfigurationBuilder!, FluentAzure.Core.ConfigurationBuilder!>! configure) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static FluentAzure.FluentConfig.AddFluentAzure<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Func<FluentAzure.Core.ConfigurationBuilder!, FluentAzure.Core.ConfigurationBuilder!>! configure, System.Func<T!, T!>! factory) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static FluentAzure.FluentConfig.AddFluentAzureAsync<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Func<FluentAzure.Core.ConfigurationBuilder!, FluentAzure.Core.ConfigurationBuilder!>! configure) -> System.Threading.Tasks.Task<Microsoft.Extensions.DependencyInjection.IServiceCollection!>!
+static FluentAzure.FluentConfig.Create() -> FluentAzure.Core.ConfigurationBuilder!
+static FluentAzure.FluentConfig.CurrentVersion.get -> string!
+static FluentAzure.Version.AsVersion.get -> System.Version!
+static FluentAzure.Version.Assembly.get -> string!
+static FluentAzure.Version.File.get -> string!
+static FluentAzure.Version.Full.get -> string!
+static FluentAzure.Version.Informational.get -> string!
+static FluentAzure.Version.IsPreRelease.get -> bool
+static FluentAzure.Version.IsStable.get -> bool
+static FluentAzure.Version.Package.get -> string!
+virtual FluentAzure.Sources.KeyVaultSource.ContainsKey(string! key) -> bool
+virtual FluentAzure.Sources.KeyVaultSource.GetSecretAsync(string! secretName, string? version = null) -> System.Threading.Tasks.Task<string?>!
+virtual FluentAzure.Sources.KeyVaultSource.GetValue(string! key) -> string?
+virtual FluentAzure.Sources.KeyVaultSource.LoadAsync() -> System.Threading.Tasks.Task<FluentAzure.Core.Result<System.Collections.Generic.Dictionary<string!, string!>!>>!

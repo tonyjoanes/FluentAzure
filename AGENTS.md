@@ -50,6 +50,7 @@ dotnet test FluentAzure.sln -c Release
 - **Async:** library code uses `ConfigureAwait(false)`. Sync-over-async entry points go through `Task.Run(...)` so they cannot deadlock.
 - **AOT:** the library builds with `IsAotCompatible`. New reflection must be annotated (`RequiresUnreferencedCode`/`RequiresDynamicCode` using `AotMessages.ReflectionBinding`) or avoided. Never use reflection-based `System.Text.Json` serialization in sources.
 - **Identity:** Azure sources default to the pipeline credential (`ConfigurationBuilder.Credential`); per-source credentials take precedence. Use `ManagedIdentityId`, not the obsolete string constructor.
+- **Public API:** changes to the public API must be declared in `src/FluentAzure/PublicAPI.Unshipped.txt` (the build fails on RS0016/RS0017). Removing or changing a shipped API is a breaking change: call it out in the PR description and the changelog.
 - **Failure model:** sources return `Result<T>` errors rather than throwing. The pipeline also converts exceptions from custom sources into errors. The initial provider load fails fast (`FluentAzureConfigurationException`); failed reloads keep the last good values.
 
 ## Adding a configuration source

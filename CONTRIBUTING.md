@@ -82,6 +82,13 @@ CI runs these in the `App Configuration Emulator Tests` job and fails if they ar
 - Use nullable reference types
 - Prefer functional programming patterns
 
+### Public API
+The library's public API is tracked in `src/FluentAzure/PublicAPI.Shipped.txt` and `PublicAPI.Unshipped.txt`. Adding a public member without declaring it (RS0016), or removing a declared one (RS0017), fails the build.
+- **New public API:** add it to `PublicAPI.Unshipped.txt`. The IDE code fix for RS0016 does this for you, or run `dotnet format analyzers src/FluentAzure/FluentAzure.csproj --diagnostics RS0016`.
+- **Removing or changing public API:** that's a breaking change. Remove the old line from `PublicAPI.Shipped.txt`, and list the change in the PR description and the changelog.
+- **On release:** move the `Unshipped` entries into `Shipped`.
+- **Package validation:** `dotnet pack` checks that the net8.0 and net10.0 builds in the package are compatible with each other.
+
 ## 🔄 Pull Request Process
 
 1. **Fork** the repository

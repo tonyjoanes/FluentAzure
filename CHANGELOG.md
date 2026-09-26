@@ -6,6 +6,15 @@ Upgrading from 0.2.0-rc.5 to 0.3.0-rc.1? See the [upgrade guide](docs/upgrade-gu
 
 ## [Unreleased]
 
+### Fixed
+
+- **`InMemorySource` keys:** `ContainsKey`, `GetValue` and `LoadAsync()` matched keys case-sensitively, unlike every other source. They now ignore case. The source still reads the dictionary it was given, so later changes to it are visible.
+- **NuGet README links:** links in the package README pointed to relative paths, which don't resolve on nuget.org. They now point to GitHub.
+
+### Changed
+
+- **Build:** the public API is tracked with `Microsoft.CodeAnalysis.PublicApiAnalyzers` (`src/FluentAzure/PublicAPI.*.txt`), and `dotnet pack` runs package validation.
+
 ## [0.3.0-rc.1] - 2026-09-26
 
 ### Added

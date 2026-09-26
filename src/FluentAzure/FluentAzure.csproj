@@ -10,6 +10,9 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- Include README in package -->
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <!-- Validate the package's target frameworks against each other on pack. Once 0.3.0-rc.1 is on NuGet,
+         also set PackageValidationBaselineVersion to catch breaking changes against the last release. -->
+    <EnablePackageValidation>true</EnablePackageValidation>
     <!-- Enables the trimming and Native AOT analyzers; reflection-based APIs are annotated accordingly -->
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
@@ -47,5 +50,15 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="FluentAzure.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Tracks the public API: an undeclared addition (RS0016) or removal (RS0017) fails the build.
+         New APIs go in PublicAPI.Unshipped.txt and move to PublicAPI.Shipped.txt when released. -->
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <AdditionalFiles Include="PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
 </Project>
