@@ -1,1 +1,20 @@
 #nullable enable
+FluentAzure.Guard.ConfigurationGuard
+FluentAzure.Guard.ConfigurationGuard.Check(Microsoft.Extensions.Configuration.IConfiguration! configuration) -> System.Collections.Generic.IReadOnlyList<string!>!
+FluentAzure.Guard.ConfigurationGuard.ConfigurationGuard(FluentAzure.Guard.ConfigurationGuardOptions! options) -> void
+FluentAzure.Guard.ConfigurationGuard.GetRedactedDebugView(Microsoft.Extensions.Configuration.IConfigurationRoot! root, string! mask = "***") -> string!
+FluentAzure.Guard.ConfigurationGuard.IsSensitive(string! key) -> bool
+FluentAzure.Guard.ConfigurationGuard.Options.get -> FluentAzure.Guard.ConfigurationGuardOptions!
+FluentAzure.Guard.ConfigurationGuard.ThrowIfInvalid(Microsoft.Extensions.Configuration.IConfiguration! configuration) -> void
+FluentAzure.Guard.ConfigurationGuardHealthCheck
+FluentAzure.Guard.ConfigurationGuardHealthCheck.CheckHealthAsync(Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckContext! context, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult>!
+FluentAzure.Guard.ConfigurationGuardHealthCheck.ConfigurationGuardHealthCheck(FluentAzure.Guard.ConfigurationGuard! guard, Microsoft.Extensions.Configuration.IConfiguration! configuration) -> void
+FluentAzure.Guard.ConfigurationGuardOptions
+FluentAzure.Guard.ConfigurationGuardOptions.ConfigurationGuardOptions() -> void
+FluentAzure.Guard.ConfigurationGuardOptions.Required(params string![]! keys) -> FluentAzure.Guard.ConfigurationGuardOptions!
+FluentAzure.Guard.ConfigurationGuardOptions.RequiredKeys.get -> System.Collections.Generic.IReadOnlyList<string!>!
+FluentAzure.Guard.ConfigurationGuardOptions.Sensitive(params string![]! patterns) -> FluentAzure.Guard.ConfigurationGuardOptions!
+FluentAzure.Guard.ConfigurationGuardOptions.SensitivePatterns.get -> System.Collections.Generic.IReadOnlyList<string!>!
+FluentAzure.Guard.ConfigurationGuardOptions.Validate(string! key, System.Func<string!, bool>! isValid, string! requirement) -> FluentAzure.Guard.ConfigurationGuardOptions!
+static FluentAzure.FluentAzureConfigurationExtensions.AddFluentAzureGuard(this Microsoft.Extensions.DependencyInjection.IHealthChecksBuilder! builder, string! name = "fluentazure-guard", Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus? failureStatus = null, System.Collections.Generic.IEnumerable<string!>? tags = null) -> Microsoft.Extensions.DependencyInjection.IHealthChecksBuilder!
+static FluentAzure.FluentAzureConfigurationExtensions.AddFluentAzureGuard(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<FluentAzure.Guard.ConfigurationGuardOptions!>! configure) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!

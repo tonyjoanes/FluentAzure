@@ -101,6 +101,35 @@ internal sealed class FakeVaultClient : SecretClient
         return AsyncPageable<SecretProperties>.FromPages(new[] { page });
     }
 
+    // Microsoft's Key Vault configuration provider lists secrets synchronously
+    public override Pageable<SecretProperties> GetPropertiesOfSecrets(CancellationToken cancellationToken = default)
+    {
+        lock (_gate)
+        {
+            ListCalls++;
+        }
+
+        var page = Page<SecretProperties>.FromValues(
+            Secrets.Values.Select(s => s.Properties).ToList(),
+            null,
+            new FakeResponse(200)
+        );
+        return Pageable<SecretProperties>.FromPages(new[] { page });
+    }
+
+    public override Response<KeyVaultSecret> GetSecret(
+        string name,
+        string? version = null,
+        CancellationToken cancellationToken = default
+    ) => GetSecretAsync(name, version, null, cancellationToken).GetAwaiter().GetResult();
+
+    public override Response<KeyVaultSecret> GetSecret(
+        string name,
+        string? version,
+        SecretContentType? outContentType,
+        CancellationToken cancellationToken = default
+    ) => GetSecretAsync(name, version, outContentType, cancellationToken).GetAwaiter().GetResult();
+
     // Azure.Security.KeyVault.Secrets 4.11 has two GetSecretAsync overloads; callers may bind to either
     public override Task<Response<KeyVaultSecret>> GetSecretAsync(
         string name,
