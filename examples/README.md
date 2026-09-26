@@ -18,8 +18,11 @@ A complete Azure Functions v4 application demonstrating:
 ### 2. Web API Example
 **Location**: `WebApi.Example/`
 
-A full-featured ASP.NET Core Web API demonstrating:
-- ✅ **Enterprise-level configuration** with multiple sources
+A full-featured ASP.NET Core Web API showing FluentAzure **on top of Microsoft's providers**:
+- ✅ **Microsoft's configuration**: `appsettings.json` and environment variables, plus `AddAzureKeyVault()` when `KeyVault:Url` is set
+- ✅ **Configuration guard**: `AddFluentAzureGuard()` stops startup on a missing or invalid setting, with every problem listed by key
+- ✅ **Health check** at `/health`, re-running the guard's rules
+- ✅ **Redacted configuration logging** with `GetRedactedDebugView()`
 - ✅ **JWT authentication** with strongly-typed settings
 - ✅ **Entity Framework** integration with configuration
 - ✅ **Rate limiting** and security features
@@ -44,7 +47,7 @@ CI publishes it with `PublishAot` and fails on any trimming/AOT warning.
 
 Console samples of the standalone pipeline (`FluentConfig.Create()...BuildAsync()`), `Result`/`Option` handling and binding.
 
-> The Azure Functions, Web API and Demo examples use the standalone pipeline and `AddFluentAzure<T>()` registrations. For new applications, prefer the `IConfiguration` provider shown in `Aot.Example` and in [docs/configuration-integration.md](../docs/configuration-integration.md).
+> The Web API example uses Microsoft's providers with the configuration guard, the recommended setup for most apps. The Azure Functions and Demo examples use FluentAzure's standalone pipeline and `AddFluentAzure<T>()` registrations, and `Aot.Example` uses FluentAzure's `IConfiguration` provider ([docs/configuration-integration.md](../docs/configuration-integration.md)).
 
 ## 🛠️ Getting Started
 
@@ -79,14 +82,16 @@ func start
 ```bash
 cd examples/WebApi.Example
 
-# Update appsettings.json with your configuration
-# Set connection strings, JWT settings, etc.
-
-# Run the API
+# Runs as-is with the sample values in appsettings.json. To load secrets from Key Vault,
+# set KeyVault:Url (e.g. KeyVault__Url=https://myvault.vault.azure.net/) and sign in with az login.
 dotnet run
+
+# See the guard at work: startup fails, naming the key but not the value
+Jwt__SecretKey=too-short dotnet run
 ```
 
 **Key Features Demonstrated:**
+- Fail-fast configuration validation and the `/health` check
 - JWT authentication with configuration
 - User management with CRUD operations
 - File upload to Azure Storage
@@ -127,20 +132,21 @@ var configResult = await FluentConfig
 ### Web API Configuration
 
 ```csharp
-// Program.cs - Configuration setup
+// Program.cs - Microsoft's providers load configuration; FluentAzure guards it
 using FluentAzure;
 
-var configResult = await FluentConfig
-    .Create()
-    .FromJsonFile("appsettings.json")
-    .FromEnvironment()
-    .FromKeyVault(builder.Configuration["KeyVault:Url"])
-    .Required("Database:ConnectionString")
-    .Required("Jwt:SecretKey")
-    .Required("Jwt:Issuer")
-    .Required("Jwt:Audience")
-    .BuildAsync()
-    .Bind<WebApiConfiguration>();
+var keyVaultUrl = builder.Configuration["KeyVault:Url"];
+if (!string.IsNullOrEmpty(keyVaultUrl))
+{
+    builder.Configuration.AddAzureKeyVault(new Uri(keyVaultUrl), new DefaultAzureCredential());
+}
+
+builder.Services.AddFluentAzureGuard(guard => guard
+    .Required("Database:ConnectionString", "Jwt:SecretKey", "Jwt:Issuer", "Jwt:Audience")
+    .Validate("Jwt:SecretKey", value => value.Length >= 32, "must be at least 32 characters"));
+builder.Services.AddHealthChecks().AddFluentAzureGuard();
+
+var config = builder.Configuration.Get<WebApiConfiguration>() ?? new WebApiConfiguration();
 ```
 
 ## 🏗️ Architecture Patterns

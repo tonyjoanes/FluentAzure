@@ -1,6 +1,6 @@
 ﻿# FluentAzure
 
-A fluent, functional, and type-safe NuGet package for Azure configuration and secrets management.
+Guard rails for .NET configuration on Azure: fail-fast validation, secret redaction, health checks and compile-time analyzers. It works on top of Microsoft's App Configuration and Key Vault providers, or with FluentAzure's own configuration pipeline.
 
 [![NuGet](https://img.shields.io/nuget/vpre/FluentAzure.svg)](https://www.nuget.org/packages/FluentAzure)
 ![.NET](https://img.shields.io/badge/.NET-8.0%20%7C%2010.0-blue.svg)
@@ -9,64 +9,60 @@ A fluent, functional, and type-safe NuGet package for Azure configuration and se
 ![Fluent](https://img.shields.io/badge/Style-Fluent%20%7C%20Functional-purple.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-> **What's new in 0.3.0-rc.1:**
-> - An `IConfiguration` provider with `IOptionsMonitor<T>` reload.
-> - An Azure App Configuration source.
-> - Managed/workload identity and secret redaction.
-> - OpenTelemetry and health checks.
-> - Compile-time analyzers.
-> - .NET 10 and Native AOT support.
+> **What's new:**
+> - A configuration guard that validates, health-checks and redacts configuration from **any** provider, including Microsoft's `AddAzureAppConfiguration()` and `AddAzureKeyVault()`.
+> - Analyzers that check Microsoft's APIs and the Azure SDK clients as well as FluentAzure's.
+> - In 0.3.0-rc.1: an `IConfiguration` provider with `IOptionsMonitor<T>` reload, an App Configuration source, managed/workload identity, OpenTelemetry and .NET 10 / Native AOT support.
 >
 > See the [changelog](https://github.com/tonyjoanes/FluentAzure/blob/main/CHANGELOG.md) and the [upgrade guide](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/upgrade-guide.md).
 
-## 🎯 Problem This Solves
+## 🛡️ Why FluentAzure?
 
-Azure developers constantly struggle with:
-- **Multiple configuration sources** (Environment variables, Key Vault, App Configuration, JSON files)
-- **Complex error handling** when secrets are missing or invalid
-- **No type safety** in configuration access
-- **Imperative, verbose code** for simple configuration scenarios
-- **Poor testing experience** for configuration-dependent code
+Microsoft's packages *load* configuration. FluentAzure makes sure it's **complete**, stays **secret**, and stays **healthy**, without changing how you load it.
 
-## 🚀 Solution: Functional Configuration Pipeline
+| | Microsoft's providers on their own | With FluentAzure |
+|---|---|---|
+| A required setting is missing or invalid | Found at first use, often as a `null` or an exception inside a request | Startup stops, listing **every** missing or invalid key |
+| Logging the configuration | `GetDebugView()` prints secrets | `GetRedactedDebugView()` masks Key Vault values and anything that looks like a credential |
+| A refresh brings in a bad value | Nothing notices | The health check re-runs your rules |
+| Code review | Nothing flags insecure setup | Analyzers flag `http://` endpoints, hard-coded `Secret=` connection strings and `GetDebugView()` at compile time |
+| Error messages | Can echo the value | Name the key and the rule, **never** the value |
 
-Instead of this imperative mess:
+## ⚡ Quick Start
+
+Keep loading configuration the way you do today, and add the guard:
+
 ```csharp
-// Traditional approach - verbose and error-prone
-var builder = new ConfigurationBuilder();
-builder.AddEnvironmentVariables();
-builder.AddAzureKeyVault(vaultUrl);
-var config = builder.Build();
+using Azure.Identity;
+using FluentAzure;
 
-var connectionString = config["ConnectionString"];
-if (string.IsNullOrEmpty(connectionString))
-{
-    throw new InvalidOperationException("ConnectionString is required");
-}
+var builder = WebApplication.CreateBuilder(args);
+var credential = new DefaultAzureCredential();
 
-var timeout = int.Parse(config["Timeout"] ?? "30");
-// ... more boilerplate
+// Microsoft's providers, unchanged
+builder.Configuration
+    .AddAzureAppConfiguration(o => o.Connect(new Uri("https://myconfig.azconfig.io"), credential))
+    .AddAzureKeyVault(new Uri("https://myvault.vault.azure.net/"), credential);
+
+// FluentAzure: fail fast at startup, with every problem listed by key (never by value)
+builder.Services.AddFluentAzureGuard(guard => guard
+    .Required("Database:ConnectionString", "Jwt:SecretKey", "Jwt:Issuer")
+    .Validate("Jwt:SecretKey", v => v.Length >= 32, "must be at least 32 characters")
+    .Sensitive("Payments:*"));
+
+// ...and keep checking after configuration refreshes
+builder.Services.AddHealthChecks().AddFluentAzureGuard();
 ```
 
-Write this ultra-clean pipeline:
-```csharp
-// FluentAzure approach - ultra clean and safe
-using FluentAzure; // Single using statement!
+If `Jwt:SecretKey` is too short, the app doesn't start:
 
-var configResult = await FluentConfig
-    .Create()  // Ultra clean - just FluentConfig.Create()!
-    .FromEnvironment()
-    .FromKeyVault("https://myvault.vault.azure.net")
-    .Required("ConnectionString")
-    .Optional("Timeout", "30")
-    .Validate(c => c["ConnectionString"].StartsWith("Server=") ? null : "ConnectionString must start with Server=")
-    .BuildAsync();
-
-var config = configResult.Match(
-    success => success,
-    errors => throw new InvalidOperationException($"Configuration failed: {string.Join(", ", errors)}")
-);
+```text
+OptionsValidationException: Configuration key 'Jwt:SecretKey' must be at least 32 characters.
 ```
+
+The analyzers ship in the same package and need no setup. See [Configuration guard](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/configuration-guard.md) for the full guide and [examples/WebApi.Example](https://github.com/tonyjoanes/FluentAzure/tree/main/examples/WebApi.Example) for a complete app.
+
+Prefer a single fluent pipeline instead of Microsoft's providers? FluentAzure has its own sources for environment variables, JSON, Key Vault and App Configuration, with the same safety features. See [Where to Start](#-where-to-start) and the [usage patterns](#-example-usage-patterns) below.
 
 ## 🧭 Where to Start
 
@@ -170,7 +166,7 @@ Configuration keys are case-insensitive, and environment variables using the sta
 
 > `AddFluentAzure<T>` builds once at startup and registers `T` as a singleton, with no reload. It uses the basic binder, which binds nested objects but not collections or dictionaries. For new code, prefer the provider below with `AddFluentAzureOptions<T>()`. See [Configuration binding](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/enhanced-configuration-binding.md).
 
-#### **Microsoft.Extensions.Configuration + IOptionsMonitor (Recommended for ASP.NET Core / Functions)**
+#### **FluentAzure's sources in ASP.NET Core / Functions (`IConfiguration` + `IOptionsMonitor`)**
 Plug a FluentAzure pipeline into the standard configuration system. Required keys and validations still fail fast at startup, and values become available to `IConfiguration`, `IOptions<T>` and `IOptionsMonitor<T>`:
 ```csharp
 using FluentAzure;
@@ -263,11 +259,11 @@ See [examples/Aot.Example](https://github.com/tonyjoanes/FluentAzure/tree/main/e
 The package includes compile-time analyzers ([docs/analyzers.md](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/analyzers.md)):
 
 - **FAZ0001:** a `Required("key")` that the `BuildAsync<T>()` type never binds (usually a typo).
-- **FAZ0002:** a Key Vault or App Configuration endpoint that isn't HTTPS.
-- **FAZ0003:** a hard-coded App Configuration connection string containing a secret.
+- **FAZ0002:** a Key Vault or App Configuration endpoint that isn't HTTPS, including in Microsoft's `AddAzureKeyVault` / `AddAzureAppConfiguration` and the Azure SDK clients.
+- **FAZ0003:** a hard-coded App Configuration connection string containing a secret, in the same APIs.
 - **FAZ0004:** `GetDebugView()`, which prints secrets; use `GetRedactedDebugView()` instead.
 
-#### **Web API Example**
+#### **Web API with FluentAzure's provider**
 ```csharp
 // Program.cs
 using FluentAzure;
@@ -302,13 +298,14 @@ A missing required key stops startup with a `FluentAzureConfigurationException` 
 4. Handle results with `Match`, or let the provider fail fast at startup.
 
 ### Features
+- **Configuration guard:** startup validation, a health check and secret redaction for configuration from any provider, including Microsoft's App Configuration and Key Vault providers.
 - **Fluent pipeline:** chain sources, `Required`, `Optional`, `Transform` and `Validate`, and get a `Result` with every error, not just the first.
 - **Sources:** environment variables, JSON files, in-memory values, Azure Key Vault, and Azure App Configuration (labels, snapshots, Key Vault references, feature flags).
 - **`IConfiguration` provider:** works with the options pattern, reloads into `IOptionsMonitor<T>`, and keeps the last good values when a reload fails.
 - **Identity:** one managed/workload identity for every Azure source.
 - **Secret safety:** secrets are tracked and redacted, and never appear in errors, telemetry or health data.
 - **Observability:** OpenTelemetry traces and metrics, and a health check.
-- **Analyzers:** compile-time checks for key typos, insecure endpoints, hard-coded secrets and unredacted debug output.
+- **Analyzers:** compile-time checks for key typos, insecure endpoints, hard-coded secrets and unredacted debug output, in FluentAzure's APIs, Microsoft's providers and the Azure SDK clients.
 - **Platforms:** .NET 8 and .NET 10, trimming and Native AOT compatible.
 
 ## 📚 Documentation

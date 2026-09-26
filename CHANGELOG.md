@@ -14,10 +14,12 @@ Upgrading from 0.2.0-rc.5 to 0.3.0-rc.1? See the [upgrade guide](docs/upgrade-gu
 ### Fixed
 
 - **`InMemorySource` keys:** `ContainsKey`, `GetValue` and `LoadAsync()` matched keys case-sensitively, unlike every other source. They now ignore case. The source still reads the dictionary it was given, so later changes to it are visible.
+- **NuGet package metadata:** the package's description, tags, icon and release-notes link never reached nuget.org (it showed "Package Description"), because they were set under a `Directory.Build.props` condition on `IsPackable`, which is only defined later in the project file.
 - **NuGet README links:** links in the package README pointed to relative paths, which don't resolve on nuget.org. They now point to GitHub.
 
 ### Changed
 
+- **Positioning:** the README, package description and WebApi example now lead with using FluentAzure on top of Microsoft's providers. The WebApi example loads configuration with Microsoft's providers (plus `AddAzureKeyVault()` when `KeyVault:Url` is set), guards it with `AddFluentAzureGuard()`, and serves the guard's health check at `/health`. It now runs locally without Azure.
 - **Redaction:** `GetRedactedDebugView()` now also masks values from Microsoft's Key Vault provider, keys that look like credentials (`...Password`, `...Secret`, `...Token`, anything under `ConnectionStrings`) and values that look like credentials (connection strings with a key or password, SAS signatures, PEM keys). Previously only values FluentAzure loaded itself were masked.
 - **Build:** the public API is tracked with `Microsoft.CodeAnalysis.PublicApiAnalyzers` (`src/FluentAzure/PublicAPI.*.txt`), and `dotnet pack` runs package validation.
 
