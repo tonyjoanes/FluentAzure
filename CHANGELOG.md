@@ -54,6 +54,8 @@ Upgrading from 0.2.0-rc.5? See the [upgrade guide](docs/upgrade-guide.md).
 
 ### Fixed
 
+- **Basic binder `:` keys:** `BuildAsync<T>()`, `Bind<T>()` and `AddFluentAzure<T>()` now bind nested properties from `:` keys (as produced by Key Vault and App Configuration) as well as `__` keys. If both forms of a key are present, the `:` key wins, as in the `IConfiguration` provider.
+- **Enhanced binder collections:** lists and arrays of simple types (`List<string>`, `string[]`, `int[]`, …) are now bound instead of failing or staying `0`, and dictionaries (`Dictionary<,>`, `IDictionary<,>`, `IReadOnlyDictionary<,>`) with simple or object values are now bound. Existing dictionary entries are kept; dictionaries the binder creates with `string` keys ignore key case.
 - **Deadlock:** the synchronous `AddFluentAzure*` registrations could deadlock under a synchronization context.
 - **Key Vault race:** concurrent `KeyVaultSource.LoadAsync` / `ReloadAsync` calls could both run a full load.
 - **Culture:** values such as `1.5` were misread in cultures that use a decimal comma.
@@ -62,12 +64,6 @@ Upgrading from 0.2.0-rc.5? See the [upgrade guide](docs/upgrade-guide.md).
 ### Security
 
 - **Vulnerable packages:** SourceLink updated to avoid a vulnerable `Microsoft.Build.Tasks.Git`, and EF Core in the WebApi example updated to pull in a patched `Microsoft.Extensions.Caching.Memory` (GHSA-qj66-m88j-hmgj).
-
-### Known issues
-
-- **Basic binder:** `BuildAsync<T>()` / `Bind<T>()` bind nested properties only from `__` keys, not `:` keys.
-- **Enhanced binder:** it can't bind string lists/arrays (the bind fails), numeric arrays or dictionaries.
-- **Workaround:** for both issues, use the `IConfiguration` provider with options binding. [Details](docs/enhanced-configuration-binding.md)
 
 ## [0.2.0-rc.5]
 

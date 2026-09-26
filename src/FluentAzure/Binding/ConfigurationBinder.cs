@@ -33,7 +33,7 @@ public static class ConfigurationBinder
 
         try
         {
-            BindInternal(configuration, instance, "", errors);
+            BindInternal(NormalizeKeys(configuration), instance, "", errors);
 
             return errors.Count > 0
                 ? Result<T>.Error(errors)
@@ -58,6 +58,28 @@ public static class ConfigurationBinder
         return Bind(configuration, instance);
     }
 
+    /// <summary>
+    /// Returns a case-insensitive copy of the configuration that uses ":" as the only hierarchy separator.
+    /// Keys using "__" are translated to ":"; an explicit ":" key wins over one derived from "__",
+    /// matching the <see cref="FluentAzure.Configuration.FluentAzureConfigurationProvider"/>.
+    /// </summary>
+    private static Dictionary<string, string> NormalizeKeys(Dictionary<string, string> configuration)
+    {
+        var normalized = new Dictionary<string, string>(configuration.Count, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var kvp in configuration.Where(kvp => !kvp.Key.Contains("__", StringComparison.Ordinal)))
+        {
+            normalized[kvp.Key] = kvp.Value;
+        }
+
+        foreach (var kvp in configuration.Where(kvp => kvp.Key.Contains("__", StringComparison.Ordinal)))
+        {
+            normalized.TryAdd(kvp.Key.Replace("__", ":", StringComparison.Ordinal), kvp.Value);
+        }
+
+        return normalized;
+    }
+
     private static void BindInternal(Dictionary<string, string> configuration, object instance, string prefix, List<string> errors)
     {
         var type = instance.GetType();
@@ -69,7 +91,7 @@ public static class ConfigurationBinder
         {
             var configKey = string.IsNullOrEmpty(prefix)
                 ? property.Name
-                : $"{prefix}__{property.Name}";
+                : $"{prefix}:{property.Name}";
 
             // Check if this is a simple value property
             if (IsSimpleType(property.PropertyType))
@@ -95,7 +117,7 @@ public static class ConfigurationBinder
             else if (property.PropertyType.IsClass && property.PropertyType != typeof(string))
             {
                 // Check if there are any configuration keys that start with this property's prefix
-                var hasNestedKeys = configuration.Keys.Any(k => k.StartsWith(configKey + "__", StringComparison.OrdinalIgnoreCase));
+                var hasNestedKeys = configuration.Keys.Any(k => k.StartsWith(configKey + ":", StringComparison.OrdinalIgnoreCase));
 
                 if (hasNestedKeys)
                 {
@@ -144,17 +166,8 @@ public static class ConfigurationBinder
 
     private static string? FindConfigurationValue(Dictionary<string, string> configuration, string key)
     {
-        // Try exact match first
-        if (configuration.TryGetValue(key, out var value))
-        {
-            return value;
-        }
-
-        // Try case-insensitive match
-        var matchingKey = configuration.Keys.FirstOrDefault(k =>
-            string.Equals(k, key, StringComparison.OrdinalIgnoreCase));
-
-        return matchingKey != null ? configuration[matchingKey] : null;
+        // The normalized configuration is case-insensitive
+        return configuration.TryGetValue(key, out var value) ? value : null;
     }
 
     private static object? ConvertValue(string value, Type targetType)

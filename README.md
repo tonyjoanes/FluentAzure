@@ -167,7 +167,7 @@ await builder.Services.AddFluentAzureAsync<AppSettings>(config => config
 
 Configuration keys are case-insensitive, and environment variables using the standard `__` separator (e.g. `ConnectionStrings__Default`) are also available under their `:` form (`ConnectionStrings:Default`).
 
-> `AddFluentAzure<T>` builds once at startup and registers `T` as a singleton, with no reload. It uses the basic binder, which binds nested properties only from `__` keys, so nested Key Vault or App Configuration settings (`Database:Host`) are not bound. For new code, prefer the provider below with `AddFluentAzureOptions<T>()`. See [Configuration binding](docs/enhanced-configuration-binding.md).
+> `AddFluentAzure<T>` builds once at startup and registers `T` as a singleton, with no reload. It uses the basic binder, which binds nested objects but not collections or dictionaries. For new code, prefer the provider below with `AddFluentAzureOptions<T>()`. See [Configuration binding](docs/enhanced-configuration-binding.md).
 
 #### **Microsoft.Extensions.Configuration + IOptionsMonitor (Recommended for ASP.NET Core / Functions)**
 Plug a FluentAzure pipeline into the standard configuration system. Required keys and validations still fail fast at startup, and values become available to `IConfiguration`, `IOptions<T>` and `IOptionsMonitor<T>`:
