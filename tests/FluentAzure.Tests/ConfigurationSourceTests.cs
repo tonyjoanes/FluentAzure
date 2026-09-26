@@ -167,6 +167,61 @@ public class ConfigurationSourceTests
         }
     }
 
+    public class InMemorySourceTests
+    {
+        [Fact]
+        public void GetValue_WithDifferentCase_ShouldFindKey()
+        {
+            // Arrange
+            var source = new InMemorySource(new Dictionary<string, string> { ["AppName"] = "Demo" });
+
+            // Act & Assert
+            source.ContainsKey("appname").Should().BeTrue();
+            source.GetValue("APPNAME").Should().Be("Demo");
+        }
+
+        [Fact]
+        public async Task LoadAsync_ShouldReturnCaseInsensitiveCopy()
+        {
+            // Arrange
+            var source = new InMemorySource(new Dictionary<string, string> { ["AppName"] = "Demo" });
+
+            // Act
+            var result = await source.LoadAsync();
+
+            // Assert
+            result.Value["appname"].Should().Be("Demo");
+        }
+
+        [Fact]
+        public async Task LoadAsync_WithKeysDifferingOnlyInCase_ShouldNotThrow()
+        {
+            // Arrange
+            var source = new InMemorySource(new Dictionary<string, string> { ["Key"] = "a", ["KEY"] = "b" });
+
+            // Act
+            var result = await source.LoadAsync();
+
+            // Assert
+            result.IsSuccess.Should().BeTrue();
+            result.Value.Should().ContainSingle();
+        }
+
+        [Fact]
+        public void GetValue_ShouldSeeLaterChangesToTheDictionary()
+        {
+            // Arrange
+            var values = new Dictionary<string, string>();
+            var source = new InMemorySource(values);
+
+            // Act
+            values["Added"] = "later";
+
+            // Assert
+            source.GetValue("added").Should().Be("later");
+        }
+    }
+
     public class JsonFileSourceTests : IDisposable
     {
         private readonly string _testDirectory = Path.Combine(
