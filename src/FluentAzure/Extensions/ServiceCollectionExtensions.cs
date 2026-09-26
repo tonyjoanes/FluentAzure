@@ -20,6 +20,7 @@ public static class ServiceCollectionExtensions
     /// <param name="configure">The configuration builder action.</param>
     /// <returns>The service collection for chaining.</returns>
     /// <exception cref="InvalidOperationException">Thrown when configuration binding fails.</exception>
+    [Obsolete("Builds configuration once and registers T as a singleton, with no reload. Use builder.Configuration.AddFluentAzure(...) with services.AddFluentAzureOptions<T>(), or Microsoft's providers with services.AddFluentAzureGuard(...). This method will be removed in 1.0.")]
     public static IServiceCollection AddFluentAzure<T>(
         this IServiceCollection services,
         Func<ConfigurationBuilder, ConfigurationBuilder> configure
@@ -55,6 +56,7 @@ public static class ServiceCollectionExtensions
     /// <param name="configure">The configuration builder action.</param>
     /// <returns>A task whose result is the service collection for chaining.</returns>
     /// <exception cref="InvalidOperationException">Thrown when configuration binding fails.</exception>
+    [Obsolete("Builds configuration once and registers T as a singleton, with no reload. Use builder.Configuration.AddFluentAzure(...) with services.AddFluentAzureOptions<T>(), or Microsoft's providers with services.AddFluentAzureGuard(...). This method will be removed in 1.0.")]
     public static async Task<IServiceCollection> AddFluentAzureAsync<T>(
         this IServiceCollection services,
         Func<ConfigurationBuilder, ConfigurationBuilder> configure
@@ -88,6 +90,7 @@ public static class ServiceCollectionExtensions
     /// <param name="factory">Factory method to create the configuration object.</param>
     /// <returns>The service collection for chaining.</returns>
     /// <exception cref="InvalidOperationException">Thrown when configuration binding fails.</exception>
+    [Obsolete("Builds configuration once and registers T as a singleton, with no reload. Use builder.Configuration.AddFluentAzure(...) with services.AddFluentAzureOptions<T>(), or Microsoft's providers with services.AddFluentAzureGuard(...). This method will be removed in 1.0.")]
     public static IServiceCollection AddFluentAzure<T>(
         this IServiceCollection services,
         Func<ConfigurationBuilder, ConfigurationBuilder> configure,
@@ -121,6 +124,7 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The service collection.</param>
     /// <param name="configure">The configuration builder action.</param>
     /// <returns>The service collection for chaining.</returns>
+    [Obsolete("Builds configuration once and registers T as a singleton, with no reload. Use builder.Configuration.AddFluentAzure(...) with services.AddFluentAzureOptions<T>(), or Microsoft's providers with services.AddFluentAzureGuard(...). This method will be removed in 1.0.")]
     public static IServiceCollection AddFluentAzureOptional<T>(
         this IServiceCollection services,
         Func<ConfigurationBuilder, ConfigurationBuilder> configure
@@ -156,6 +160,7 @@ public static class ServiceCollectionExtensions
     /// <param name="configure">The configuration builder action.</param>
     /// <param name="factory">Factory method to create the configuration object.</param>
     /// <returns>The service collection for chaining.</returns>
+    [Obsolete("Builds configuration once and registers T as a singleton, with no reload. Use builder.Configuration.AddFluentAzure(...) with services.AddFluentAzureOptions<T>(), or Microsoft's providers with services.AddFluentAzureGuard(...). This method will be removed in 1.0.")]
     public static IServiceCollection AddFluentAzureOptional<T>(
         this IServiceCollection services,
         Func<ConfigurationBuilder, ConfigurationBuilder> configure,
@@ -193,6 +198,7 @@ public static class ServiceCollectionExtensions
     /// <param name="configure">The configuration builder action.</param>
     /// <param name="fallback">The fallback configuration if binding fails.</param>
     /// <returns>The service collection for chaining.</returns>
+    [Obsolete("Builds configuration once and registers T as a singleton, with no reload. Use builder.Configuration.AddFluentAzure(...) with services.AddFluentAzureOptions<T>(), or Microsoft's providers with services.AddFluentAzureGuard(...). This method will be removed in 1.0.")]
     public static IServiceCollection AddFluentAzureWithFallback<T>(
         this IServiceCollection services,
         Func<ConfigurationBuilder, ConfigurationBuilder> configure,
@@ -220,6 +226,7 @@ public static class ServiceCollectionExtensions
     /// <param name="configure">The configuration builder action.</param>
     /// <param name="fallbackFactory">The fallback factory if binding fails.</param>
     /// <returns>The service collection for chaining.</returns>
+    [Obsolete("Builds configuration once and registers T as a singleton, with no reload. Use builder.Configuration.AddFluentAzure(...) with services.AddFluentAzureOptions<T>(), or Microsoft's providers with services.AddFluentAzureGuard(...). This method will be removed in 1.0.")]
     public static IServiceCollection AddFluentAzureWithFallback<T>(
         this IServiceCollection services,
         Func<ConfigurationBuilder, ConfigurationBuilder> configure,
@@ -248,6 +255,7 @@ public static class ServiceCollectionExtensions
     /// <param name="condition">The condition that determines whether to register the configuration.</param>
     /// <param name="fallback">The fallback configuration if condition is false or binding fails.</param>
     /// <returns>The service collection for chaining.</returns>
+    [Obsolete("Builds configuration once and registers T as a singleton, with no reload. Use builder.Configuration.AddFluentAzure(...) with services.AddFluentAzureOptions<T>(), or Microsoft's providers with services.AddFluentAzureGuard(...). This method will be removed in 1.0.")]
     public static IServiceCollection AddFluentAzureConditional<T>(
         this IServiceCollection services,
         Func<ConfigurationBuilder, ConfigurationBuilder> configure,

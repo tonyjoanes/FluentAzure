@@ -106,35 +106,34 @@ public static class OptionBasedExamples
     }
 
     /// <summary>
-    /// Example 4: Option-based service registration
+    /// Example 4: Option-based service registration. Build each section with the standalone pipeline and
+    /// decide what to register when it is missing or invalid.
     /// </summary>
-    public static void OptionBasedServiceRegistration()
+    /// <returns>A task that completes when the services are registered.</returns>
+    public static async Task OptionBasedServiceRegistration()
     {
         Console.WriteLine("\n=== Option-based Service Registration ===");
 
         var services = new ServiceCollection();
 
-        // Option-based registration with graceful degradation
-        services.AddFluentAzureOptional<DatabaseConfig>(builder =>
-            builder
-                .FromJsonFile("appsettings.json")
-                .FromEnvironment()
-                .Required("ConnectionString")
-                .Optional("Timeout", 30)
-        );
+        // Register only if the configuration is complete (graceful degradation)
+        var database = await FluentConfig
+            .Create()
+            .FromJsonFile("appsettings.json")
+            .FromEnvironment()
+            .Required("Host")
+            .Optional("Port", 5432)
+            .BuildOptionalAsync<DatabaseConfig>();
+        database.Match(config => services.AddSingleton(config), () => { });
 
-        // Registration with fallback
-        services.AddFluentAzureWithFallback<LoggingConfig>(
-            builder => builder.FromJsonFile("appsettings.json").FromEnvironment(),
-            new LoggingConfig { Level = "Information", EnableConsole = true }
-        );
+        // Fall back to defaults when the configuration can't be loaded
+        var logging = await FluentConfig.Create().FromJsonFile("appsettings.json").FromEnvironment().BuildOptionalAsync<LoggingConfig>();
+        services.AddSingleton(logging.GetValueOrDefault(new LoggingConfig { Level = "Information", EnableConsole = true }));
 
-        // Conditional registration
-        services.AddFluentAzureConditional<FeatureConfig>(
-            builder => builder.FromJsonFile("appsettings.json").FromEnvironment(),
-            config => config.Environment == "Production",
-            new FeatureConfig { Environment = "Development" }
-        );
+        // Use the loaded configuration only when a condition holds
+        var features = await FluentConfig.Create().FromJsonFile("appsettings.json").FromEnvironment().BuildOptionalAsync<FeatureConfig>();
+        services.AddSingleton(
+            features.Where(config => config.Environment == "Production").GetValueOrDefault(new FeatureConfig { Environment = "Development" }));
 
         Console.WriteLine("Services registered with Option-based error handling");
     }

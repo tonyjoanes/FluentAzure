@@ -491,9 +491,7 @@ public class ConfigurationBuilder
 
         try
         {
-            var instance = new T();
-            var bindingResult = ConfigurationBinder.Bind(configResult.Value, instance);
-            return bindingResult;
+            return EnhancedConfigurationBinder.Bind<T>(configResult.Value);
         }
         catch (Exception ex)
         {

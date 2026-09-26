@@ -11,17 +11,23 @@ Upgrading from 0.2.0-rc.5 to 0.3.0-rc.1? See the [upgrade guide](docs/upgrade-gu
 - **Configuration guard:** `services.AddFluentAzureGuard(g => g.Required(...).Validate(...).Sensitive(...))` validates the application's final `IConfiguration` at host startup, whichever providers supplied it, including Microsoft's `AddAzureAppConfiguration()` and `AddAzureKeyVault()`. Startup fails with every failure listed by key, never by value. `AddHealthChecks().AddFluentAzureGuard()` re-runs the rules after reloads, and `ConfigurationGuard.Check()` / `ThrowIfInvalid()` work without a host. [Docs](docs/configuration-guard.md)
 - **Analyzers for Microsoft's APIs:** FAZ0002 (insecure endpoint) and FAZ0003 (hard-coded connection string secret) also check Microsoft's `AddAzureAppConfiguration(...)`, `options.Connect(...)` and `AddAzureKeyVault(...)`, and the Azure SDK's `new SecretClient(...)` and `new ConfigurationClient(...)`. [Docs](docs/analyzers.md)
 
+### Changed
+
+- **One binder:** `BuildAsync<T>()`, `BuildOptionalAsync<T>()`, `Bind<T>()` and the dictionary binding helpers now use `EnhancedConfigurationBinder` instead of the basic binder. They now bind collections, dictionaries and records, and run Data Annotations validation, so a type with `[Required]`/`[Range]` attributes can now fail to bind. [Details](docs/upgrade-guide.md)
+- **Positioning:** the README, package description and WebApi example now lead with using FluentAzure on top of Microsoft's providers. The WebApi example loads configuration with Microsoft's providers (plus `AddAzureKeyVault()` when `KeyVault:Url` is set), guards it with `AddFluentAzureGuard()`, and serves the guard's health check at `/health`. It now runs locally without Azure.
+- **Redaction:** `GetRedactedDebugView()` now also masks values from Microsoft's Key Vault provider, keys that look like credentials (`...Password`, `...Secret`, `...Token`, anything under `ConnectionStrings`) and values that look like credentials (connection strings with a key or password, SAS signatures, PEM keys). Previously only values FluentAzure loaded itself were masked.
+- **Build:** the public API is tracked with `Microsoft.CodeAnalysis.PublicApiAnalyzers` (`src/FluentAzure/PublicAPI.*.txt`), and `dotnet pack` runs package validation.
+
+### Deprecated
+
+- **Build-once DI registrations:** `services.AddFluentAzure<T>()`, `AddFluentAzureAsync<T>()`, `AddFluentAzureOptional<T>()`, `AddFluentAzureWithFallback<T>()`, `AddFluentAzureConditional<T>()` and the `FluentConfig.AddFluentAzure*<T>()` wrappers are marked `[Obsolete]` and will be removed in 1.0. Use the options pattern with the configuration guard or FluentAzure's provider. [Upgrade guide](docs/upgrade-guide.md)
+- **Basic binder:** `ConfigurationBinder` is marked `[Obsolete]` and will be removed in 1.0. Use `EnhancedConfigurationBinder`.
+
 ### Fixed
 
 - **`InMemorySource` keys:** `ContainsKey`, `GetValue` and `LoadAsync()` matched keys case-sensitively, unlike every other source. They now ignore case. The source still reads the dictionary it was given, so later changes to it are visible.
 - **NuGet package metadata:** the package's description, tags, icon and release-notes link never reached nuget.org (it showed "Package Description"), because they were set under a `Directory.Build.props` condition on `IsPackable`, which is only defined later in the project file.
 - **NuGet README links:** links in the package README pointed to relative paths, which don't resolve on nuget.org. They now point to GitHub.
-
-### Changed
-
-- **Positioning:** the README, package description and WebApi example now lead with using FluentAzure on top of Microsoft's providers. The WebApi example loads configuration with Microsoft's providers (plus `AddAzureKeyVault()` when `KeyVault:Url` is set), guards it with `AddFluentAzureGuard()`, and serves the guard's health check at `/health`. It now runs locally without Azure.
-- **Redaction:** `GetRedactedDebugView()` now also masks values from Microsoft's Key Vault provider, keys that look like credentials (`...Password`, `...Secret`, `...Token`, anything under `ConnectionStrings`) and values that look like credentials (connection strings with a key or password, SAS signatures, PEM keys). Previously only values FluentAzure loaded itself were masked.
-- **Build:** the public API is tracked with `Microsoft.CodeAnalysis.PublicApiAnalyzers` (`src/FluentAzure/PublicAPI.*.txt`), and `dotnet pack` runs package validation.
 
 ## [0.3.0-rc.1] - 2026-09-26
 

@@ -133,38 +133,11 @@ var config = configResult.Bind<AppConfiguration>();
 ```
 
 #### **Dependency Injection**
-```csharp
-// Program.cs
-using FluentAzure;
-
-builder.Services.AddFluentAzure<AppSettings>(config => config
-    .FromEnvironment()
-    .FromKeyVault(builder.Configuration["KeyVault:Url"]) // or any other sources
-);
-
-// Controller
-public class ApiController : ControllerBase
-{
-    private readonly AppSettings _settings;
-
-    public ApiController(AppSettings settings)
-    {
-        _settings = settings;
-    }
-}
-```
-
-Where you can `await` (e.g. top-level statements in `Program.cs`), prefer the async overload so remote sources such as Key Vault load without blocking a thread:
-```csharp
-await builder.Services.AddFluentAzureAsync<AppSettings>(config => config
-    .FromEnvironment()
-    .FromKeyVault(builder.Configuration["KeyVault:Url"])
-);
-```
+Register settings with the options pattern: bind from `IConfiguration` (fed by Microsoft's providers and guarded by `AddFluentAzureGuard()`, or by FluentAzure's provider below) with `AddFluentAzureOptions<T>()`, and inject `IOptions<T>` or `IOptionsMonitor<T>`.
 
 Configuration keys are case-insensitive, and environment variables using the standard `__` separator (e.g. `ConnectionStrings__Default`) are also available under their `:` form (`ConnectionStrings:Default`).
 
-> `AddFluentAzure<T>` builds once at startup and registers `T` as a singleton, with no reload. It uses the basic binder, which binds nested objects but not collections or dictionaries. For new code, prefer the provider below with `AddFluentAzureOptions<T>()`. See [Configuration binding](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/enhanced-configuration-binding.md).
+> The older `services.AddFluentAzure<T>(...)` / `AddFluentAzureAsync<T>(...)` registrations are obsolete and will be removed in 1.0. They build once at startup and register `T` as a singleton, with no reload. See the [upgrade guide](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/upgrade-guide.md) for the replacement.
 
 #### **FluentAzure's sources in ASP.NET Core / Functions (`IConfiguration` + `IOptionsMonitor`)**
 Plug a FluentAzure pipeline into the standard configuration system. Required keys and validations still fail fast at startup, and values become available to `IConfiguration`, `IOptions<T>` and `IOptionsMonitor<T>`:

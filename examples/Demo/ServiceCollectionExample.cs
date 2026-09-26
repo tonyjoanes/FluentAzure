@@ -52,17 +52,18 @@ public static class ServiceCollectionExample
     {
         var services = new ServiceCollection();
 
-        services.AddFluentAzure<AppSettings>(builder =>
-            builder
+        var configuration = new Microsoft.Extensions.Configuration.ConfigurationBuilder()
+            .AddFluentAzure(fluent => fluent
                 .FromJsonFile("appsettings.json")
                 .FromEnvironment()
                 .Required("App:Name")
                 .Required("Database:ConnectionString")
-                .Optional("Debug", "false")
-        );
+                .Optional("Debug", "false"))
+            .Build();
+        services.AddFluentAzureOptions<AppSettings>(configuration);
 
         var serviceProvider = services.BuildServiceProvider();
-        var config = serviceProvider.GetRequiredService<AppSettings>();
+        var config = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<AppSettings>>().Value;
 
         Console.WriteLine($"App: {config.AppName}");
         Console.WriteLine($"Version: {config.Version}");
@@ -76,9 +77,9 @@ public static class ServiceCollectionExample
     {
         var services = new ServiceCollection();
 
-        services.AddFluentAzure<AppSettings>(
-            builder =>
-                builder
+        var configuration = new Microsoft.Extensions.Configuration.ConfigurationBuilder()
+            .AddFluentAzure(fluent =>
+                fluent
                     .FromJsonFile("appsettings.json")
                     .FromEnvironment()
                     .FromKeyVault("https://my-keyvault.vault.azure.net/")
@@ -97,21 +98,21 @@ public static class ServiceCollectionExample
 
                             return Result<string>.Error("Timeout must be a positive integer");
                         }
-                    ),
-            config =>
-            {
-                // Post-processing: ensure API URL ends with trailing slash
-                if (!config.Api.BaseUrl.EndsWith("/"))
-                {
-                    config.Api.BaseUrl += "/";
-                }
+                    ))
+            .Build();
 
-                return config;
+        // Post-processing runs when the options are first read
+        services.AddFluentAzureOptions<AppSettings>(configuration).PostConfigure(config =>
+        {
+            // Ensure the API URL ends with a trailing slash
+            if (!config.Api.BaseUrl.EndsWith("/"))
+            {
+                config.Api.BaseUrl += "/";
             }
-        );
+        });
 
         var serviceProvider = services.BuildServiceProvider();
-        var appConfig = serviceProvider.GetRequiredService<AppSettings>();
+        var appConfig = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<AppSettings>>().Value;
 
         Console.WriteLine($"App: {appConfig.AppName}");
         Console.WriteLine($"API Base URL: {appConfig.Api.BaseUrl}");

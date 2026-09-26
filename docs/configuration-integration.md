@@ -156,4 +156,4 @@ See [`examples/Aot.Example`](../examples/Aot.Example), which CI publishes with N
 | Native AOT | Non-generic `BuildAsync()` only | Yes, with the binding source generator |
 | Best for | Console tools, scripts, tests | ASP.NET Core, Functions, workers |
 
-The older `services.AddFluentAzure<T>(...)` registrations still work. They build once and register `T` as a singleton, with no reload.
+The older `services.AddFluentAzure<T>(...)` registrations are obsolete and will be removed in 1.0. They build once and register `T` as a singleton, with no reload.
