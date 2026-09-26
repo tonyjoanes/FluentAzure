@@ -4,7 +4,7 @@ The FluentAzure Key Vault configuration source provides a robust, production-rea
 
 ## 🎯 Key Features
 
-✅ **DefaultAzureCredential Support** - Seamless authentication across development and production environments  
+✅ **Pipeline Identity** - One credential for every Azure source: `UseManagedIdentity()`, `UseWorkloadIdentity()`, `UseCredential(...)`, or `DefaultAzureCredential` by default  
 ✅ **Exponential Backoff Retry** - Configurable retry logic with jitter for resilient API calls  
 ✅ **Secret Versioning** - Support for specific secret versions or latest version  
 ✅ **In-Memory Caching** - Configurable TTL caching to reduce API calls and improve performance  
@@ -14,14 +14,18 @@ The FluentAzure Key Vault configuration source provides a robust, production-rea
 ✅ **Thread-Safe Operations** - Concurrent access support with thread-safe caching  
 ✅ **Comprehensive Logging** - Detailed logging for monitoring and debugging  
 ✅ **Multiple Authentication Methods** - Support for Managed Identity, Service Principal, and more  
+✅ **Active Secrets Only** - Disabled, expired and not-yet-active secrets are skipped  
+✅ **Throttling-Aware** - Secrets are fetched in parallel with a concurrency cap (`MaxConcurrentSecretLoads`)  
+✅ **Reload & Rotation** - `ReloadAsync()`, or periodic reload into `IOptionsMonitor<T>` via the [IConfiguration provider](configuration-integration.md)  
+✅ **Secrets Stay Secret** - Values are tracked as sensitive, masked by `GetRedactedDebugView()` and never included in errors or telemetry  
 
 ## 🚀 Quick Start
 
 ### Basic Usage
 
 ```csharp
-var config = await FluentAzure
-    .Configuration()
+var config = await FluentConfig
+    .Create()
     .FromEnvironment()
     .FromKeyVault("https://your-keyvault.vault.azure.net/")
     .BuildAsync();
@@ -35,8 +39,8 @@ config.Match(
 ### Advanced Configuration
 
 ```csharp
-var config = await FluentAzure
-    .Configuration()
+var config = await FluentConfig
+    .Create()
     .FromKeyVault("https://your-keyvault.vault.azure.net/", options =>
     {
         options.CacheDuration = TimeSpan.FromMinutes(10);
@@ -56,7 +60,7 @@ var config = await FluentAzure
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
-| `Credential` | `TokenCredential?` | `null` | Azure credential (uses DefaultAzureCredential if null) |
+| `Credential` | `TokenCredential?` | `null` | Credential for this vault. When `null`, the pipeline credential is used (see [Authentication](#-authentication-methods)) |
 | `MaxRetryAttempts` | `int` | `3` | Maximum number of retry attempts |
 | `BaseRetryDelay` | `TimeSpan` | `1 second` | Base delay for exponential backoff |
 | `MaxRetryDelay` | `TimeSpan` | `30 seconds` | Maximum delay between retry attempts |
@@ -65,20 +69,25 @@ var config = await FluentAzure
 | `KeyMapper` | `Func<string, string>` | `Replace("--", ":")` | Function to transform secret names to config keys |
 | `SecretVersion` | `string?` | `null` | Specific secret version to retrieve |
 | `SecretNamePrefix` | `string?` | `null` | Prefix filter for secret names |
-| `ReloadFailedSecrets` | `bool` | `true` | Whether to reload secrets that failed during initial load |
+| `ReloadFailedSecrets` | `bool` | `true` | Reserved; currently has no effect |
 | `OperationTimeout` | `TimeSpan` | `30 seconds` | Timeout for Key Vault operations |
 | `MaxConcurrentSecretLoads` | `int` | `8` | Maximum secrets fetched concurrently during a load, to stay under Key Vault throttling limits |
 
 ## 🔐 Authentication Methods
 
-### 1. Default Azure Credential (Recommended)
+### 1. Pipeline identity (recommended)
+
+Set one identity for every Azure source in the pipeline. It can be set before or after `FromKeyVault`:
 
 ```csharp
-// Uses DefaultAzureCredential - automatically tries multiple credential types
-.FromKeyVault("https://your-keyvault.vault.azure.net/")
+FluentConfig.Create()
+    .UseManagedIdentity()                  // or UseManagedIdentity("<client-id>"), UseWorkloadIdentity(), UseCredential(cred)
+    .FromKeyVault("https://your-keyvault.vault.azure.net/");
 ```
 
-### 2. Managed Identity
+Without any of these, `DefaultAzureCredential` is used, with one shared instance per pipeline. If you rely on it in production, set `AZURE_TOKEN_CREDENTIALS=prod` so it doesn't fall back to developer credentials. See [Identity & secrets](identity-and-redaction.md).
+
+### 2. Per-vault managed identity
 
 ```csharp
 // System-assigned managed identity
@@ -99,12 +108,56 @@ var config = await FluentAzure
 )
 ```
 
-### 4. Custom Credential
+Load the client secret from configuration or the environment; never hard-code it.
+
+### 4. Custom credential or client
 
 ```csharp
-var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
 .FromKeyVault("https://your-keyvault.vault.azure.net/", credential)
+
+// Or bring a fully configured SecretClient (custom SecretClientOptions, a test double, ...)
+var client = new SecretClient(new Uri(vaultUrl), credential, new SecretClientOptions { /* ... */ });
+FluentConfig.Create().AddSource(new KeyVaultSource(client));
 ```
+
+A per-vault credential always takes precedence over the pipeline credential. When you pass a `SecretClient`, its own credential and retry options are used.
+
+### Required permissions
+
+Grant the identity the **Key Vault Secrets User** role (Azure RBAC). FluentAzure lists secret properties and reads secret values; it never writes.
+
+## 📥 Which Secrets Are Loaded
+
+A load lists the vault's secrets and reads the value of each one that:
+- is **enabled**;
+- has not **expired** (`ExpiresOn`);
+- is **active** (`NotBefore` has passed);
+- matches `SecretNamePrefix`, if one is set.
+
+Values are read in parallel, at most `MaxConcurrentSecretLoads` (default 8) at a time, to stay under Key Vault's throttling limits. Concurrent `LoadAsync` calls share a single load.
+
+To avoid reading secrets the application doesn't need, keep application secrets in their own vault or behind a `SecretNamePrefix`.
+
+## 🔁 Reloading and Rotation
+
+`LoadAsync` caches its result. `ReloadAsync()` clears the cache and reads the vault again:
+
+```csharp
+var source = new KeyVaultSource(vaultUrl);
+await source.LoadAsync();
+// ... a secret is rotated ...
+await source.ReloadAsync();
+```
+
+In applications, let the [IConfiguration provider](configuration-integration.md#reloading-and-ioptionsmonitor) do this for you. With `reloadInterval`, the pipeline reloads Key Vault periodically, pushes changed values to `IOptionsMonitor<T>`, and keeps the last good values if a reload fails:
+
+```csharp
+await builder.Configuration.AddFluentAzureAsync(
+    fluent => fluent.UseManagedIdentity().FromKeyVault(vaultUrl),
+    reloadInterval: TimeSpan.FromMinutes(15));
+```
+
+Every value loaded from Key Vault is treated as a secret. It is masked by `GetRedactedDebugView()` and never appears in FluentAzure's errors, telemetry or health data.
 
 ## 🗂️ Key Mapping Examples
 
@@ -254,11 +307,11 @@ var logger = loggerFactory.CreateLogger<Program>();
 ### 1. Authentication
 
 ```csharp
-// ✅ Use DefaultAzureCredential for automatic credential detection
-.FromKeyVault(vaultUrl)
+// ✅ Use a managed identity in Azure environments
+FluentConfig.Create().UseManagedIdentity().FromKeyVault(vaultUrl)
 
-// ✅ Use Managed Identity in Azure environments
-.FromKeyVaultWithManagedIdentity(vaultUrl)
+// ✅ If you keep DefaultAzureCredential, set AZURE_TOKEN_CREDENTIALS=prod in production
+FluentConfig.Create().FromKeyVault(vaultUrl)
 
 // ❌ Avoid hardcoding credentials
 // Don't: new ClientSecretCredential("tenant", "client", "hardcoded-secret")
@@ -320,8 +373,8 @@ options.BaseRetryDelay = TimeSpan.FromSeconds(1);
 
 ```csharp
 // Use InMemorySource for testing
-var testConfig = await FluentAzure
-    .Configuration()
+var testConfig = await FluentConfig
+    .Create()
     .FromInMemory(new Dictionary<string, string>
     {
         ["Database:Host"] = "localhost",
@@ -335,8 +388,8 @@ var testConfig = await FluentAzure
 ```csharp
 // Use a test Key Vault with non-sensitive data
 var testVaultUrl = "https://test-keyvault.vault.azure.net/";
-var config = await FluentAzure
-    .Configuration()
+var config = await FluentConfig
+    .Create()
     .FromKeyVault(testVaultUrl, options =>
     {
         options.SecretNamePrefix = "Test-";
@@ -347,67 +400,57 @@ var config = await FluentAzure
 
 ## 📚 Common Scenarios
 
-### 1. ASP.NET Core Integration
+### 1. ASP.NET Core
 
 ```csharp
 // Program.cs
 var builder = WebApplication.CreateBuilder(args);
 
-var config = await FluentAzure
-    .Configuration()
-    .FromJsonFile("appsettings.json")
-    .FromEnvironment()
-    .FromKeyVault(builder.Configuration["KeyVault:Url"])
-    .BuildAsync();
+await builder.Configuration.AddFluentAzureAsync(
+    fluent => fluent
+        .UseManagedIdentity()
+        .FromKeyVault(builder.Configuration["KeyVault:Url"]!)
+        .Required("Database:ConnectionString"),
+    reloadInterval: TimeSpan.FromMinutes(15));
 
-config.Match(
-    success => builder.Services.AddSingleton<IConfiguration>(new ConfigurationRoot(success)),
-    errors => throw new InvalidOperationException($"Configuration failed: {string.Join(", ", errors)}")
-);
+builder.Services.AddFluentAzureOptions<DatabaseOptions>(builder.Configuration, "Database");
 ```
 
-### 2. Azure Functions
+A missing `Database:ConnectionString` stops startup with a `FluentAzureConfigurationException` that lists every error.
+
+### 2. Azure Functions (isolated worker)
+
+Load configuration once at startup, not per invocation:
 
 ```csharp
-[FunctionName("MyFunction")]
-public async Task<IActionResult> Run([HttpTrigger] HttpRequest req, ILogger log)
-{
-    var config = await FluentAzure
-        .Configuration()
-        .FromEnvironment()
-        .FromKeyVaultWithManagedIdentity(Environment.GetEnvironmentVariable("KeyVault:Url"))
-        .BuildAsync();
+// Program.cs
+var builder = FunctionsApplication.CreateBuilder(args);
 
-    return config.Match(
-        success => new OkObjectResult(success),
-        errors => new BadRequestObjectResult(errors)
-    );
-}
+await builder.Configuration.AddFluentAzureAsync(fluent => fluent
+    .UseManagedIdentity()
+    .FromKeyVault(Environment.GetEnvironmentVariable("KeyVault__Url")!));
+
+builder.Services.AddFluentAzureOptions<ServiceBusOptions>(builder.Configuration, "ServiceBus");
+
+builder.Build().Run();
 ```
 
-### 3. Background Services
+Functions then take `IOptions<ServiceBusOptions>` or `IOptionsMonitor<ServiceBusOptions>` through dependency injection.
+
+### 3. Background services with rotated secrets
+
+Use a reload interval and read the current value through `IOptionsMonitor<T>` on each use, rather than reloading the source yourself:
 
 ```csharp
-public class Worker : BackgroundService
+public class Worker(IOptionsMonitor<ApiOptions> options) : BackgroundService
 {
-    private readonly ILogger<Worker> _logger;
-    private KeyVaultSource _kvSource;
-
-    public Worker(ILogger<Worker> logger)
-    {
-        _logger = logger;
-        _kvSource = new KeyVaultSource(
-            Environment.GetEnvironmentVariable("KeyVault:Url")!, 
-            logger: logger);
-    }
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            // Reload configuration periodically
-            await _kvSource.ReloadAsync();
-            await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
+            var api = options.CurrentValue;   // reflects the latest successful reload
+            // ... call the API with api.Key ...
+            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
         }
     }
 }
@@ -418,15 +461,17 @@ public class Worker : BackgroundService
 - [Azure Key Vault Documentation](https://docs.microsoft.com/en-us/azure/key-vault/)
 - [DefaultAzureCredential Documentation](https://docs.microsoft.com/en-us/dotnet/api/azure.identity.defaultazurecredential)
 - [Polly Retry Library](https://github.com/App-vNext/Polly)
-- [FluentAzure Configuration Builder](./configuration-builder.md)
+- [IConfiguration integration & reload](configuration-integration.md)
+- [Identity & secrets](identity-and-redaction.md)
+- [Observability: telemetry & health checks](observability.md)
 
 ## 🐛 Troubleshooting
 
 ### Common Issues
 
 1. **Authentication Failures**
-   - Verify Key Vault access policies
-   - Check Azure RBAC permissions
+   - Grant the identity the **Key Vault Secrets User** role (or the equivalent access policy on vaults that still use them)
+   - Check which identity is in use: set it explicitly with `UseManagedIdentity()` / `UseCredential(...)`
    - Ensure correct credential configuration
 
 2. **Timeout Errors**
@@ -440,7 +485,8 @@ public class Worker : BackgroundService
    - Monitor cache statistics for optimization
 
 4. **Partial Loading**
-   - Check `LoadErrors` property for specific failures
+   - Check the `LoadErrors` property for specific failures
+   - Disabled, expired and not-yet-active secrets are skipped by design
    - Verify secret names and permissions
    - Review retry configuration
 
