@@ -27,10 +27,29 @@ A full-featured ASP.NET Core Web API demonstrating:
 - ✅ **CORS and security** configuration
 - ✅ **Swagger/OpenAPI** documentation
 
+### 3. Native AOT Example
+**Location**: `Aot.Example/`
+
+The recommended setup for new apps, compiled to a native executable:
+- ✅ **`IConfiguration` provider**: `AddFluentAzure()` with required keys and validation
+- ✅ **Source-generated options binding** (`EnableConfigurationBindingGenerator`), with no reflection
+- ✅ **Managed identity** and `.Sensitive(...)` secret tracking
+- ✅ **Health check** run inside the native binary
+- ✅ Optional Key Vault and App Configuration sources (set `KEYVAULT_URL` / `APPCONFIG_ENDPOINT`)
+
+CI publishes it with `PublishAot` and fails on any trimming/AOT warning.
+
+### 4. Demo
+**Location**: `Demo/`
+
+Console samples of the standalone pipeline (`FluentConfig.Create()...BuildAsync()`), `Result`/`Option` handling and binding.
+
+> The Azure Functions, Web API and Demo examples use the standalone pipeline and `AddFluentAzure<T>()` registrations. For new applications, prefer the `IConfiguration` provider shown in `Aot.Example` and in [docs/configuration-integration.md](../docs/configuration-integration.md).
+
 ## 🛠️ Getting Started
 
 ### Prerequisites
-- .NET 8.0 SDK
+- .NET 8.0 SDK (.NET 10 SDK for `Aot.Example`)
 - Azure subscription (for Key Vault, Storage, Service Bus)
 - Azure Storage Emulator (for local development)
 - SQL Server (local or Azure)
@@ -73,6 +92,16 @@ dotnet run
 - File upload to Azure Storage
 - Rate limiting and security
 - Swagger documentation
+
+#### 3. Native AOT Example
+
+```bash
+cd examples/Aot.Example
+dotnet publish -c Release -r linux-x64      # or win-x64 / osx-arm64
+./bin/Release/net10.0/linux-x64/publish/Aot.Example
+```
+
+Expected output: `Name=AotDemo Port=8080`, `App:ApiKey loaded=True sensitive=True` and `Health=Healthy`. Override values with environment variables, e.g. `App__Port=9090`.
 
 ## 📋 Configuration Examples
 

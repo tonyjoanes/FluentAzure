@@ -7,9 +7,12 @@ Key APIs: `FluentConfig.Create()` returns a `FluentAzure.Core.ConfigurationBuild
 ## Docs
 
 - [README](https://github.com/tonyjoanes/FluentAzure/blob/main/README.md): installation, usage patterns, IConfiguration integration, identity, redaction, observability, AOT
+- [IConfiguration integration](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/configuration-integration.md): AddFluentAzure/AddFluentAzureAsync, reload into IOptionsMonitor, AddFluentAzureOptions, Native AOT
+- [Identity & secrets](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/identity-and-redaction.md): UseManagedIdentity/UseWorkloadIdentity/UseCredential, Sensitive, GetRedactedDebugView
+- [Observability](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/observability.md): OpenTelemetry trace/metric names and tags, health check statuses
 - [App Configuration source](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/app-configuration-source.md): labels, snapshots, Key Vault references, feature flags, sentinel refresh
 - [Key Vault source](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/key-vault-configuration-source.md): options, key mapping, retries, caching
-- [Enhanced configuration binding](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/enhanced-configuration-binding.md): records, collections, validation
+- [Configuration binding](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/enhanced-configuration-binding.md): which binder each API uses, supported shapes and known limitations
 - [Analyzers](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/analyzers.md): FAZ0001–FAZ0004 compile-time checks
 - [Security](https://github.com/tonyjoanes/FluentAzure/blob/main/SECURITY.md): secret handling and what redaction does and does not cover
 
@@ -20,6 +23,7 @@ Key APIs: `FluentConfig.Create()` returns a `FluentAzure.Core.ConfigurationBuild
 - [Azure Functions example](https://github.com/tonyjoanes/FluentAzure/tree/main/examples/AzureFunctions.Example)
 
 ## Optional
+- [Changelog](https://github.com/tonyjoanes/FluentAzure/blob/main/CHANGELOG.md) and [upgrade guide](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/upgrade-guide.md)
 
 - [Contributing](https://github.com/tonyjoanes/FluentAzure/blob/main/CONTRIBUTING.md): build, tests, App Configuration emulator
 - [Agent guidance](https://github.com/tonyjoanes/FluentAzure/blob/main/AGENTS.md): repository rules and gotchas for AI coding agents

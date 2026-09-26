@@ -9,6 +9,16 @@ A fluent, functional, and type-safe NuGet package for Azure configuration and se
 ![Fluent](https://img.shields.io/badge/Style-Fluent%20%7C%20Functional-purple.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
+> **What's new:**
+> - An `IConfiguration` provider with `IOptionsMonitor<T>` reload.
+> - An Azure App Configuration source.
+> - Managed/workload identity and secret redaction.
+> - OpenTelemetry and health checks.
+> - Compile-time analyzers.
+> - .NET 10 and Native AOT support.
+>
+> See the [changelog](CHANGELOG.md) and the [upgrade guide](docs/upgrade-guide.md).
+
 ## 🎯 Problem This Solves
 
 Azure developers constantly struggle with:
@@ -58,6 +68,18 @@ var config = configResult.Match(
 );
 ```
 
+## 🧭 Where to Start
+
+| You are building… | Use | Docs |
+|---|---|---|
+| An ASP.NET Core app, Azure Functions (isolated) or a worker service | The **`IConfiguration` provider**: `builder.Configuration.AddFluentAzureAsync(...)` + `AddFluentAzureOptions<T>()`. You get reload, `IOptionsMonitor<T>`, health checks and fail-fast startup | [Configuration integration](docs/configuration-integration.md) |
+| A console tool, script or test | The **standalone pipeline**: `FluentConfig.Create()...BuildAsync()` returns a `Result` you can `Match` | [Examples below](#-example-usage-patterns) |
+| A trimmed or Native AOT app | The **provider** + the configuration binding source generator | [Native AOT](docs/configuration-integration.md#native-aot) |
+
+Whichever you choose:
+- **Identity:** pick one identity for Azure with `UseManagedIdentity()`. [Identity & secrets](docs/identity-and-redaction.md)
+- **Where settings live:** put settings and feature flags in App Configuration and secrets in Key Vault. [App Configuration](docs/app-configuration-source.md), [Key Vault](docs/key-vault-configuration-source.md)
+
 ## 📦 Installation
 
 ```bash
@@ -85,7 +107,7 @@ bool isPreRelease = FluentAzure.Version.IsPreRelease;
 
 ## 📖 Example Usage Patterns
 
-#### **Ultra Clean Configuration (Recommended)**
+#### **Standalone Pipeline (console apps, scripts, tests)**
 ```csharp
 using FluentAzure; // Single using statement!
 
@@ -144,6 +166,8 @@ await builder.Services.AddFluentAzureAsync<AppSettings>(config => config
 ```
 
 Configuration keys are case-insensitive, and environment variables using the standard `__` separator (e.g. `ConnectionStrings__Default`) are also available under their `:` form (`ConnectionStrings:Default`).
+
+> `AddFluentAzure<T>` builds once at startup and registers `T` as a singleton, with no reload. It uses the basic binder, which binds nested properties only from `__` keys, so nested Key Vault or App Configuration settings (`Database:Host`) are not bound. For new code, prefer the provider below with `AddFluentAzureOptions<T>()`. See [Configuration binding](docs/enhanced-configuration-binding.md).
 
 #### **Microsoft.Extensions.Configuration + IOptionsMonitor (Recommended for ASP.NET Core / Functions)**
 Plug a FluentAzure pipeline into the standard configuration system. Required keys and validations still fail fast at startup, and values become available to `IConfiguration`, `IOptions<T>` and `IOptionsMonitor<T>`:
@@ -247,63 +271,59 @@ The package includes compile-time analyzers ([docs/analyzers.md](docs/analyzers.
 // Program.cs
 using FluentAzure;
 
-var configResult = await FluentConfig
-    .Create()  // Ultra clean - just FluentConfig.Create()!
-    .FromJsonFile("appsettings.json")
-    .FromEnvironment()
-    .FromKeyVault(builder.Configuration["KeyVault:Url"])
+var builder = WebApplication.CreateBuilder(args);
+
+await builder.Configuration.AddFluentAzureAsync(fluent => fluent
+    .UseManagedIdentity()
+    .FromKeyVault(builder.Configuration["KeyVault:Url"]!)
     .Required("ConnectionStrings:DefaultConnection")
-    .Required("Jwt:SecretKey")
-    .Optional("Logging:LogLevel:Default", "Information")
-    .BuildAsync();
+    .Required("Jwt:SecretKey"));
 
-var bindResult = configResult.Bind<WebApiConfiguration>();
+builder.Services.AddFluentAzureOptions<JwtOptions>(builder.Configuration, "Jwt");
+builder.Services.AddHealthChecks().AddFluentAzure();
 
-var config = bindResult.Match(
-    success => { builder.Services.AddSingleton(success); return success; },
-    errors => throw new InvalidOperationException($"Configuration failed: {string.Join(", ", errors)}")
-);
+var app = builder.Build();
+app.MapHealthChecks("/health");
 ```
-```
+
+A missing required key stops startup with a `FluentAzureConfigurationException` that lists every problem. Values are available through `IConfiguration`, `IOptions<JwtOptions>` and `builder.Configuration.GetConnectionString("DefaultConnection")`.
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- .NET 8.0 SDK
-- Azure subscription (for Key Vault/App Configuration)
+- .NET 8 or .NET 10.
+- For Azure sources: an identity with access to your Key Vault and/or App Configuration store. No Azure subscription is needed for environment, JSON or in-memory sources. For local work, the [App Configuration emulator](CONTRIBUTING.md#app-configuration-emulator-tests) runs in Docker.
 
 ### Quick Start
-1. Install the package: `dotnet add package FluentAzure`
-2. Add using statement: `using FluentAzure;` (that's it!)
-3. Use the fluent API: `FluentConfig.Create()` (ultra clean)
-4. Handle results with the `Match` method for type-safe error handling
+1. Install the package: `dotnet add package FluentAzure --prerelease`.
+2. Add `using FluentAzure;`.
+3. Choose your starting point from [Where to Start](#-where-to-start).
+4. Handle results with `Match`, or let the provider fail fast at startup.
 
 ### Features
-- **Ultra Clean API**: Use `FluentConfig.Create()` directly with just `using FluentAzure;`
-- **Fluent API**: Chain configuration sources with readable syntax
-- **Type Safety**: Compile-time validation and runtime error handling
-- **Multiple Sources**: Environment variables, Key Vault, JSON files, and more
-- **Dependency Injection**: Seamless integration with .NET DI container
-- **Performance**: Intelligent caching and lazy loading
+- **Fluent pipeline:** chain sources, `Required`, `Optional`, `Transform` and `Validate`, and get a `Result` with every error, not just the first.
+- **Sources:** environment variables, JSON files, in-memory values, Azure Key Vault, and Azure App Configuration (labels, snapshots, Key Vault references, feature flags).
+- **`IConfiguration` provider:** works with the options pattern, reloads into `IOptionsMonitor<T>`, and keeps the last good values when a reload fails.
+- **Identity:** one managed/workload identity for every Azure source.
+- **Secret safety:** secrets are tracked and redacted, and never appear in errors, telemetry or health data.
+- **Observability:** OpenTelemetry traces and metrics, and a health check.
+- **Analyzers:** compile-time checks for key typos, insecure endpoints, hard-coded secrets and unredacted debug output.
+- **Platforms:** .NET 8 and .NET 10, trimming and Native AOT compatible.
 
-## 🔄 API Comparison
+## 📚 Documentation
 
-### **Ultra Clean (Recommended)**
-```csharp
-using FluentAzure;
-var config = await FluentConfig.Create()...
-```
-
-### **Legacy (No longer available)**
-```csharp
-// This API has been removed in favor of the ultra clean approach
-// using FluentAzure.Core;
-// var config = await FluentAzure.Configuration()...
-
-// Use this instead:
-using FluentAzure;
-var config = await FluentConfig.Create()...
-```
+| Topic | Page |
+|---|---|
+| `IConfiguration` provider, reload, options, AOT | [docs/configuration-integration.md](docs/configuration-integration.md) |
+| Azure App Configuration | [docs/app-configuration-source.md](docs/app-configuration-source.md) |
+| Azure Key Vault | [docs/key-vault-configuration-source.md](docs/key-vault-configuration-source.md) |
+| Identity & secret redaction | [docs/identity-and-redaction.md](docs/identity-and-redaction.md) |
+| OpenTelemetry & health checks | [docs/observability.md](docs/observability.md) |
+| Binding to typed objects | [docs/enhanced-configuration-binding.md](docs/enhanced-configuration-binding.md) |
+| Analyzers FAZ0001–FAZ0004 | [docs/analyzers.md](docs/analyzers.md) |
+| Changelog & upgrading | [CHANGELOG.md](CHANGELOG.md), [docs/upgrade-guide.md](docs/upgrade-guide.md) |
+| Examples | [examples/](examples/README.md) |
+| Security | [SECURITY.md](SECURITY.md) |
 
 ## 🤝 Contributing
 

@@ -110,8 +110,8 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         
         // FluentAzure with automatic validation
-        var configResult = await FluentAzure
-            .Configuration()
+        var configResult = await FluentConfig
+            .Create()
             .FromJsonFile("appsettings.json")
             .FromEnvironment()
             .Required("ConnectionStrings:DefaultConnection")
@@ -342,8 +342,8 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         
         // FluentAzure handles Key Vault automatically
-        var configResult = await FluentAzure
-            .Configuration()
+        var configResult = await FluentConfig
+            .Create()
             .FromEnvironment()
             .FromKeyVault(builder.Configuration["KeyVaultUrl"])
             .Required("DatabaseConnectionString")
@@ -425,8 +425,8 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         
         // FluentAzure with proper error handling
-        var configResult = await FluentAzure
-            .Configuration()
+        var configResult = await FluentConfig
+            .Create()
             .FromJsonFile("appsettings.json")
             .FromEnvironment()
             .Required("ConnectionStrings:DefaultConnection")
