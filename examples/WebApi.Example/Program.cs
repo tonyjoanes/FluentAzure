@@ -1,5 +1,7 @@
 ﻿using System.Text;
+using Azure.Identity;
 using FluentAzure;
+using FluentAzure.Guard;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -10,42 +12,35 @@ using WebApi.Example.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure FluentAzure with strongly-typed configuration
-// Required keys match the WebApiConfiguration properties they bind to. In Key Vault, name the
-// secrets with "--" instead of ":" (e.g. Database--ConnectionString).
-var buildResult = await FluentConfig
-    .Create()
-    .FromJsonFile("appsettings.json")
-    .FromEnvironment()
-    .FromKeyVault(
-        builder.Configuration["KeyVault:Url"]
-            ?? throw new InvalidOperationException("The KeyVault:Url setting is required.")
-    )
-    .Required("Database:ConnectionString")
-    .Required("Storage:ConnectionString")
-    .Required("ServiceBus:ConnectionString")
-    .Required("Jwt:SecretKey")
-    .Required("Jwt:Issuer")
-    .Required("Jwt:Audience")
-    .Optional("Logging:LogLevel:Default", "Information")
-    .Optional("AllowedHosts", "*")
-    .Optional("Cors:AllowedOrigins", "http://localhost:3000")
-    .BuildAsync();
+// Configuration is loaded with Microsoft's providers: WebApplication.CreateBuilder already reads
+// appsettings.json and environment variables, and secrets come from Key Vault when KeyVault:Url is set.
+// Key Vault secret names use "--" for ":" (e.g. Database--ConnectionString).
+var keyVaultUrl = builder.Configuration["KeyVault:Url"];
+if (!string.IsNullOrEmpty(keyVaultUrl))
+{
+    builder.Configuration.AddAzureKeyVault(new Uri(keyVaultUrl), new DefaultAzureCredential());
+}
 
-var configResult = buildResult.Bind<WebApiConfiguration>();
+// FluentAzure guards it: if a setting is missing or invalid, startup fails listing every problem by key
+// (never by value), and the health check re-runs the same rules after configuration reloads.
+builder.Services.AddFluentAzureGuard(guard => guard
+    .Required(
+        "Database:ConnectionString",
+        "Storage:ConnectionString",
+        "ServiceBus:ConnectionString",
+        "Jwt:SecretKey",
+        "Jwt:Issuer",
+        "Jwt:Audience")
+    .Validate("Jwt:SecretKey", value => value.Length >= 32, "must be at least 32 characters")
+    .Validate(
+        "Jwt:Issuer",
+        value => Uri.TryCreate(value, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps,
+        "must be an absolute https URI"));
+builder.Services.AddHealthChecks().AddFluentAzureGuard();
 
-var config = configResult.Match(
-    success =>
-    {
-        builder.Services.AddSingleton(success);
-        return success;
-    },
-    errors =>
-    {
-        var errorMessage = string.Join(", ", errors);
-        throw new InvalidOperationException($"Configuration failed: {errorMessage}");
-    }
-);
+// Bind the settings the app uses at startup. The guard runs before the app serves traffic.
+var config = builder.Configuration.Get<WebApiConfiguration>() ?? new WebApiConfiguration();
+builder.Services.AddSingleton(config);
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -171,14 +166,20 @@ app.UseCors("AllowedOrigins");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 // Log configuration summary
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
-logger.LogInformation("ðŸš€ Web API started with configuration:");
+logger.LogInformation("Web API started with configuration:");
 logger.LogInformation("Database: {Database}", config.Database.Name);
 logger.LogInformation("Storage: {Storage}", config.Storage.AccountName);
 logger.LogInformation("Service Bus: {ServiceBus}", config.ServiceBus.Namespace);
 logger.LogInformation("JWT Issuer: {Issuer}", config.Jwt.Issuer);
 logger.LogInformation("CORS Origins: {Origins}", config.Cors.AllowedOrigins);
+
+// A full view of the configuration, with secrets masked (never log GetDebugView() itself)
+logger.LogDebug(
+    "{Configuration}",
+    app.Services.GetRequiredService<ConfigurationGuard>().GetRedactedDebugView((IConfigurationRoot)app.Configuration));
 
 app.Run();

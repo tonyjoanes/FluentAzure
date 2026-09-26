@@ -87,11 +87,11 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
-  <!-- Main library project specific settings -->
-  <PropertyGroup Condition="'$(IsPackable)' == 'true'">
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  <!-- Main library package metadata. Keyed on the project name: IsPackable is only set later, in the project
+       file, so a condition on it would never match here. -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'FluentAzure'">
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageTags>azure;configuration;fluent;secrets;keyvault;functional;result;monad</PackageTags>
+    <PackageTags>azure;configuration;keyvault;appconfiguration;validation;secrets;redaction;healthchecks;analyzers;fluent</PackageTags>
     <PackageReleaseNotes>See https://github.com/tonyjoanes/FluentAzure/releases for release notes.</PackageReleaseNotes>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -99,6 +99,6 @@
     <PackageVersion>$(Version)</PackageVersion>
     <PackageId>FluentAzure</PackageId>
     <Authors>FluentAzure Contributors</Authors>
-    <Description>A fluent, functional, and type-safe library for Azure configuration and secrets management using the Result monad pattern.</Description>
+    <Description>Guard rails for .NET configuration on Azure: fail-fast startup validation, secret redaction, health checks and compile-time analyzers, on top of Microsoft's App Configuration and Key Vault providers or FluentAzure's own configuration pipeline.</Description>
   </PropertyGroup>
 </Project>

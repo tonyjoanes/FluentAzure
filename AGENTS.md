@@ -4,7 +4,9 @@ Guidance for AI coding agents (and humans) working in this repository.
 
 ## What this is
 
-FluentAzure is a NuGet library that provides a fluent, `Result<T>`-based pipeline for .NET configuration. It loads from:
+FluentAzure is a NuGet library that adds guard rails to .NET configuration on Azure: fail-fast validation, secret redaction, health checks and compile-time analyzers. The **configuration guard** (`AddFluentAzureGuard()`) works on top of any providers, including Microsoft's `AddAzureAppConfiguration()` and `AddAzureKeyVault()`, and is the recommended entry point for most apps.
+
+It also provides its own fluent, `Result<T>`-based configuration pipeline, which loads from:
 - environment variables;
 - JSON files;
 - Azure Key Vault;
