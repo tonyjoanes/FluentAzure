@@ -35,6 +35,8 @@ internal static class AnalyzerVerifier<TAnalyzer>
             typeof(Azure.Core.TokenCredential).Assembly,
             typeof(Azure.Data.AppConfiguration.ConfigurationClient).Assembly,
             typeof(Azure.Security.KeyVault.Secrets.SecretClient).Assembly,
+            typeof(Microsoft.Extensions.Configuration.AzureAppConfigurationExtensions).Assembly,
+            typeof(Microsoft.Extensions.Configuration.AzureKeyVaultConfigurationExtensions).Assembly,
         })
         {
             test.TestState.AdditionalReferences.Add(MetadataReference.CreateFromFile(assembly.Location));

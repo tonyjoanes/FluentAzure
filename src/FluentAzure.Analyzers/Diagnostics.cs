@@ -58,7 +58,7 @@ namespace FluentAzure.Analyzers
             category: "Security",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: "IConfigurationRoot.GetDebugView() includes secret values loaded by FluentAzure. GetRedactedDebugView() masks values FluentAzure knows are secrets.",
+            description: "IConfigurationRoot.GetDebugView() includes every value, including secrets loaded from Key Vault by FluentAzure or by Microsoft's AddAzureKeyVault(). GetRedactedDebugView() masks Key Vault values and keys or values that look like credentials.",
             helpLinkUri: HelpLinkBase + "faz0004");
     }
 }

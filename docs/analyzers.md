@@ -5,8 +5,8 @@ The FluentAzure NuGet package includes Roslyn analyzers that catch configuration
 | Rule | Severity | Category | Summary |
 |---|---|---|---|
 | [FAZ0001](#faz0001) | Warning | Usage | `Required("key")` does not match any property of the `BuildAsync<T>()` target type |
-| [FAZ0002](#faz0002) | Warning | Security | Key Vault / App Configuration endpoint literal is not an absolute HTTPS URI |
-| [FAZ0003](#faz0003) | Warning | Security | App Configuration connection string containing a secret is hard-coded |
+| [FAZ0002](#faz0002) | Warning | Security | Key Vault / App Configuration endpoint literal is not an absolute HTTPS URI (FluentAzure, Microsoft providers and Azure SDK clients) |
+| [FAZ0003](#faz0003) | Warning | Security | App Configuration connection string containing a secret is hard-coded (FluentAzure, Microsoft providers and Azure SDK clients) |
 | [FAZ0004](#faz0004) | Warning | Security | `GetDebugView()` prints secret values; use `GetRedactedDebugView()` |
 
 Change a rule's severity in `.editorconfig`, for example:
@@ -41,12 +41,16 @@ Only the chain that ends in `BuildAsync<T>()` is analyzed. Keys that are require
 <a id="faz0002"></a>
 ## FAZ0002: Azure endpoint is not an absolute HTTPS URI
 
-This rule checks string literals passed to `FromKeyVault*()`, `FromAppConfiguration()`, `new KeyVaultSource(...)` and `new AppConfigurationSource(...)`. Endpoints must be absolute `https://` URIs. Plain HTTP would send tokens and secrets unencrypted, and a missing scheme fails at runtime.
+Endpoints must be absolute `https://` URIs. Plain HTTP would send tokens and secrets unencrypted, and a missing scheme fails at runtime. The rule checks endpoint literals passed to:
+- **FluentAzure:** `FromKeyVault*()`, `FromAppConfiguration()`, `new KeyVaultSource(...)` and `new AppConfigurationSource(...)`;
+- **Microsoft's providers:** `AddAzureAppConfiguration(new Uri(...), ...)`, `options.Connect(new Uri(...), ...)` and `AddAzureKeyVault(new Uri(...), ...)`;
+- **Azure SDK clients:** `new SecretClient(new Uri(...), ...)` and `new ConfigurationClient(new Uri(...), ...)`.
 
 ```csharp
-.FromKeyVault("http://my-vault.vault.azure.net/")   // FAZ0002
-.FromKeyVault("my-vault.vault.azure.net")           // FAZ0002
-.FromKeyVault("https://my-vault.vault.azure.net/")  // OK
+.FromKeyVault("http://my-vault.vault.azure.net/")                         // FAZ0002
+.FromKeyVault("my-vault.vault.azure.net")                                 // FAZ0002
+builder.Configuration.AddAzureKeyVault(new Uri("http://v.vault.azure.net/"), credential)   // FAZ0002
+.FromKeyVault("https://my-vault.vault.azure.net/")                        // OK
 ```
 
 Values computed at runtime, for example from configuration, are not checked.
@@ -54,19 +58,24 @@ Values computed at runtime, for example from configuration, are not checked.
 <a id="faz0003"></a>
 ## FAZ0003: Hard-coded App Configuration connection string with a secret
 
-A connection string containing `Secret=` grants access to the store and ends up in source control. Load it from configuration or an environment variable instead. Better still, use an endpoint with Microsoft Entra ID:
+A connection string containing `Secret=` grants access to the store and ends up in source control. The rule checks connection string literals passed to `FromAppConfiguration()`, `new AppConfigurationSource(...)`, Microsoft's `AddAzureAppConfiguration(...)` and `options.Connect(...)`, and `new ConfigurationClient(...)`.
+
+Load the connection string from configuration or an environment variable instead. Better still, use an endpoint with Microsoft Entra ID:
 
 ```csharp
 .FromAppConfiguration("Endpoint=https://x.azconfig.io;Id=...;Secret=...")   // FAZ0003
+builder.Configuration.AddAzureAppConfiguration("Endpoint=...;Secret=...")    // FAZ0003
 
 FluentConfig.Create()
     .UseManagedIdentity()
     .FromAppConfiguration("https://x.azconfig.io")                          // OK
+builder.Configuration.AddAzureAppConfiguration(
+    o => o.Connect(new Uri("https://x.azconfig.io"), credential))           // OK
 ```
 
 <a id="faz0004"></a>
 ## FAZ0004: GetDebugView() prints secret values
 
-`IConfigurationRoot.GetDebugView()` includes every value, including Key Vault secrets loaded by FluentAzure. Use `GetRedactedDebugView()`, which masks values FluentAzure knows are secrets. Alternatively, pass your own processor: `GetDebugView(context => ...)` is not flagged.
+`IConfigurationRoot.GetDebugView()` includes every value, including Key Vault secrets loaded by FluentAzure or by Microsoft's `AddAzureKeyVault()`. Use `GetRedactedDebugView()`, which masks Key Vault values and keys or values that look like credentials (see [Configuration guard: Redaction](configuration-guard.md#redaction)). Alternatively, pass your own processor: `GetDebugView(context => ...)` is not flagged.
 
-This rule only runs in projects that reference FluentAzure's `IConfiguration` integration.
+This rule runs in every project that references FluentAzure.
