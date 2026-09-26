@@ -11,6 +11,7 @@ Most applications upgrade without code changes. This page lists the changes that
 | **Environment `__` → `:` alias** | `A__B` is now also available as `A:B`. If you already set both, the explicit `A:B` wins. |
 | **Disabled / expired Key Vault secrets are skipped** | If you relied on loading an expired or disabled secret, re-enable or renew it. |
 | **Errors no longer contain values** | Code or tests that parsed values out of binding error messages need updating. |
+| **Basic binder reads `:` keys** | `BuildAsync<T>()`, `Bind<T>()` and `AddFluentAzure<T>()` now bind nested properties from `Database:Host` as well as `Database__Host`. Nested Key Vault and App Configuration values that were silently ignored before are now bound, and override your class defaults. |
 | **Custom sources that throw** | `BuildAsync()` now returns an error result instead of throwing, so check `IsFailure`. |
 | **Analyzers** | FAZ0001–FAZ0004 report warnings. With `TreatWarningsAsErrors`, fix them or set severities in `.editorconfig` ([docs](analyzers.md)). |
 | **Trimming/AOT warnings** | Projects with trimming or AOT analyzers enabled now see IL2026/IL3050 on reflection-based binding APIs, which are unsafe in those modes. See [Native AOT](configuration-integration.md#native-aot). |
@@ -49,7 +50,7 @@ builder.Services.AddHealthChecks().AddFluentAzure();
 
 Consumers then inject `IOptions<AppSettings>`, or `IOptionsMonitor<AppSettings>` to see reloaded values, instead of `AppSettings`.
 
-This also fixes a limitation of the old path. `AddFluentAzure<T>` uses the basic binder, which binds nested properties only from `__` keys. Options binding accepts `:` keys too, which is what Key Vault (`Database--Host` → `Database:Host`) and App Configuration produce.
+Options binding also supports collections and dictionaries, which the basic binder used by `AddFluentAzure<T>` does not.
 
 ## Also worth adopting
 

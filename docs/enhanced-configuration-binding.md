@@ -33,7 +33,7 @@ public class DatabaseSettings
 }
 
 var result = await FluentConfig.Create()
-    .FromEnvironment()                 // Name, Timeout, Database__Host, Database__Port
+    .FromEnvironment()                 // Name, Timeout, Database__Host (or Database:Host), Database__Port
     .Required("Name")
     .BuildAsync<AppSettings>();
 ```
@@ -42,11 +42,10 @@ var result = await FluentConfig.Create()
 - **Types:** classes with a public parameterless constructor and public settable properties.
 - **Values:** `string`, numeric types, `bool`, `DateTime`, `TimeSpan`, `Guid`, `Uri`, enums (case-insensitive) and their nullable forms.
 - **Keys:** matched case-insensitively.
-- **Nesting:** nested objects via the `__` separator (`Database__Host`).
+- **Nesting:** nested objects via either separator: `Database:Host` (Key Vault's `Database--Host` and App Configuration keys) or `Database__Host`. If both forms of a key are present, the `:` key wins.
 
 **Limitations**
-- **`:` keys:** nested keys that use `:` (e.g. `Database:Host`) are **not** bound. This matters for Key Vault, whose `--` secret names are mapped to `:`, and for App Configuration. Either use the enhanced binder, or use the `IConfiguration` provider, which accepts both separators.
-- **Collections and dictionaries:** not bound.
+- **Collections and dictionaries:** not bound. Use the enhanced binder or the `IConfiguration` provider.
 
 ## Enhanced binder
 
@@ -72,15 +71,14 @@ settings.Match(
 | Records (positional constructor parameters) | `Name`, `Version` for `record AppInfo(string Name, string Version)` |
 | Init-only properties | `ApiKey` for `public string ApiKey { get; init; }` |
 | Enums (case-insensitive) and nullables (empty string → `null`) | `Level=Warning`, `MaxItems=` |
-| Lists of objects (`List<T>`, `IList<T>`, `ICollection<T>` where `T` is a class) | `Endpoints:0:Name`, `Endpoints:1:Name` |
+| Lists and arrays (`List<T>`, `IList<T>`, `ICollection<T>`, `T[]`) of objects or simple values | `Endpoints:0:Name`, `Hosts:0`, `Ports__1` |
+| Dictionaries (`Dictionary<,>`, `IDictionary<,>`, `IReadOnlyDictionary<,>`) of objects or simple values | `ConnectionStrings:Primary`, `Databases:Orders:Host` |
 | Data Annotations validation | `[Required]`, `[Range]`, `[EmailAddress]`, … |
 
-**Known limitations**
-- **Lists or arrays of strings** (`List<string>`, `string[]`): the whole bind fails with `Failed to create instance of type 'String'`.
-- **Arrays of numbers** (`int[]`): the elements are not bound (they stay `0`).
-- **Dictionaries:** not bound (they stay empty).
-
-For these shapes, use the `IConfiguration` provider with Microsoft's binder.
+**Collection details**
+- **Order:** elements are bound in index order; gaps in the indices are closed up.
+- **Dictionaries:** entries are added to a dictionary the property already holds (so initializer defaults are kept, with that dictionary's own key comparer). A dictionary the binder creates with `string` keys ignores key case. Non-`string` keys (`int`, enums, …) are converted, and a key that can't be converted is reported as an error.
+- **Not supported:** nested collections (`List<List<T>>`), sets and immutable collections. Use the `IConfiguration` provider with Microsoft's binder for these.
 
 ### Options
 

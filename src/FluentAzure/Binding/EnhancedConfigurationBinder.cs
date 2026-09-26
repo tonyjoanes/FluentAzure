@@ -388,6 +388,12 @@ public static class EnhancedConfigurationBinder
         List<BindingError> errors
     )
     {
+        if (TryGetDictionaryTypes(property.PropertyType, out var keyType, out var valueType))
+        {
+            BindDictionary(configuration, instance, property, propertyPath, keyType, valueType, options, errors);
+            return;
+        }
+
         var elementType = GetCollectionElementType(property.PropertyType);
         if (elementType == null)
         {
@@ -437,6 +443,25 @@ public static class EnhancedConfigurationBinder
                 int i = 0;
                 foreach (var idx in elementIndices.OrderBy(x => x))
                 {
+                    var elementPath = propertyPath
+                        .Append(idx.ToString(CultureInfo.InvariantCulture))
+                        .ToArray();
+
+                    if (IsSimpleType(elementType))
+                    {
+                        if (
+                            TryGetValueAtPath(configuration, elementPath, options.CaseSensitive, out var rawValue)
+                            && TryConvertElement(rawValue, elementType, elementPath, errors, out var converted)
+                        )
+                        {
+                            // Skipped elements leave no gap, so value-type lists never need padding
+                            AddToCollection(collection, converted!, i);
+                            i++;
+                        }
+
+                        continue;
+                    }
+
                     // Ensure options.Configuration is set for record types
                     BindingOptions elementOptions = options;
                     if (IsRecordType(elementType))
@@ -483,6 +508,181 @@ public static class EnhancedConfigurationBinder
         }
     }
 
+    private static void BindDictionary(
+        Dictionary<string, string> configuration,
+        object instance,
+        PropertyInfo property,
+        string[] propertyPath,
+        Type keyType,
+        Type valueType,
+        BindingOptions options,
+        List<BindingError> errors
+    )
+    {
+        var comparison = options.CaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+        var childKeys = GetChildSegments(configuration, propertyPath, options.CaseSensitive);
+        if (childKeys.Count == 0 && property.GetValue(instance) != null)
+        {
+            return;
+        }
+
+        // Add to an existing dictionary (keeping its defaults and comparer), like Microsoft's binder
+        if (property.GetValue(instance) is not IDictionary { IsReadOnly: false } dictionary)
+        {
+            var dictionaryType = typeof(Dictionary<,>).MakeGenericType(keyType, valueType);
+            dictionary = keyType == typeof(string)
+                ? (IDictionary)Activator.CreateInstance(dictionaryType, comparison)!
+                : (IDictionary)Activator.CreateInstance(dictionaryType)!;
+            SetPropertyValue(instance, property, dictionary);
+        }
+
+        foreach (var childKey in childKeys)
+        {
+            var entryPath = propertyPath.Append(childKey).ToArray();
+            var entryPathText = string.Join(":", entryPath);
+
+            object? key;
+            try
+            {
+                // The key is part of the configuration key, not a value, so it is safe to name
+                key = keyType == typeof(string) ? childKey : ConvertValue(childKey, keyType);
+            }
+            catch (Exception)
+            {
+                errors.Add(
+                    new BindingError(
+                        $"Failed to bind '{entryPathText}': '{childKey}' is not a valid {keyType.Name} dictionary key",
+                        entryPathText
+                    )
+                );
+                continue;
+            }
+
+            if (key == null)
+            {
+                continue;
+            }
+
+            if (IsSimpleType(valueType))
+            {
+                if (
+                    TryGetValueAtPath(configuration, entryPath, options.CaseSensitive, out var rawValue)
+                    && TryConvertElement(rawValue, valueType, entryPath, errors, out var converted)
+                )
+                {
+                    dictionary[key] = converted;
+                }
+
+                continue;
+            }
+
+            var entry = CreateInstance(valueType, options, errors);
+            if (entry != null)
+            {
+                BindConfiguration(configuration, entry, entryPathText, options, errors);
+                dictionary[key] = entry;
+            }
+        }
+    }
+
+    private static bool TryConvertElement(
+        string rawValue,
+        Type elementType,
+        string[] elementPath,
+        List<BindingError> errors,
+        out object? converted
+    )
+    {
+        try
+        {
+            converted = ConvertValue(rawValue, elementType);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            // ConvertValue never includes the value in its message
+            errors.Add(
+                new BindingError(
+                    $"Failed to bind property '{string.Join(":", elementPath)}': {ex.Message}",
+                    string.Join(":", elementPath)
+                )
+            );
+            converted = null;
+            return false;
+        }
+    }
+
+    // Finds the value whose key is exactly the given path (either separator)
+    private static bool TryGetValueAtPath(
+        Dictionary<string, string> configuration,
+        string[] path,
+        bool caseSensitive,
+        out string rawValue
+    )
+    {
+        var comparer = caseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+        foreach (var kvp in configuration)
+        {
+            if (SplitKey(kvp.Key).SequenceEqual(path, comparer))
+            {
+                rawValue = kvp.Value;
+                return true;
+            }
+        }
+
+        rawValue = string.Empty;
+        return false;
+    }
+
+    // The distinct next segments of keys below the given path, e.g. "A", "B" for "Map:A" and "Map:B:C"
+    private static List<string> GetChildSegments(
+        Dictionary<string, string> configuration,
+        string[] path,
+        bool caseSensitive
+    )
+    {
+        var comparer = caseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+        var seen = new HashSet<string>(comparer);
+        var children = new List<string>();
+        foreach (var key in configuration.Keys)
+        {
+            var keyPath = SplitKey(key);
+            if (
+                keyPath.Length > path.Length
+                && keyPath.Take(path.Length).SequenceEqual(path, comparer)
+                && seen.Add(keyPath[path.Length])
+            )
+            {
+                children.Add(keyPath[path.Length]);
+            }
+        }
+
+        return children;
+    }
+
+    private static bool TryGetDictionaryTypes(Type type, out Type keyType, out Type valueType)
+    {
+        if (type.IsGenericType)
+        {
+            var definition = type.GetGenericTypeDefinition();
+            if (
+                definition == typeof(Dictionary<,>)
+                || definition == typeof(IDictionary<,>)
+                || definition == typeof(IReadOnlyDictionary<,>)
+            )
+            {
+                var arguments = type.GetGenericArguments();
+                keyType = arguments[0];
+                valueType = arguments[1];
+                return true;
+            }
+        }
+
+        keyType = typeof(object);
+        valueType = typeof(object);
+        return false;
+    }
+
     private static object? CreateCollection(
         Type collectionType,
         int capacity,
@@ -525,6 +725,12 @@ public static class EnhancedConfigurationBinder
         }
         else if (collection is IList list)
         {
+            if (list.Count == index)
+            {
+                list.Add(element);
+                return;
+            }
+
             while (list.Count <= index)
             {
                 list.Add(null);
