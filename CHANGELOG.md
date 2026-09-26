@@ -51,6 +51,10 @@ Upgrading from 0.2.0-rc.5? See the [upgrade guide](docs/upgrade-guide.md).
 - **`KeyVaultSource` subclasses:** the protected `_disposed` field is replaced by a protected `IsDisposed` property.
 - **Build:** the library and analyzer projects build with warnings as errors. Tests and examples build without code warnings.
 
+### Deprecated
+
+- **`KeyVaultConfiguration.ReloadFailedSecrets`:** marked `[Obsolete]`. It never had an effect, because every reload fetches all secrets, including ones that failed. It will be removed in 1.0.
+
 ### Removed
 
 - **Unused transitive dependencies:** `Microsoft.Extensions.Hosting`, `Microsoft.Extensions.Caching.Memory` and `Azure.Extensions.AspNetCore.Configuration.Secrets`.
@@ -58,6 +62,8 @@ Upgrading from 0.2.0-rc.5? See the [upgrade guide](docs/upgrade-guide.md).
 
 ### Fixed
 
+- **JSON source `:` keys:** `JsonFileSource` flattened nested values only to `__` keys (`ConnectionStrings__Default`), so `Required("ConnectionStrings:Default")`, `Transform`, `Validate` and other `:` lookups on the pipeline never found them. Nested JSON values are now also exposed under their `:` form, as environment variables already were. The source's keys are also now case-insensitive.
+- **Examples:** the WebApi example required `ConnectionStrings:*` keys but bound its connection strings from `Database:ConnectionString`, `Storage:ConnectionString` and `ServiceBus:ConnectionString`, so its clients were created with empty connection strings. Its password hashing now uses salted PBKDF2 instead of plain SHA-256.
 - **Basic binder `:` keys:** `BuildAsync<T>()`, `Bind<T>()` and `AddFluentAzure<T>()` now bind nested properties from `:` keys (as produced by Key Vault and App Configuration) as well as `__` keys. If both forms of a key are present, the `:` key wins, as in the `IConfiguration` provider.
 - **Enhanced binder collections:** lists and arrays of simple types (`List<string>`, `string[]`, `int[]`, …) are now bound instead of failing or staying `0`, and dictionaries (`Dictionary<,>`, `IDictionary<,>`, `IReadOnlyDictionary<,>`) with simple or object values are now bound. Existing dictionary entries are kept; dictionaries the binder creates with `string` keys ignore key case.
 - **Enhanced binder key matching:** a property is now bound only from the key whose full path matches it. Before, the binder ignored separators when comparing (`Data:BaseHost` matched `Database:Host`) and fell back to any key with the property's bare name, so a nested `Database:Name` or a list element's `Name` could pick up a root `Name` key. `BindingOptions.CaseSensitive` is now honoured.

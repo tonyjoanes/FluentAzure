@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Example.Configuration;
 using WebApi.Example.Data;
@@ -10,6 +11,12 @@ namespace WebApi.Example.Services;
 /// </summary>
 public class UserService : IUserService
 {
+    // Salted PBKDF2-SHA256 at the OWASP-recommended work factor, stored as "iterations.salt.hash".
+    // In an ASP.NET Core Identity app, use its PasswordHasher<TUser> instead.
+    private const int PasswordIterations = 600_000;
+    private const int PasswordSaltSize = 16;
+    private const int PasswordHashSize = 32;
+
     private readonly ApplicationDbContext _context;
     private readonly WebApiConfiguration _config;
     private readonly ILogger<UserService> _logger;
@@ -127,17 +134,38 @@ public class UserService : IUserService
             return false;
         }
 
-        var hashedPassword = await HashPasswordAsync(password);
-        return user.PasswordHash == hashedPassword;
+        return VerifyPassword(password, user.PasswordHash);
     }
 
     public Task<string> HashPasswordAsync(string password)
     {
-        // In a real application, use a proper password hashing library like BCrypt
-        // This is a simplified example for demonstration purposes
-        var bytes = System.Text.Encoding.UTF8.GetBytes(password);
-        var hash = System.Security.Cryptography.SHA256.HashData(bytes);
-        return Task.FromResult(Convert.ToBase64String(hash));
+        var salt = RandomNumberGenerator.GetBytes(PasswordSaltSize);
+        var hash = Rfc2898DeriveBytes.Pbkdf2(password, salt, PasswordIterations, HashAlgorithmName.SHA256, PasswordHashSize);
+        return Task.FromResult(
+            $"{PasswordIterations}.{Convert.ToBase64String(salt)}.{Convert.ToBase64String(hash)}");
+    }
+
+    private static bool VerifyPassword(string password, string? storedHash)
+    {
+        var parts = storedHash?.Split('.');
+        if (parts is not { Length: 3 } || !int.TryParse(parts[0], out var iterations))
+        {
+            return false;
+        }
+
+        byte[] salt, expected;
+        try
+        {
+            salt = Convert.FromBase64String(parts[1]);
+            expected = Convert.FromBase64String(parts[2]);
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+
+        var actual = Rfc2898DeriveBytes.Pbkdf2(password, salt, iterations, HashAlgorithmName.SHA256, expected.Length);
+        return CryptographicOperations.FixedTimeEquals(actual, expected);
     }
 
     public async Task<bool> IsEmailUniqueAsync(string email, int? excludeUserId = null)

@@ -63,9 +63,10 @@ public class KeyVaultConfiguration
     public string? SecretNamePrefix { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether gets or sets whether to reload secrets that fail to load during initial load.
-    /// Defaults to true.
+    /// Gets or sets a value indicating whether to reload secrets that failed to load. This setting has no
+    /// effect: every reload fetches all secrets again, including ones that failed.
     /// </summary>
+    [Obsolete("ReloadFailedSecrets has no effect because every reload fetches all secrets. It will be removed in 1.0.")]
     public bool ReloadFailedSecrets { get; set; } = true;
 
     /// <summary>

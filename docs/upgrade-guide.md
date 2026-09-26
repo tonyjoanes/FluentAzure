@@ -8,7 +8,7 @@ Most applications upgrade without code changes. This page lists the changes that
 |---|---|
 | **Keys are case-insensitive** | Two sources with keys differing only in case (`Timeout` vs `TIMEOUT`) are now the same key, and the higher-priority source wins. |
 | **Invariant culture** | Values must use invariant formats: `1.5`, not `1,5`. The same applies to dates. |
-| **Environment `__` → `:` alias** | `A__B` is now also available as `A:B`. If you already set both, the explicit `A:B` wins. |
+| **Environment and JSON `__` → `:` alias** | Keys from environment variables and JSON files that use `A__B` are now also available as `A:B`. If you already set both, the explicit `A:B` wins. |
 | **Disabled / expired Key Vault secrets are skipped** | If you relied on loading an expired or disabled secret, re-enable or renew it. |
 | **Errors no longer contain values** | Code or tests that parsed values out of binding error messages need updating. |
 | **Basic binder reads `:` keys** | `BuildAsync<T>()`, `Bind<T>()` and `AddFluentAzure<T>()` now bind nested properties from `Database:Host` as well as `Database__Host`. Nested Key Vault and App Configuration values that were silently ignored before are now bound, and override your class defaults. |
