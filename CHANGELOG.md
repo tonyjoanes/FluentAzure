@@ -2,9 +2,11 @@
 
 All notable changes to FluentAzure are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
-Upgrading from 0.2.0-rc.5? See the [upgrade guide](docs/upgrade-guide.md).
+Upgrading from 0.2.0-rc.5 to 0.3.0-rc.1? See the [upgrade guide](docs/upgrade-guide.md).
 
 ## [Unreleased]
+
+## [0.3.0-rc.1] - 2026-09-26
 
 ### Added
 
@@ -83,3 +85,7 @@ Upgrading from 0.2.0-rc.5? See the [upgrade guide](docs/upgrade-guide.md).
 ## [0.2.0-rc.5]
 
 Baseline for this changelog: the fluent pipeline (environment, JSON, Key Vault and in-memory sources), `Result<T>` / `Option<T>`, strongly typed binding, and DI registration.
+
+[Unreleased]: https://github.com/tonyjoanes/FluentAzure/compare/v0.3.0-rc.1...HEAD
+[0.3.0-rc.1]: https://github.com/tonyjoanes/FluentAzure/compare/v0.2.0-rc.5...v0.3.0-rc.1
+[0.2.0-rc.5]: https://github.com/tonyjoanes/FluentAzure/releases/tag/v0.2.0-rc.5

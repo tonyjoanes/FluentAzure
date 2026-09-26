@@ -14,7 +14,7 @@ public static class Version
     /// <summary>
     /// Current minor version number.
     /// </summary>
-    public const int Minor = 2;
+    public const int Minor = 3;
 
     /// <summary>
     /// Current patch version number.
@@ -25,7 +25,7 @@ public static class Version
     /// Current pre-release identifier (e.g., "rc.4", "beta.1", etc.).
     /// Set to null for stable releases.
     /// </summary>
-    public const string? PreRelease = "rc.5";
+    public const string? PreRelease = "rc.1";
 
     /// <summary>
     /// Gets the full version string in semantic versioning format.

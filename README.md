@@ -9,7 +9,7 @@ A fluent, functional, and type-safe NuGet package for Azure configuration and se
 ![Fluent](https://img.shields.io/badge/Style-Fluent%20%7C%20Functional-purple.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-> **What's new:**
+> **What's new in 0.3.0-rc.1:**
 > - An `IConfiguration` provider with `IOptionsMonitor<T>` reload.
 > - An Azure App Configuration source.
 > - Managed/workload identity and secret redaction.
