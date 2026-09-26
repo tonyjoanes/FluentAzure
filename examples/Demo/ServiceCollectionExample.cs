@@ -17,23 +17,31 @@ public static class ServiceCollectionExample
     public class AppSettings
     {
         public string AppName { get; set; } = string.Empty;
+
         public string Version { get; set; } = string.Empty;
+
         public bool Debug { get; set; }
+
         public DatabaseSettings Database { get; set; } = new();
+
         public ApiSettings Api { get; set; } = new();
     }
 
     public class DatabaseSettings
     {
         public string ConnectionString { get; set; } = string.Empty;
+
         public int TimeoutSeconds { get; set; }
+
         public int MaxConnections { get; set; }
     }
 
     public class ApiSettings
     {
         public string BaseUrl { get; set; } = string.Empty;
+
         public string ApiKey { get; set; } = string.Empty;
+
         public int TimeoutSeconds { get; set; }
     }
 
@@ -86,6 +94,7 @@ public static class ServiceCollectionExample
                             {
                                 return Result<string>.Success(timeout);
                             }
+
                             return Result<string>.Error("Timeout must be a positive integer");
                         }
                     ),
@@ -96,6 +105,7 @@ public static class ServiceCollectionExample
                 {
                     config.Api.BaseUrl += "/";
                 }
+
                 return config;
             }
         );

@@ -5,6 +5,7 @@ using Azure.Data.AppConfiguration;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using FluentAzure.Core;
+using FluentAzure.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace FluentAzure.Sources;
@@ -49,7 +50,9 @@ public class AppConfigurationSource : IReloadableConfigurationSource, ISensitive
             options,
             priority,
             logger
-        ) { }
+        )
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AppConfigurationSource"/> class using a connection string.
@@ -65,7 +68,9 @@ public class AppConfigurationSource : IReloadableConfigurationSource, ISensitive
         int priority = 150,
         ILogger? logger = null
     )
-        : this(new ConfigurationClient(connectionString), options, priority, logger) { }
+        : this(new ConfigurationClient(connectionString), options, priority, logger)
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AppConfigurationSource"/> class with an existing client.
@@ -129,7 +134,7 @@ public class AppConfigurationSource : IReloadableConfigurationSource, ISensitive
                 var sentinel = await GetSentinelETagAsync().ConfigureAwait(false);
                 if (sentinel == _sentinelETag)
                 {
-                    _logger?.LogDebug("App Configuration sentinel unchanged; skipping reload");
+                    _logger?.AppConfigurationSentinelUnchanged();
                     return Result<Dictionary<string, string>>.Success(Copy(current));
                 }
             }
@@ -190,6 +195,7 @@ public class AppConfigurationSource : IReloadableConfigurationSource, ISensitive
                         {
                             secretReferences.Add((TrimKey(setting.Key), secretReference.SecretId));
                         }
+
                         break;
 
                     case FeatureFlagConfigurationSetting featureFlag:
@@ -215,15 +221,12 @@ public class AppConfigurationSource : IReloadableConfigurationSource, ISensitive
                 StringComparer.OrdinalIgnoreCase
             );
             _sentinelETag = sentinelETag;
-            _logger?.LogInformation(
-                "Loaded {Count} values from Azure App Configuration",
-                values.Count
-            );
+            _logger?.AppConfigurationLoaded(values.Count);
             return Result<Dictionary<string, string>>.Success(Copy(values));
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "Azure App Configuration load failed");
+            _logger?.AppConfigurationLoadFailed(ex);
             return Result<Dictionary<string, string>>.Error(
                 $"Failed to load Azure App Configuration: {ex.Message}"
             );
@@ -438,6 +441,7 @@ public class AppConfigurationSource : IReloadableConfigurationSource, ISensitive
                 {
                     Flatten(values, $"{prefix}:{property.Name}", property.Value);
                 }
+
                 break;
 
             case JsonValueKind.Array:
@@ -446,6 +450,7 @@ public class AppConfigurationSource : IReloadableConfigurationSource, ISensitive
                 {
                     Flatten(values, $"{prefix}:{index++}", item);
                 }
+
                 break;
 
             case JsonValueKind.String:
@@ -499,6 +504,7 @@ public class AppConfigurationSource : IReloadableConfigurationSource, ISensitive
                 {
                     FlattenObject(values, $"{prefix}:{kvp.Key}", kvp.Value);
                 }
+
                 break;
 
             case System.Collections.IEnumerable items:
@@ -507,6 +513,7 @@ public class AppConfigurationSource : IReloadableConfigurationSource, ISensitive
                 {
                     FlattenObject(values, $"{prefix}:{index++}", item);
                 }
+
                 break;
 
             case IFormattable formattable:

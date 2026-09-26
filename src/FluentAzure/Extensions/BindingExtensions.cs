@@ -16,9 +16,9 @@ public static class BindingExtensions
     /// <summary>
     /// Binds configuration to a strongly-typed object and returns an Option.
     /// </summary>
-    /// <typeparam name="T">The type to bind to</typeparam>
-    /// <param name="configuration">The configuration dictionary</param>
-    /// <returns>Some(bound object) if binding succeeds, None otherwise</returns>
+    /// <typeparam name="T">The type to bind to.</typeparam>
+    /// <param name="configuration">The configuration dictionary.</param>
+    /// <returns>Some(bound object) if binding succeeds, None otherwise.</returns>
     public static Option<T> BindOptional<T>(this Dictionary<string, string> configuration)
         where T : class, new()
     {
@@ -31,10 +31,10 @@ public static class BindingExtensions
     /// <summary>
     /// Binds configuration to a strongly-typed object with options and returns an Option.
     /// </summary>
-    /// <typeparam name="T">The type to bind to</typeparam>
-    /// <param name="configuration">The configuration dictionary</param>
-    /// <param name="options">The binding options</param>
-    /// <returns>Some(bound object) if binding succeeds, None otherwise</returns>
+    /// <typeparam name="T">The type to bind to.</typeparam>
+    /// <param name="configuration">The configuration dictionary.</param>
+    /// <param name="options">The binding options.</param>
+    /// <returns>Some(bound object) if binding succeeds, None otherwise.</returns>
     public static Option<T> BindOptional<T>(
         this Dictionary<string, string> configuration,
         BindingOptions options
@@ -51,10 +51,10 @@ public static class BindingExtensions
     /// <summary>
     /// Binds configuration to a strongly-typed object with JSON deserialization and returns an Option.
     /// </summary>
-    /// <typeparam name="T">The type to bind to</typeparam>
-    /// <param name="configuration">The configuration dictionary</param>
-    /// <param name="options">The binding options</param>
-    /// <returns>Some(bound object) if binding succeeds, None otherwise</returns>
+    /// <typeparam name="T">The type to bind to.</typeparam>
+    /// <param name="configuration">The configuration dictionary.</param>
+    /// <param name="options">The binding options.</param>
+    /// <returns>Some(bound object) if binding succeeds, None otherwise.</returns>
     public static Option<T> BindJsonOptional<T>(
         this Dictionary<string, string> configuration,
         BindingOptions? options = null
@@ -70,10 +70,10 @@ public static class BindingExtensions
     /// <summary>
     /// Binds configuration to a strongly-typed object with fallback handling.
     /// </summary>
-    /// <typeparam name="T">The type to bind to</typeparam>
-    /// <param name="configuration">The configuration dictionary</param>
-    /// <param name="fallback">The fallback object if binding fails</param>
-    /// <returns>The bound object or the fallback</returns>
+    /// <typeparam name="T">The type to bind to.</typeparam>
+    /// <param name="configuration">The configuration dictionary.</param>
+    /// <param name="fallback">The fallback object if binding fails.</param>
+    /// <returns>The bound object or the fallback.</returns>
     public static T BindWithFallback<T>(this Dictionary<string, string> configuration, T fallback)
         where T : class, new()
     {
@@ -86,10 +86,10 @@ public static class BindingExtensions
     /// <summary>
     /// Binds configuration to a strongly-typed object with fallback factory.
     /// </summary>
-    /// <typeparam name="T">The type to bind to</typeparam>
-    /// <param name="configuration">The configuration dictionary</param>
-    /// <param name="fallbackFactory">The fallback factory if binding fails</param>
-    /// <returns>The bound object or the result of the fallback factory</returns>
+    /// <typeparam name="T">The type to bind to.</typeparam>
+    /// <param name="configuration">The configuration dictionary.</param>
+    /// <param name="fallbackFactory">The fallback factory if binding fails.</param>
+    /// <returns>The bound object or the result of the fallback factory.</returns>
     public static T BindWithFallback<T>(
         this Dictionary<string, string> configuration,
         Func<T> fallbackFactory
@@ -105,10 +105,10 @@ public static class BindingExtensions
     /// <summary>
     /// Binds configuration to a strongly-typed object with validation.
     /// </summary>
-    /// <typeparam name="T">The type to bind to</typeparam>
-    /// <param name="configuration">The configuration dictionary</param>
-    /// <param name="validator">The validation function</param>
-    /// <returns>Some(bound object) if binding and validation succeed, None otherwise</returns>
+    /// <typeparam name="T">The type to bind to.</typeparam>
+    /// <param name="configuration">The configuration dictionary.</param>
+    /// <param name="validator">The validation function.</param>
+    /// <returns>Some(bound object) if binding and validation succeed, None otherwise.</returns>
     public static Option<T> BindWithValidation<T>(
         this Dictionary<string, string> configuration,
         Func<T, bool> validator
@@ -124,11 +124,11 @@ public static class BindingExtensions
     /// <summary>
     /// Binds configuration to a strongly-typed object with validation and custom error handling.
     /// </summary>
-    /// <typeparam name="T">The type to bind to</typeparam>
-    /// <param name="configuration">The configuration dictionary</param>
-    /// <param name="validator">The validation function</param>
-    /// <param name="errorFactory">The error message factory</param>
-    /// <returns>Success with the bound object if validation succeeds, Error otherwise</returns>
+    /// <typeparam name="T">The type to bind to.</typeparam>
+    /// <param name="configuration">The configuration dictionary.</param>
+    /// <param name="validator">The validation function.</param>
+    /// <param name="errorFactory">The error message factory.</param>
+    /// <returns>Success with the bound object if validation succeeds, Error otherwise.</returns>
     public static Result<T> BindWithValidation<T>(
         this Dictionary<string, string> configuration,
         Func<T, bool> validator,
@@ -151,11 +151,11 @@ public static class BindingExtensions
     /// <summary>
     /// Binds configuration to a strongly-typed object with conditional binding.
     /// </summary>
-    /// <typeparam name="T">The type to bind to</typeparam>
-    /// <param name="configuration">The configuration dictionary</param>
-    /// <param name="condition">The condition that determines whether to bind</param>
-    /// <param name="fallback">The fallback object if condition is false or binding fails</param>
-    /// <returns>The bound object or the fallback</returns>
+    /// <typeparam name="T">The type to bind to.</typeparam>
+    /// <param name="configuration">The configuration dictionary.</param>
+    /// <param name="condition">The condition that determines whether to bind.</param>
+    /// <param name="fallback">The fallback object if condition is false or binding fails.</param>
+    /// <returns>The bound object or the fallback.</returns>
     public static T BindConditional<T>(
         this Dictionary<string, string> configuration,
         Func<T, bool> condition,
@@ -173,11 +173,11 @@ public static class BindingExtensions
     /// <summary>
     /// Binds configuration to a strongly-typed object with transformation.
     /// </summary>
-    /// <typeparam name="T">The type to bind to</typeparam>
-    /// <typeparam name="TResult">The type of the transformed result</typeparam>
-    /// <param name="configuration">The configuration dictionary</param>
-    /// <param name="transformer">The transformation function</param>
-    /// <returns>Some(transformed object) if binding and transformation succeed, None otherwise</returns>
+    /// <typeparam name="T">The type to bind to.</typeparam>
+    /// <typeparam name="TResult">The type of the transformed result.</typeparam>
+    /// <param name="configuration">The configuration dictionary.</param>
+    /// <param name="transformer">The transformation function.</param>
+    /// <returns>Some(transformed object) if binding and transformation succeed, None otherwise.</returns>
     public static Option<TResult> BindAndTransform<T, TResult>(
         this Dictionary<string, string> configuration,
         Func<T, TResult> transformer
@@ -193,12 +193,12 @@ public static class BindingExtensions
     /// <summary>
     /// Binds configuration to a strongly-typed object with transformation and fallback.
     /// </summary>
-    /// <typeparam name="T">The type to bind to</typeparam>
-    /// <typeparam name="TResult">The type of the transformed result</typeparam>
-    /// <param name="configuration">The configuration dictionary</param>
-    /// <param name="transformer">The transformation function</param>
-    /// <param name="fallback">The fallback value if binding or transformation fails</param>
-    /// <returns>The transformed object or the fallback</returns>
+    /// <typeparam name="T">The type to bind to.</typeparam>
+    /// <typeparam name="TResult">The type of the transformed result.</typeparam>
+    /// <param name="configuration">The configuration dictionary.</param>
+    /// <param name="transformer">The transformation function.</param>
+    /// <param name="fallback">The fallback value if binding or transformation fails.</param>
+    /// <returns>The transformed object or the fallback.</returns>
     public static TResult BindAndTransformWithFallback<T, TResult>(
         this Dictionary<string, string> configuration,
         Func<T, TResult> transformer,

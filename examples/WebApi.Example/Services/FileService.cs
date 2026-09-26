@@ -33,13 +33,15 @@ public class FileService : IFileService
 
             var blobHttpHeaders = new BlobHttpHeaders
             {
-                ContentType = contentType
+                ContentType = contentType,
             };
 
             await blobClient.UploadAsync(fileStream, blobHttpHeaders);
 
-            _logger.LogInformation("Uploaded file: {FileName} to container: {Container}",
-                fileName, _config.Storage.DefaultContainer);
+            _logger.LogInformation(
+                "Uploaded file: {FileName} to container: {Container}",
+                fileName,
+                _config.Storage.DefaultContainer);
 
             return blobClient.Uri.ToString();
         }
@@ -86,8 +88,10 @@ public class FileService : IFileService
 
             await blobClient.DeleteAsync();
 
-            _logger.LogInformation("Deleted file: {FileName} from container: {Container}",
-                fileName, _config.Storage.DefaultContainer);
+            _logger.LogInformation(
+                "Deleted file: {FileName} from container: {Container}",
+                fileName,
+                _config.Storage.DefaultContainer);
 
             return true;
         }

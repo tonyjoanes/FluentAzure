@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using FluentAzure.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace FluentAzure.Sources;
@@ -47,13 +48,14 @@ internal class KeyVaultSecretCache
             {
                 removedEntry.Dispose();
             }
-            _logger?.LogDebug("Cache entry for key '{Key}' has expired and was removed", key);
+
+            _logger?.CacheEntryExpired(key);
             return false;
         }
 
         value = entry.Value;
         entry.LastAccessed = DateTime.UtcNow;
-        _logger?.LogDebug("Cache hit for key '{Key}'", key);
+        _logger?.CacheHit(key);
         return true;
     }
 
@@ -81,7 +83,7 @@ internal class KeyVaultSecretCache
         };
 
         _cache.AddOrUpdate(key, entry, (_, _) => entry);
-        _logger?.LogDebug("Cached value for key '{Key}' with TTL {TTL}", key, effectiveTtl);
+        _logger?.CacheEntryAdded(key, effectiveTtl);
 
         // Periodically clean up expired entries
         TryCleanupExpiredEntries();
@@ -94,13 +96,14 @@ internal class KeyVaultSecretCache
     /// <returns>True if the entry was found and removed; otherwise, false.</returns>
     public bool Remove(string key)
     {
-        var removed = _cache.TryRemove(key, out var entry);
-        if (removed && entry != null)
+        if (!_cache.TryRemove(key, out var entry))
         {
-            entry.Dispose();
-            _logger?.LogDebug("Removed cache entry for key '{Key}'", key);
+            return false;
         }
-        return removed;
+
+        entry.Dispose();
+        _logger?.CacheEntryRemoved(key);
+        return true;
     }
 
     /// <summary>
@@ -109,7 +112,7 @@ internal class KeyVaultSecretCache
     public void Clear()
     {
         var count = _cache.Count;
-        
+
         foreach (var kvp in _cache.ToList())
         {
             if (_cache.TryRemove(kvp.Key, out var entry))
@@ -117,9 +120,9 @@ internal class KeyVaultSecretCache
                 entry.Dispose();
             }
         }
-        
+
         _cache.Clear();
-        _logger?.LogDebug("Cleared {Count} cache entries", count);
+        _logger?.CacheCleared(count);
     }
 
     /// <summary>
@@ -159,10 +162,12 @@ internal class KeyVaultSecretCache
         };
     }
 
-    private double CalculateHitRate(List<CacheEntry> entries)
+    private static double CalculateHitRate(List<CacheEntry> entries)
     {
         if (entries.Count == 0)
+        {
             return 0.0;
+        }
 
         var recentAccesses = entries
             .Where(e => DateTime.UtcNow.Subtract(e.LastAccessed) < TimeSpan.FromMinutes(10))
@@ -204,7 +209,7 @@ internal class KeyVaultSecretCache
 
             if (expiredKeys.Count > 0)
             {
-                _logger?.LogDebug("Cleaned up {Count} expired cache entries", expiredKeys.Count);
+                _logger?.CacheExpiredEntriesRemoved(expiredKeys.Count);
             }
         }
     }
@@ -215,11 +220,13 @@ internal class KeyVaultSecretCache
     private class CacheEntry : IDisposable
     {
         private bool _disposed;
-        
+
         public string Value { get; set; } = string.Empty;
+
         public DateTime ExpiresAt { get; set; }
+
         public DateTime LastAccessed { get; set; }
-        
+
         public void Dispose()
         {
             if (!_disposed)

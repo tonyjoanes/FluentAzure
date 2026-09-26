@@ -28,27 +28,27 @@ public static class Version
     public const string? PreRelease = "rc.5";
 
     /// <summary>
-    /// Full version string in semantic versioning format.
+    /// Gets the full version string in semantic versioning format.
     /// </summary>
     public static string Full => PreRelease != null ? $"{Major}.{Minor}.{Patch}-{PreRelease}" : $"{Major}.{Minor}.{Patch}";
 
     /// <summary>
-    /// Version string for NuGet package.
+    /// Gets the version string for NuGet package.
     /// </summary>
     public static string Package => Full;
 
     /// <summary>
-    /// Assembly version (major.minor.0.0 for compatibility).
+    /// Gets the assembly version (major.minor.0.0 for compatibility).
     /// </summary>
     public static string Assembly => $"{Major}.{Minor}.0.0";
 
     /// <summary>
-    /// File version (full version for debugging).
+    /// Gets the file version (full version for debugging).
     /// </summary>
     public static string File => $"{Major}.{Minor}.{Patch}.0";
 
     /// <summary>
-    /// Informational version (full version with metadata).
+    /// Gets the informational version (full version with metadata).
     /// </summary>
     public static string Informational => Full;
 
@@ -58,12 +58,12 @@ public static class Version
     public static System.Version AsVersion => new System.Version(Major, Minor, Patch);
 
     /// <summary>
-    /// Checks if this is a pre-release version.
+    /// Gets a value indicating whether this is a pre-release version.
     /// </summary>
     public static bool IsPreRelease => !string.IsNullOrEmpty(PreRelease);
 
     /// <summary>
-    /// Checks if this is a stable release.
+    /// Gets a value indicating whether this is a stable release.
     /// </summary>
     public static bool IsStable => string.IsNullOrEmpty(PreRelease);
 }

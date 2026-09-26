@@ -10,8 +10,6 @@ namespace FluentAzure.Tests.Core;
 /// </summary>
 public class ResultTests
 {
-    #region Success Creation Tests
-
     [Fact]
     public void Success_WithValue_ShouldCreateSuccessfulResult()
     {
@@ -46,10 +44,6 @@ public class ResultTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().Be("test");
     }
-
-    #endregion
-
-    #region Error Creation Tests
 
     [Fact]
     public void Error_WithSingleError_ShouldCreateFailedResult()
@@ -114,10 +108,6 @@ public class ResultTests
         result.Errors.Should().Contain("test error");
     }
 
-    #endregion
-
-    #region Property Access Tests
-
     [Fact]
     public void Value_OnSuccessfulResult_ShouldReturnValue()
     {
@@ -164,10 +154,6 @@ public class ResultTests
             .Throw<InvalidOperationException>()
             .WithMessage("Cannot access errors of a successful result");
     }
-
-    #endregion
-
-    #region Map Tests
 
     [Fact]
     public void Map_OnSuccessfulResult_ShouldTransformValue()
@@ -222,10 +208,6 @@ public class ResultTests
         mapped.IsSuccess.Should().BeTrue();
         mapped.Value.Should().Be("Result: 84");
     }
-
-    #endregion
-
-    #region Bind Tests
 
     [Fact]
     public void Bind_OnSuccessfulResult_ShouldTransformValue()
@@ -317,10 +299,6 @@ public class ResultTests
         bound.Errors.Should().Contain("Too small");
     }
 
-    #endregion
-
-    #region Match Tests
-
     [Fact]
     public void Match_OnSuccessfulResult_ShouldExecuteSuccessFunction()
     {
@@ -358,7 +336,7 @@ public class ResultTests
     {
         // Arrange
         var result = Result<int>.Success(42);
-        var executedAction = "";
+        var executedAction = string.Empty;
 
         // Act
         result.Match(
@@ -375,7 +353,7 @@ public class ResultTests
     {
         // Arrange
         var result = Result<int>.Error("Something went wrong");
-        var executedAction = "";
+        var executedAction = string.Empty;
 
         // Act
         result.Match(
@@ -394,16 +372,12 @@ public class ResultTests
         var result = Result<int>.Success(42);
 
         // Act & Assert
-        var act1 = () => result.Match(null!, errors => "");
+        var act1 = () => result.Match(null!, errors => string.Empty);
         act1.Should().Throw<ArgumentNullException>();
 
-        var act2 = () => result.Match(success => "", null!);
+        var act2 = () => result.Match(success => string.Empty, null!);
         act2.Should().Throw<ArgumentNullException>();
     }
-
-    #endregion
-
-    #region Combine Tests
 
     [Fact]
     public void Combine_TwoSuccessfulResults_ShouldCombineValues()
@@ -507,10 +481,6 @@ public class ResultTests
         combined.Errors.Should().BeEquivalentTo(new[] { "Error 1", "Error 2" });
     }
 
-    #endregion
-
-    #region Implicit Operator Tests
-
     [Fact]
     public void ImplicitOperator_FromValue_ShouldCreateSuccessfulResult()
     {
@@ -546,10 +516,6 @@ public class ResultTests
         result.IsFailure.Should().BeTrue();
         result.Errors.Should().BeEquivalentTo(errors);
     }
-
-    #endregion
-
-    #region Equality Tests
 
     [Fact]
     public void Equals_TwoSuccessfulResultsWithSameValue_ShouldBeEqual()
@@ -617,10 +583,6 @@ public class ResultTests
         (result1 != result2).Should().BeTrue();
     }
 
-    #endregion
-
-    #region ToString Tests
-
     [Fact]
     public void ToString_OnSuccessfulResult_ShouldReturnSuccessFormat()
     {
@@ -646,10 +608,6 @@ public class ResultTests
         // Assert
         stringRepresentation.Should().Be("Error(Error 1, Error 2)");
     }
-
-    #endregion
-
-    #region Thread Safety Tests
 
     [Fact]
     public void Result_ConcurrentAccess_ShouldBeThreadSafe()
@@ -720,10 +678,6 @@ public class ResultTests
             });
     }
 
-    #endregion
-
-    #region Edge Cases
-
     [Fact]
     public void GetHashCode_ShouldBeConsistent()
     {
@@ -775,11 +729,5 @@ public class ResultTests
         result2.Value.Should().BeNull();
     }
 
-    #endregion
-
-    #region Helper Types
-
     private record Person(string Name, int Age);
-
-    #endregion
 }

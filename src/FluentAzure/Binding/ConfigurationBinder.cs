@@ -33,7 +33,7 @@ public static class ConfigurationBinder
 
         try
         {
-            BindInternal(NormalizeKeys(configuration), instance, "", errors);
+            BindInternal(NormalizeKeys(configuration), instance, string.Empty, errors);
 
             return errors.Count > 0
                 ? Result<T>.Error(errors)
@@ -113,6 +113,7 @@ public static class ConfigurationBinder
                     }
                 }
             }
+
             // Check if this is a complex object that needs recursive binding
             else if (property.PropertyType.IsClass && property.PropertyType != typeof(string))
             {
@@ -185,6 +186,7 @@ public static class ConfigurationBinder
             {
                 return null;
             }
+
             targetType = underlyingType;
         }
 
@@ -193,34 +195,42 @@ public static class ConfigurationBinder
         {
             return bool.Parse(value);
         }
+
         if (targetType == typeof(int))
         {
             return int.Parse(value, CultureInfo.InvariantCulture);
         }
+
         if (targetType == typeof(long))
         {
             return long.Parse(value, CultureInfo.InvariantCulture);
         }
+
         if (targetType == typeof(double))
         {
             return double.Parse(value, CultureInfo.InvariantCulture);
         }
+
         if (targetType == typeof(decimal))
         {
             return decimal.Parse(value, CultureInfo.InvariantCulture);
         }
+
         if (targetType == typeof(DateTime))
         {
             return DateTime.Parse(value, CultureInfo.InvariantCulture);
         }
+
         if (targetType == typeof(TimeSpan))
         {
             return TimeSpan.Parse(value, CultureInfo.InvariantCulture);
         }
+
         if (targetType == typeof(Guid))
         {
             return Guid.Parse(value);
         }
+
         if (targetType == typeof(Uri))
         {
             return new Uri(value);

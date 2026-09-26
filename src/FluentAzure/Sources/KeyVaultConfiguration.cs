@@ -39,7 +39,7 @@ public class KeyVaultConfiguration
     public TimeSpan CacheDuration { get; set; } = TimeSpan.FromMinutes(5);
 
     /// <summary>
-    /// Gets or sets whether to continue loading other secrets when one fails.
+    /// Gets or sets a value indicating whether gets or sets whether to continue loading other secrets when one fails.
     /// Defaults to true for partial success scenarios.
     /// </summary>
     public bool ContinueOnSecretFailure { get; set; } = true;
@@ -63,7 +63,7 @@ public class KeyVaultConfiguration
     public string? SecretNamePrefix { get; set; }
 
     /// <summary>
-    /// Gets or sets whether to reload secrets that fail to load during initial load.
+    /// Gets or sets a value indicating whether gets or sets whether to reload secrets that fail to load during initial load.
     /// Defaults to true.
     /// </summary>
     public bool ReloadFailedSecrets { get; set; } = true;

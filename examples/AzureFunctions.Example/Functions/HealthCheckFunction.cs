@@ -262,7 +262,10 @@ public class HealthCheckFunction
 public class ServiceHealth
 {
     public string Service { get; set; } = string.Empty;
+
     public bool IsHealthy { get; set; }
+
     public object? Details { get; set; }
+
     public string? Error { get; set; }
 }

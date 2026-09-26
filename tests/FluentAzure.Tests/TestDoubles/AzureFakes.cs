@@ -20,7 +20,9 @@ internal sealed class FakeResponse : Response
 
     public override string ClientRequestId { get; set; } = string.Empty;
 
-    public override void Dispose() { }
+    public override void Dispose()
+    {
+    }
 
     protected override bool ContainsHeader(string name) => false;
 

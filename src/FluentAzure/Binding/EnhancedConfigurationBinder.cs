@@ -58,7 +58,7 @@ public static class EnhancedConfigurationBinder
             if (!IsRecordType(typeof(T)))
             {
                 // Bind configuration values
-                BindConfiguration(configuration, instance, "", bindingOptions, errors);
+                BindConfiguration(configuration, instance, string.Empty, bindingOptions, errors);
             }
 
             // Validate the bound object only if validation is enabled
@@ -104,7 +104,7 @@ public static class EnhancedConfigurationBinder
         try
         {
             // Bind configuration values
-            BindConfiguration(configuration, instance, "", bindingOptions, errors);
+            BindConfiguration(configuration, instance, string.Empty, bindingOptions, errors);
 
             // Validate the bound object only if validation is enabled
             if (bindingOptions.EnableValidation)
@@ -190,10 +190,12 @@ public static class EnhancedConfigurationBinder
             {
                 return (T?)CreateRecordInstance(type, options, errors);
             }
+
             if (HasInitOnlyProperties(type))
             {
                 return (T?)CreateInitOnlyInstance(type, options, errors);
             }
+
             return Activator.CreateInstance<T>();
         }
         catch (Exception ex)
@@ -201,7 +203,7 @@ public static class EnhancedConfigurationBinder
             errors.Add(
                 new BindingError(
                     $"Failed to create instance of type '{type.Name}': {ex.Message}",
-                    ""
+                    string.Empty
                 )
             );
             return null;
@@ -228,7 +230,7 @@ public static class EnhancedConfigurationBinder
         }
         catch (Exception ex)
         {
-            errors.Add(new BindingError($"Failed to create init-only instance: {ex.Message}", ""));
+            errors.Add(new BindingError($"Failed to create init-only instance: {ex.Message}", string.Empty));
             return null;
         }
     }
@@ -263,9 +265,9 @@ public static class EnhancedConfigurationBinder
                         }
                         catch (Exception ex)
                         {
+                            // Never echo the value: it may be a secret
                             errors.Add(
                                 new BindingError(
-                                    // Never echo the value: it may be a secret
                                     $"Failed to bind property '{string.Join(":", propertyPath)}': {ex.Message}",
                                     string.Join(":", propertyPath)
                                 )
@@ -290,6 +292,7 @@ public static class EnhancedConfigurationBinder
                             );
                         }
                     }
+
                     continue;
                 }
 
@@ -462,6 +465,7 @@ public static class EnhancedConfigurationBinder
                             Configuration = configuration,
                         };
                     }
+
                     var element = CreateInstance(elementType, elementOptions, errors);
                     if (element != null)
                     {
@@ -473,6 +477,7 @@ public static class EnhancedConfigurationBinder
                         BindConfiguration(configuration, element, elementPrefix, options, errors);
                         AddToCollection(collection, element, i);
                     }
+
                     i++;
                 }
 
@@ -697,7 +702,7 @@ public static class EnhancedConfigurationBinder
             }
         }
 
-        errors.Add(new BindingError($"Unsupported collection type: {collectionType.Name}", ""));
+        errors.Add(new BindingError($"Unsupported collection type: {collectionType.Name}", string.Empty));
         return null;
     }
 
@@ -722,6 +727,7 @@ public static class EnhancedConfigurationBinder
             {
                 list.Add(null);
             }
+
             list[index] = element;
         }
     }
@@ -751,6 +757,7 @@ public static class EnhancedConfigurationBinder
                 return null;
             }
         }
+
         return nestedInstance;
     }
 
@@ -792,7 +799,7 @@ public static class EnhancedConfigurationBinder
                 errors.Add(
                     new BindingError(
                         $"[validation] {result.ErrorMessage ?? "Unknown validation error"}",
-                        result.MemberNames.FirstOrDefault() ?? ""
+                        result.MemberNames.FirstOrDefault() ?? string.Empty
                     )
                 );
             }
@@ -815,6 +822,7 @@ public static class EnhancedConfigurationBinder
                 {
                     current[key] = new Dictionary<string, object>();
                 }
+
                 current = (Dictionary<string, object>)current[key];
             }
 
@@ -829,13 +837,24 @@ public static class EnhancedConfigurationBinder
     {
         // Try to parse as different types
         if (bool.TryParse(value, out var boolValue))
+        {
             return boolValue;
+        }
+
         if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var intValue))
+        {
             return intValue;
+        }
+
         if (double.TryParse(value, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var doubleValue))
+        {
             return doubleValue;
+        }
+
         if (DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateValue))
+        {
             return dateValue;
+        }
 
         return value;
     }
@@ -846,22 +865,35 @@ public static class EnhancedConfigurationBinder
         if (string.IsNullOrEmpty(value))
         {
             if (targetType == typeof(string) || IsNullableType(targetType))
+            {
                 return null;
+            }
         }
+
         // Handle string type specially
         if (targetType == typeof(string))
         {
             return value;
         }
+
         // For reference types, treat empty string as null
         if (!targetType.IsValueType)
         {
             if (string.IsNullOrWhiteSpace(value) || value == "null")
+            {
                 return null;
+            }
+
             if (targetType == typeof(Uri))
+            {
                 return new Uri(value);
+            }
+
             if (targetType == typeof(Guid))
+            {
                 return Guid.Parse(value);
+            }
+
             try
             {
                 return Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture);
@@ -871,18 +903,31 @@ public static class EnhancedConfigurationBinder
                 return value;
             }
         }
+
         // Handle nullable value types
         var underlyingType = Nullable.GetUnderlyingType(targetType);
         var isNullableValueType = underlyingType != null;
         if (isNullableValueType && string.IsNullOrWhiteSpace(value))
+        {
             return null;
+        }
+
         if (isNullableValueType)
+        {
             targetType = underlyingType!;
+        }
+
         // Handle Guid and Uri for value types
         if (targetType == typeof(Guid))
+        {
             return Guid.Parse(value);
+        }
+
         if (targetType == typeof(Uri))
+        {
             return new Uri(value);
+        }
+
         // Handle common value types
         try
         {
@@ -902,8 +947,8 @@ public static class EnhancedConfigurationBinder
         }
         catch (Exception ex)
         {
+            // The parser's message can contain the value, so only report the exception type
             throw new InvalidOperationException(
-                // The parser's message can contain the value, so only report the exception type
                 $"The configured value could not be converted to type {targetType.Name} ({ex.GetType().Name})"
             );
         }
@@ -912,10 +957,15 @@ public static class EnhancedConfigurationBinder
     private static bool IsSimpleType(Type type)
     {
         if (type == typeof(string))
+        {
             return true;
+        }
+
         var underlyingType = Nullable.GetUnderlyingType(type);
         if (underlyingType != null)
+        {
             type = underlyingType;
+        }
 
         return type.IsPrimitive
             || type == typeof(DateTime)
@@ -942,7 +992,9 @@ public static class EnhancedConfigurationBinder
     private static Type? GetCollectionElementType(Type collectionType)
     {
         if (collectionType.IsArray)
+        {
             return collectionType.GetElementType();
+        }
 
         if (collectionType.IsGenericType)
         {
@@ -1019,6 +1071,7 @@ public static class EnhancedConfigurationBinder
             {
                 return Activator.CreateInstance(type);
             }
+
             var constructors = type.GetConstructors(
                 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance
             );
@@ -1042,6 +1095,7 @@ public static class EnhancedConfigurationBinder
                     };
                     bool found = false;
                     string? value = null;
+
                     // Try all key variants, case-insensitive
                     foreach (var key in possibleKeys)
                     {
@@ -1049,6 +1103,7 @@ public static class EnhancedConfigurationBinder
                         foreach (var sep in new[] { ":", "__" })
                         {
                             var keyVariant = key.Replace(":", sep).Replace("_", sep);
+
                             // Try exact, lower, upper
                             if (
                                 config.TryGetValue(keyVariant, out value)
@@ -1060,9 +1115,13 @@ public static class EnhancedConfigurationBinder
                                 break;
                             }
                         }
+
                         if (found)
+                        {
                             break;
+                        }
                     }
+
                     if (found && value != null)
                     {
                         args[i] = ConvertValue(value, param.ParameterType);
@@ -1083,18 +1142,20 @@ public static class EnhancedConfigurationBinder
                         break;
                     }
                 }
+
                 if (allBound)
                 {
                     return ctor.Invoke(args);
                 }
             }
+
             var allCtors = constructors.Select(c =>
                 $"({string.Join(", ", c.GetParameters().Select(p => p.ParameterType.Name + " " + p.Name))})"
             );
             errors.Add(
                 new BindingError(
                     $"Cannot create instance of type '{type.FullName}' - no suitable constructor found. Available constructors: {string.Join("; ", allCtors)}",
-                    ""
+                    string.Empty
                 )
             );
             return null;
@@ -1104,7 +1165,7 @@ public static class EnhancedConfigurationBinder
             errors.Add(
                 new BindingError(
                     $"Exception creating record instance: {ex.Message}",
-                    ex.StackTrace ?? ""
+                    ex.StackTrace ?? string.Empty
                 )
             );
             return null;
@@ -1124,7 +1185,7 @@ public static class EnhancedConfigurationBinder
         }
         catch (Exception ex)
         {
-            errors.Add(new BindingError($"Failed to create init-only instance: {ex.Message}", ""));
+            errors.Add(new BindingError($"Failed to create init-only instance: {ex.Message}", string.Empty));
             return null;
         }
     }
@@ -1178,77 +1239,11 @@ public static class EnhancedConfigurationBinder
                 errors.Add(
                     new BindingError(
                         $"Failed to create instance of type '{type.Name}': {ex.Message}",
-                        ""
+                        string.Empty
                     )
                 );
                 return null;
             }
         }
-    }
-}
-
-/// <summary>
-/// Options for configuration binding.
-/// </summary>
-public class BindingOptions
-{
-    /// <summary>
-    /// Gets or sets whether to enable validation using Data Annotations.
-    /// </summary>
-    public bool EnableValidation { get; set; } = true;
-
-    /// <summary>
-    /// Gets or sets whether configuration key matching is case-sensitive.
-    /// </summary>
-    public bool CaseSensitive { get; set; } = false;
-
-    /// <summary>
-    /// Gets or sets custom JSON serialization options.
-    /// </summary>
-    public JsonSerializerOptions? JsonOptions { get; set; }
-
-    /// <summary>
-    /// Gets or sets whether a property with no configuration key keeps its current value, such as a
-    /// default set by its initializer. When <c>false</c>, it is reset to <c>null</c> or <c>0</c>.
-    /// Defaults to <c>true</c>.
-    /// </summary>
-    public bool IgnoreMissingOptional { get; set; } = true;
-
-    /// <summary>
-    /// The configuration dictionary (used for record binding).
-    /// </summary>
-    public Dictionary<string, string>? Configuration { get; set; }
-}
-
-/// <summary>
-/// Represents a binding error with detailed information.
-/// </summary>
-public class BindingError
-{
-    /// <summary>
-    /// Initializes a new instance of the <see cref="BindingError"/> class.
-    /// </summary>
-    /// <param name="message">The error message.</param>
-    /// <param name="propertyPath">The path to the property that caused the error.</param>
-    public BindingError(string message, string propertyPath)
-    {
-        Message = message;
-        PropertyPath = propertyPath;
-    }
-
-    /// <summary>
-    /// Gets the error message.
-    /// </summary>
-    public string Message { get; }
-
-    /// <summary>
-    /// Gets the path to the property that caused the error.
-    /// </summary>
-    public string PropertyPath { get; }
-
-    /// <inheritdoc />
-    public override string ToString()
-    {
-        return string.IsNullOrEmpty(PropertyPath) ? Message : $"{PropertyPath}: {Message}";
     }
 }

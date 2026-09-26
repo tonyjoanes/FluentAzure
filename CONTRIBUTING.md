@@ -77,7 +77,7 @@ CI runs these in the `App Configuration Emulator Tests` job and fails if they ar
 - Keep methods focused and under 20 lines when possible
 
 ### Code Quality
-- All code must pass StyleCop analysis
+- All code must pass StyleCop and .NET analysis: `src/` builds with warnings as errors, and the build should stay free of warnings
 - Maintain 90%+ code coverage
 - Use nullable reference types
 - Prefer functional programming patterns

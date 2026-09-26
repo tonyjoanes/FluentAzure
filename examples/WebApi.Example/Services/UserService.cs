@@ -135,9 +135,8 @@ public class UserService : IUserService
     {
         // In a real application, use a proper password hashing library like BCrypt
         // This is a simplified example for demonstration purposes
-        using var sha256 = System.Security.Cryptography.SHA256.Create();
         var bytes = System.Text.Encoding.UTF8.GetBytes(password);
-        var hash = sha256.ComputeHash(bytes);
+        var hash = System.Security.Cryptography.SHA256.HashData(bytes);
         return Task.FromResult(Convert.ToBase64String(hash));
     }
 
@@ -156,17 +155,23 @@ public class UserService : IUserService
     private bool ValidatePasswordStrength(string password)
     {
         if (string.IsNullOrEmpty(password))
+        {
             return false;
+        }
 
         var minLength = _config.Security.MinPasswordLength;
         if (password.Length < minLength)
+        {
             return false;
+        }
 
         if (_config.Security.RequireSpecialCharacters)
         {
             var hasSpecialChar = password.Any(c => !char.IsLetterOrDigit(c));
             if (!hasSpecialChar)
+            {
                 return false;
+            }
         }
 
         return true;

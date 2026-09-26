@@ -17,6 +17,7 @@ internal static class AnalyzerVerifier<TAnalyzer>
         var test = new CSharpAnalyzerTest<TAnalyzer, DefaultVerifier>
         {
             TestCode = source,
+
             // Must match the FluentAzure build referenced by this project (net10.0)
             ReferenceAssemblies = new ReferenceAssemblies(
                 "net10.0",

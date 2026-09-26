@@ -10,8 +10,6 @@ namespace FluentAzure.Tests.Core;
 /// </summary>
 public class OptionTests
 {
-    #region Some Creation Tests
-
     [Fact]
     public void Some_WithValue_ShouldCreateOptionWithValue()
     {
@@ -46,10 +44,6 @@ public class OptionTests
         option.HasValue.Should().BeTrue();
         option.Value.Should().Be("test");
     }
-
-    #endregion
-
-    #region None Creation Tests
 
     [Fact]
     public void None_ShouldCreateEmptyOption()
@@ -100,10 +94,6 @@ public class OptionTests
         option.Value.Should().Be("test");
     }
 
-    #endregion
-
-    #region Property Access Tests
-
     [Fact]
     public void Value_OnOptionWithValue_ShouldReturnValue()
     {
@@ -126,10 +116,6 @@ public class OptionTests
             .Throw<InvalidOperationException>()
             .WithMessage("Cannot access value of an empty option");
     }
-
-    #endregion
-
-    #region Map Tests
 
     [Fact]
     public void Map_OnOptionWithValue_ShouldTransformValue()
@@ -182,10 +168,6 @@ public class OptionTests
         mapped.HasValue.Should().BeTrue();
         mapped.Value.Should().Be("Result: 84");
     }
-
-    #endregion
-
-    #region Bind Tests
 
     [Fact]
     public void Bind_OnOptionWithValue_ShouldTransformValue()
@@ -283,10 +265,6 @@ public class OptionTests
         flatMapped.Should().Be(bound);
     }
 
-    #endregion
-
-    #region Match Tests
-
     [Fact]
     public void Match_OnOptionWithValue_ShouldExecuteSomeFunction()
     {
@@ -318,7 +296,7 @@ public class OptionTests
     {
         // Arrange
         var option = Option<int>.Some(42);
-        var executedAction = "";
+        var executedAction = string.Empty;
 
         // Act
         option.Match(
@@ -335,7 +313,7 @@ public class OptionTests
     {
         // Arrange
         var option = Option<int>.None();
-        var executedAction = "";
+        var executedAction = string.Empty;
 
         // Act
         option.Match(
@@ -354,16 +332,12 @@ public class OptionTests
         var option = Option<int>.Some(42);
 
         // Act & Assert
-        var act1 = () => option.Match(null!, () => "");
+        var act1 = () => option.Match(null!, () => string.Empty);
         act1.Should().Throw<ArgumentNullException>();
 
-        var act2 = () => option.Match(value => "", null!);
+        var act2 = () => option.Match(value => string.Empty, null!);
         act2.Should().Throw<ArgumentNullException>();
     }
-
-    #endregion
-
-    #region GetValueOrDefault Tests
 
     [Fact]
     public void GetValueOrDefault_OnOptionWithValue_ShouldReturnValue()
@@ -427,10 +401,6 @@ public class OptionTests
         var act = () => option.GetValueOrDefault(null!);
         act.Should().Throw<ArgumentNullException>();
     }
-
-    #endregion
-
-    #region Or Tests
 
     [Fact]
     public void Or_OnOptionWithValue_ShouldReturnOriginalOption()
@@ -498,10 +468,6 @@ public class OptionTests
         act.Should().Throw<ArgumentNullException>();
     }
 
-    #endregion
-
-    #region Filter Tests
-
     [Fact]
     public void Filter_OnOptionWithValue_WithTruePredicate_ShouldReturnOption()
     {
@@ -566,10 +532,6 @@ public class OptionTests
         act.Should().Throw<ArgumentNullException>();
     }
 
-    #endregion
-
-    #region Do/Tap Tests
-
     [Fact]
     public void Do_OnOptionWithValue_ShouldExecuteAction()
     {
@@ -625,10 +587,6 @@ public class OptionTests
         var act = () => option.Do(null!);
         act.Should().Throw<ArgumentNullException>();
     }
-
-    #endregion
-
-    #region Conversion Tests
 
     [Fact]
     public void ToNullable_OnOptionWithValue_ShouldReturnValue()
@@ -724,10 +682,6 @@ public class OptionTests
         result.Should().BeEmpty();
     }
 
-    #endregion
-
-    #region Static Utility Methods Tests
-
     [Fact]
     public void Combine_AllSome_ShouldReturnSomeWithAllValues()
     {
@@ -815,10 +769,6 @@ public class OptionTests
         result.IsNone.Should().BeTrue();
     }
 
-    #endregion
-
-    #region Implicit Operator Tests
-
     [Fact]
     public void ImplicitOperator_FromValue_ShouldCreateSome()
     {
@@ -842,10 +792,6 @@ public class OptionTests
         // Assert
         result.Should().Be(42);
     }
-
-    #endregion
-
-    #region Equality Tests
 
     [Fact]
     public void Equals_TwoSomeWithSameValue_ShouldBeEqual()
@@ -899,10 +845,6 @@ public class OptionTests
         (option1 != option2).Should().BeTrue();
     }
 
-    #endregion
-
-    #region ToString Tests
-
     [Fact]
     public void ToString_OnSome_ShouldReturnSomeFormat()
     {
@@ -928,10 +870,6 @@ public class OptionTests
         // Assert
         stringRepresentation.Should().Be("None");
     }
-
-    #endregion
-
-    #region Thread Safety Tests
 
     [Fact]
     public void Option_ConcurrentAccess_ShouldBeThreadSafe()
@@ -1002,10 +940,6 @@ public class OptionTests
             });
     }
 
-    #endregion
-
-    #region Edge Cases
-
     [Fact]
     public void GetHashCode_ShouldBeConsistent()
     {
@@ -1064,11 +998,5 @@ public class OptionTests
         option2.Value.Should().BeNull();
     }
 
-    #endregion
-
-    #region Helper Types
-
     private record Person(string Name, int Age);
-
-    #endregion
 }

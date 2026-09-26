@@ -55,7 +55,7 @@ public class JsonFileSource : IConfigurationSource
                 }
             }
 
-            var jsonContent = await File.ReadAllTextAsync(_filePath);
+            var jsonContent = await File.ReadAllTextAsync(_filePath).ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(jsonContent))
             {
                 _values = new Dictionary<string, string>();
@@ -114,6 +114,7 @@ public class JsonFileSource : IConfigurationSource
                         result[childValue.Key] = childValue.Value;
                     }
                 }
+
                 break;
 
             case JsonValueKind.Array:
@@ -126,12 +127,14 @@ public class JsonFileSource : IConfigurationSource
                     {
                         result[childValue.Key] = childValue.Value;
                     }
+
                     index++;
                 }
+
                 break;
 
             case JsonValueKind.String:
-                result[prefix] = element.GetString() ?? "";
+                result[prefix] = element.GetString() ?? string.Empty;
                 break;
 
             case JsonValueKind.Number:
@@ -147,7 +150,7 @@ public class JsonFileSource : IConfigurationSource
                 break;
 
             case JsonValueKind.Null:
-                result[prefix] = "";
+                result[prefix] = string.Empty;
                 break;
         }
 

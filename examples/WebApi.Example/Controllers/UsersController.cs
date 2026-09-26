@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Globalization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Example.Configuration;
@@ -87,7 +88,7 @@ public class UsersController : ControllerBase
             }
 
             // Apply sorting
-            query = sortBy.ToLower() switch
+            query = (sortBy ?? "Name").ToLowerInvariant() switch
             {
                 "name" => ascending
                     ? query.OrderBy(u => u.Name)
@@ -130,11 +131,10 @@ public class UsersController : ControllerBase
             // Add rate limit headers
             if (_config.RateLimit.EnableRateLimiting)
             {
-                Response.Headers.Add(
-                    _config.RateLimit.RateLimitHeader,
-                    _config.RateLimit.RequestsPerMinute.ToString()
-                );
-                Response.Headers.Add(_config.RateLimit.RateLimitRemainingHeader, "99"); // Simplified
+                // The indexer sets the header; Add would throw if it was already present
+                Response.Headers[_config.RateLimit.RateLimitHeader] =
+                    _config.RateLimit.RequestsPerMinute.ToString(CultureInfo.InvariantCulture);
+                Response.Headers[_config.RateLimit.RateLimitRemainingHeader] = "99"; // Simplified
             }
 
             return Ok(result);
@@ -422,21 +422,27 @@ public class UsersController : ControllerBase
     private bool ValidatePasswordStrength(string password)
     {
         if (string.IsNullOrEmpty(password))
+        {
             return false;
+        }
 
         if (password.Length < _config.Security.MinPasswordLength)
+        {
             return false;
+        }
 
         if (
             _config.Security.RequireSpecialCharacters
             && !password.Any(c => !char.IsLetterOrDigit(c))
         )
+        {
             return false;
+        }
 
         return true;
     }
 
-    private bool CheckRateLimit(string clientId)
+    private static bool CheckRateLimit(string clientId)
     {
         // Simplified rate limiting check
         // In a real implementation, you would use a distributed cache
@@ -450,12 +456,19 @@ public class UsersController : ControllerBase
 public class UserDto
 {
     public int Id { get; set; }
+
     public string Name { get; set; } = string.Empty;
+
     public string Email { get; set; } = string.Empty;
+
     public string Role { get; set; } = string.Empty;
+
     public bool IsActive { get; set; }
+
     public DateTime CreatedAt { get; set; }
+
     public DateTime? LastLoginAt { get; set; }
+
     public string? ProfilePictureUrl { get; set; }
 }
 
@@ -465,8 +478,11 @@ public class UserDto
 public class CreateUserRequest
 {
     public string Name { get; set; } = string.Empty;
+
     public string Email { get; set; } = string.Empty;
+
     public string Password { get; set; } = string.Empty;
+
     public string? Role { get; set; }
 }
 
@@ -476,7 +492,9 @@ public class CreateUserRequest
 public class UpdateUserRequest
 {
     public string? Name { get; set; }
+
     public string? Role { get; set; }
+
     public bool? IsActive { get; set; }
 }
 
@@ -486,8 +504,12 @@ public class UpdateUserRequest
 public class PaginatedResult<T>
 {
     public List<T> Items { get; set; } = new();
+
     public int Page { get; set; }
+
     public int PageSize { get; set; }
+
     public int TotalCount { get; set; }
+
     public int TotalPages { get; set; }
 }

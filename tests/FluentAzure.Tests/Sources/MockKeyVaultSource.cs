@@ -45,7 +45,7 @@ public class MockKeyVaultSource : KeyVaultSource
     /// </summary>
     public override async Task<Result<Dictionary<string, string>>> LoadAsync()
     {
-        if (_disposed)
+        if (IsDisposed)
         {
             return Result<Dictionary<string, string>>.Error("KeyVaultSource has been disposed");
         }

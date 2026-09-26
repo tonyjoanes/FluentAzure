@@ -2,7 +2,6 @@ using FluentAzure;
 using Microsoft.Extensions.DependencyInjection;
 
 // FluentConfig() is available via GlobalUsings.cs
-
 namespace FluentAzure.Examples;
 
 /// <summary>
@@ -17,23 +16,31 @@ public static class UltraCleanExample
     public class AppSettings
     {
         public string AppName { get; set; } = string.Empty;
+
         public string Version { get; set; } = string.Empty;
+
         public bool Debug { get; set; }
+
         public DatabaseSettings Database { get; set; } = new();
+
         public ApiSettings Api { get; set; } = new();
     }
 
     public class DatabaseSettings
     {
         public string ConnectionString { get; set; } = string.Empty;
+
         public int TimeoutSeconds { get; set; }
+
         public int MaxConnections { get; set; }
     }
 
     public class ApiSettings
     {
         public string BaseUrl { get; set; } = string.Empty;
+
         public string ApiKey { get; set; } = string.Empty;
+
         public int TimeoutSeconds { get; set; }
     }
 
@@ -132,6 +139,7 @@ public static class UltraCleanExample
                         {
                             return Core.Result<string>.Success(timeout);
                         }
+
                         return Core.Result<string>.Error("API timeout must be between 1-300 seconds");
                     }
                 )

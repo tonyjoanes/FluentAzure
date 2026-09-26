@@ -60,6 +60,7 @@ public class ConfigurationSourceTests
             // Assert
             result.Should().NotBeNull();
             result.IsSuccess.Should().BeTrue();
+
             // PATH should exist on all systems (Windows uses PATH, Unix uses PATH)
             var hasPath = result.Value.ContainsKey("PATH") || result.Value.ContainsKey("Path");
             hasPath.Should().BeTrue("PATH environment variable should exist");
@@ -381,8 +382,8 @@ public class ConfigurationSourceTests
             // Assert
             result.Should().NotBeNull();
             result.IsSuccess.Should().BeTrue();
-            result.Value.Should().Contain("NullValue", "");
-            result.Value.Should().Contain("EmptyString", "");
+            result.Value.Should().Contain("NullValue", string.Empty);
+            result.Value.Should().Contain("EmptyString", string.Empty);
             result.Value.Should().Contain("ValidValue", "test");
         }
 

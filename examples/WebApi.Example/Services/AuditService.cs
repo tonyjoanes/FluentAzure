@@ -28,14 +28,17 @@ public class AuditService : IAuditService
                 Action = action,
                 Resource = resource,
                 Details = details,
-                Timestamp = DateTime.UtcNow
+                Timestamp = DateTime.UtcNow,
             };
 
             // In a real application, this would be stored in a database
             // For this example, we'll just log it
             _logger.LogInformation(
                 "User Action - User: {UserId}, Action: {Action}, Resource: {Resource}, Details: {Details}",
-                userId, action, resource, details ?? "N/A");
+                userId,
+                action,
+                resource,
+                details ?? "N/A");
 
             await Task.CompletedTask;
         }
@@ -55,12 +58,14 @@ public class AuditService : IAuditService
                 Action = eventType,
                 Resource = "System",
                 Details = message,
-                Timestamp = DateTime.UtcNow
+                Timestamp = DateTime.UtcNow,
             };
 
             _logger.LogInformation(
                 "System Event - Type: {EventType}, Message: {Message}, User: {UserId}",
-                eventType, message, userId ?? "System");
+                eventType,
+                message,
+                userId ?? "System");
 
             await Task.CompletedTask;
         }
@@ -82,12 +87,14 @@ public class AuditService : IAuditService
                 Details = $"IP: {ipAddress ?? "Unknown"}, UserAgent: {userAgent ?? "Unknown"}",
                 IpAddress = ipAddress,
                 UserAgent = userAgent,
-                Timestamp = DateTime.UtcNow
+                Timestamp = DateTime.UtcNow,
             };
 
             _logger.LogWarning(
                 "Security Event - Type: {EventType}, User: {UserId}, IP: {IpAddress}",
-                eventType, userId, ipAddress ?? "Unknown");
+                eventType,
+                userId,
+                ipAddress ?? "Unknown");
 
             await Task.CompletedTask;
         }

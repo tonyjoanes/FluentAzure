@@ -9,13 +9,21 @@ namespace WebApi.Example.Configuration;
 public class WebApiConfiguration
 {
     public DatabaseConfig Database { get; set; } = new();
+
     public StorageConfig Storage { get; set; } = new();
+
     public ServiceBusConfig ServiceBus { get; set; } = new();
+
     public JwtConfig Jwt { get; set; } = new();
+
     public CorsConfig Cors { get; set; } = new();
+
     public TelemetryConfig Telemetry { get; set; } = new();
+
     public SecurityConfig Security { get; set; } = new();
+
     public RateLimitConfig RateLimit { get; set; } = new();
+
     public CacheConfig Cache { get; set; } = new();
 }
 
@@ -28,8 +36,11 @@ public class DatabaseConfig
     public string ConnectionString { get; set; } = string.Empty;
 
     public string Name => ParseConnectionString().Database;
+
     public string Server => ParseConnectionString().Server;
+
     public int Port => ParseConnectionString().Port;
+
     public string Provider => ParseConnectionString().Provider;
 
     [Range(1, 100)]
@@ -38,9 +49,9 @@ public class DatabaseConfig
     [Range(1, 300)]
     public int CommandTimeoutSeconds { get; set; } = 30;
 
-    public bool EnableSensitiveDataLogging { get; set; } = false;
+    public bool EnableSensitiveDataLogging { get; set; }
 
-    public bool EnableDetailedErrors { get; set; } = false;
+    public bool EnableDetailedErrors { get; set; }
 
     private (string Server, int Port, string Database, string Provider) ParseConnectionString()
     {
@@ -68,6 +79,7 @@ public class StorageConfig
     public string ConnectionString { get; set; } = string.Empty;
 
     public string AccountName => ParseConnectionString().AccountName;
+
     public string AccountKey => ParseConnectionString().AccountKey;
 
     [Range(1, 100)]
@@ -110,6 +122,7 @@ public class ServiceBusConfig
     public string ConnectionString { get; set; } = string.Empty;
 
     public string Namespace => ParseConnectionString().Namespace;
+
     public string SharedAccessKeyName => ParseConnectionString().SharedAccessKeyName;
 
     [Range(1, 100)]
@@ -137,9 +150,9 @@ public class ServiceBusConfig
 
         return (
             Namespace: parts
-                .GetValueOrDefault("endpoint", "")
-                .Replace("sb://", "")
-                .Replace(".servicebus.windows.net", ""),
+                .GetValueOrDefault("endpoint", string.Empty)
+                .Replace("sb://", string.Empty)
+                .Replace(".servicebus.windows.net", string.Empty),
             SharedAccessKeyName: parts.GetValueOrDefault("sharedaccesskeyname", "unknown")
         );
     }
@@ -234,13 +247,13 @@ public class SecurityConfig
 
     public bool IncludeSubDomains { get; set; } = true;
 
-    public bool Preload { get; set; } = false;
+    public bool Preload { get; set; }
 
     public string ContentSecurityPolicy { get; set; } = "default-src 'self'";
 
     public bool EnableXssProtection { get; set; } = true;
 
-    public bool EnableContentTypeSniffing { get; set; } = false;
+    public bool EnableContentTypeSniffing { get; set; }
 
     public bool EnableFrameOptions { get; set; } = true;
 
@@ -294,7 +307,7 @@ public class CacheConfig
     [Range(1, 86400)]
     public int MaxExpirationMinutes { get; set; } = 1440;
 
-    public bool EnableDistributedCache { get; set; } = false;
+    public bool EnableDistributedCache { get; set; }
 
     public string CacheConnectionString { get; set; } = string.Empty;
 

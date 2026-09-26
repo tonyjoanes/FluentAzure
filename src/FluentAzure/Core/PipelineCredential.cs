@@ -15,8 +15,8 @@ internal sealed class PipelineCredential : TokenCredential
 
     public PipelineCredential()
     {
+        // DefaultAzureCredential honours AZURE_TOKEN_CREDENTIALS (e.g. "prod") to restrict its chain
         _inner = new Lazy<TokenCredential>(
-            // DefaultAzureCredential honours AZURE_TOKEN_CREDENTIALS (e.g. "prod") to restrict its chain
             () => _configured ?? new DefaultAzureCredential(),
             LazyThreadSafetyMode.ExecutionAndPublication
         );

@@ -8,7 +8,9 @@ namespace FluentAzure.Tests.Extensions;
 public class TestConfig
 {
     public string Name { get; set; } = string.Empty;
+
     public int Value { get; set; }
+
     public bool Enabled { get; set; }
 }
 
@@ -75,8 +77,8 @@ public class ServiceCollectionExtensionsTests
     {
         // Arrange
         var services = new ServiceCollection();
-        Environment.SetEnvironmentVariable("Name", ""); // Required but empty
-        Environment.SetEnvironmentVariable("Value", ""); // Required but empty
+        Environment.SetEnvironmentVariable("Name", string.Empty); // Required but empty
+        Environment.SetEnvironmentVariable("Value", string.Empty); // Required but empty
 
         // Act & Assert
         Assert.Throws<InvalidOperationException>(() =>

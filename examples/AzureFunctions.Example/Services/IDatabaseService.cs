@@ -6,7 +6,9 @@
 public interface IDatabaseService
 {
     Task<bool> IsConnectedAsync();
+
     Task<int> GetConnectionCountAsync();
+
     Task<string> GetDatabaseInfoAsync();
 }
 
@@ -16,7 +18,9 @@ public interface IDatabaseService
 public interface IServiceBusService
 {
     Task<bool> IsConnectedAsync();
+
     Task<int> GetQueueLengthAsync(string queueName);
+
     Task SendMessageAsync(string queueName, string message);
 }
 
@@ -26,7 +30,9 @@ public interface IServiceBusService
 public interface IStorageService
 {
     Task<bool> IsConnectedAsync();
+
     Task<string> GetContainerInfoAsync(string containerName);
+
     Task UploadBlobAsync(string containerName, string blobName, string content);
 }
 
@@ -36,6 +42,8 @@ public interface IStorageService
 public interface ITelemetryService
 {
     Task TrackEventAsync(string eventName, Dictionary<string, object> properties);
+
     Task TrackMetricAsync(string metricName, double value);
+
     Task TrackExceptionAsync(Exception exception);
 }

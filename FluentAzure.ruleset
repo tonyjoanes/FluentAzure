@@ -205,5 +205,17 @@
     <Rule Id="SA1200" Action="None" /> <!-- Using statements inside namespace -->
     <Rule Id="SA1633" Action="None" /> <!-- File must have header -->
     <Rule Id="SA1652" Action="None" /> <!-- Enable XML output -->
+    <!-- The code base puts a closing parenthesis on its own line after multi-line arguments -->
+    <Rule Id="SA1009" Action="None" /> <!-- Closing parenthesis spacing -->
+    <Rule Id="SA1111" Action="None" /> <!-- Closing parenthesis on line of last parameter -->
+    <!-- The code base names private fields with a leading underscore -->
+    <Rule Id="SA1309" Action="None" /> <!-- Field names must not begin with underscore -->
+    <!-- Member ordering is not enforced: reordering existing files would only churn history -->
+    <Rule Id="SA1201" Action="None" /> <!-- Elements must appear in the correct order -->
+    <Rule Id="SA1202" Action="None" /> <!-- Elements must be ordered by access -->
+    <Rule Id="SA1204" Action="None" /> <!-- Static elements must appear before instance elements -->
+    <Rule Id="SA1214" Action="None" /> <!-- Readonly fields must appear before non-readonly fields -->
+    <!-- Tuple element names use PascalCase, like .NET's own APIs -->
+    <Rule Id="SA1316" Action="None" /> <!-- Tuple element names should use correct casing -->
   </Rules>
 </RuleSet>

@@ -122,7 +122,7 @@ public static class EnhancedBindingExamples
             ["Email"] = "invalid-email",
             ["Age"] = "150",
             ["Url"] = "not-a-url",
-            ["RequiredField"] = "", // Empty required field
+            ["RequiredField"] = string.Empty, // Empty required field
         };
 
         var result = (await FluentConfig.Create().FromInMemory(config).BuildAsync()).Bind(config =>
@@ -243,33 +243,41 @@ public static class EnhancedBindingExamples
 }
 
 // Example configuration classes
-
 public class AppConfiguration
 {
     public DatabaseConfig Database { get; set; } = new();
+
     public ApiConfig Api { get; set; } = new();
+
     public LoggingConfig Logging { get; set; } = new();
 }
 
 public class DatabaseConfig
 {
     public string Host { get; set; } = string.Empty;
+
     public int Port { get; set; }
+
     public string Name { get; set; } = string.Empty;
+
     public string Username { get; set; } = string.Empty;
+
     public string Password { get; set; } = string.Empty;
 }
 
 public class ApiConfig
 {
     public string BaseUrl { get; set; } = string.Empty;
+
     public int Timeout { get; set; }
+
     public int RetryCount { get; set; }
 }
 
 public class LoggingConfig
 {
     public string Level { get; set; } = string.Empty;
+
     public bool EnableConsole { get; set; }
 }
 
@@ -292,6 +300,8 @@ public class ValidatedConfig
 public class LoginConfig
 {
     public string Username { get; set; } = string.Empty;
+
     public string Password { get; set; } = string.Empty;
+
     public string ConfirmPassword { get; set; } = string.Empty;
 }

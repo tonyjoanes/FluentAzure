@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Azure.Core;
 using Azure.Identity;
 using FluentAzure.Core;
@@ -9,6 +10,11 @@ namespace FluentAzure.Extensions;
 /// <summary>
 /// Extension methods for adding Azure Key Vault configuration sources.
 /// </summary>
+[SuppressMessage(
+    "Reliability",
+    "CA2000:Dispose objects before losing scope",
+    Justification = "Each source is handed to the pipeline, which keeps it for the lifetime of the application."
+)]
 public static class KeyVaultExtensions
 {
     /// <summary>

@@ -166,7 +166,7 @@ public static class FluentAzureConfigurationExtensions
     [RequiresUnreferencedCode(AotMessages.ReflectionBinding)]
     [RequiresDynamicCode(AotMessages.ReflectionBinding)]
     public static OptionsBuilder<T> AddFluentAzureOptions<
-        [DynamicallyAccessedMembers(
+            [DynamicallyAccessedMembers(
             DynamicallyAccessedMemberTypes.PublicParameterlessConstructor
                 | DynamicallyAccessedMemberTypes.PublicProperties
                 | DynamicallyAccessedMemberTypes.NonPublicProperties

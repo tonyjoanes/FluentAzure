@@ -8,15 +8,25 @@ namespace FluentAzure.Sources;
 public class InMemorySource : IConfigurationSource
 {
     private readonly Dictionary<string, string> _values;
-    public string Name => "InMemory";
-    public int Priority { get; }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="InMemorySource"/> class.
+    /// </summary>
+    /// <param name="values">The configuration values.</param>
+    /// <param name="priority">The priority of this source; higher priorities override lower ones.</param>
     public InMemorySource(Dictionary<string, string> values, int priority = 1000)
     {
         _values = values ?? new Dictionary<string, string>();
         Priority = priority;
     }
 
+    /// <inheritdoc />
+    public string Name => "InMemory";
+
+    /// <inheritdoc />
+    public int Priority { get; }
+
+    /// <inheritdoc />
     public Task<Result<Dictionary<string, string>>> LoadAsync()
     {
         return Task.FromResult(
@@ -24,7 +34,9 @@ public class InMemorySource : IConfigurationSource
         );
     }
 
+    /// <inheritdoc />
     public bool ContainsKey(string key) => _values.ContainsKey(key);
 
+    /// <inheritdoc />
     public string? GetValue(string key) => _values.TryGetValue(key, out var value) ? value : null;
 }

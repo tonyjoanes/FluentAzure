@@ -63,6 +63,7 @@ public class EnhancedConfigurationBinderParameterTests
         {
             ["RequiredString"] = requiredString,
             ["RequiredInt"] = requiredInt.ToString(),
+
             // Leave nullable fields empty to test null handling
         };
 
@@ -115,8 +116,8 @@ public class EnhancedConfigurationBinderParameterTests
     {
         // Arrange
         var config = new Dictionary<string, string>();
-        var expectedCount = Math.Min(itemCount, 10);
-        for (int i = 0; i < expectedCount; i++) // Limit to reasonable size
+        var expectedCount = Math.Min(itemCount, 10); // Limit to reasonable size
+        for (int i = 0; i < expectedCount; i++)
         {
             var itemName = _fixture.Create<string>();
             var itemValue = _fixture.Create<int>();
@@ -291,8 +292,8 @@ public class EnhancedConfigurationBinderParameterTests
         {
             ["RequiredString"] = requiredString,
             ["RequiredInt"] = requiredInt.ToString(),
-            ["NullableString"] = "", // empty string
-            ["NullableInt"] = "", // empty string
+            ["NullableString"] = string.Empty, // empty string
+            ["NullableInt"] = string.Empty, // empty string
             ["WhitespaceString"] = "   ", // whitespace
             ["NullLikeString"] = "null", // null-like
         };
@@ -369,11 +370,11 @@ public class EnhancedConfigurationBinderParameterTests
             ["StringProperty"] = _fixture.Create<string>(),
             ["IntProperty"] = random.Next(-1000, 1000).ToString(),
             ["BoolProperty"] = random.Next(2) == 1 ? "true" : "false",
-            ["DoubleProperty"] = (random.NextDouble() * 1000 - 500).ToString("F2"),
+            ["DoubleProperty"] = ((random.NextDouble() * 1000) - 500).ToString("F2"),
             ["DateTimeProperty"] = _fixture.Create<DateTime>().ToString("O"),
             ["GuidProperty"] = _fixture.Create<Guid>().ToString(),
             ["UriProperty"] = $"https://example.com/{_fixture.Create<string>()}",
-            ["DecimalProperty"] = (random.NextDouble() * 1000 - 500).ToString("F2"),
+            ["DecimalProperty"] = ((random.NextDouble() * 1000) - 500).ToString("F2"),
         };
     }
 
@@ -384,13 +385,24 @@ public class EnhancedConfigurationBinderParameterTests
 
         // Sometimes add values, sometimes leave them empty for null testing
         if (random.Next(2) == 1)
+        {
             config["NullableString"] = _fixture.Create<string>();
+        }
+
         if (random.Next(2) == 1)
+        {
             config["NullableInt"] = random.Next(-1000, 1000).ToString();
+        }
+
         if (random.Next(2) == 1)
+        {
             config["NullableBool"] = random.Next(2) == 1 ? "true" : "false";
+        }
+
         if (random.Next(2) == 1)
-            config["NullableDouble"] = (random.NextDouble() * 1000 - 500).ToString("F2");
+        {
+            config["NullableDouble"] = ((random.NextDouble() * 1000) - 500).ToString("F2");
+        }
 
         // Required fields
         config["RequiredString"] = _fixture.Create<string>();
@@ -431,11 +443,11 @@ public class EnhancedConfigurationBinderParameterTests
         var config = new Dictionary<string, string>();
         var random = new Random();
 
-        var currentPath = "";
+        var currentPath = string.Empty;
         for (int i = 0; i < depth; i++)
         {
             var separator = random.Next(2) == 1 ? ":" : "__";
-            currentPath += (currentPath.Length > 0 ? separator : "") + $"Level{i}";
+            currentPath += (currentPath.Length > 0 ? separator : string.Empty) + $"Level{i}";
 
             config[$"{currentPath}__Name"] = _fixture.Create<string>();
             config[$"{currentPath}__Value"] = random.Next(-1000, 1000).ToString();
@@ -444,7 +456,7 @@ public class EnhancedConfigurationBinderParameterTests
         return config;
     }
 
-    private Dictionary<string, string> GenerateRandomEnumConfiguration()
+    private static Dictionary<string, string> GenerateRandomEnumConfiguration()
     {
         var random = new Random();
         var enumValues = Enum.GetValues<TestEnum>();
@@ -516,7 +528,7 @@ public class EnhancedConfigurationBinderParameterTests
         {
             ["Email"] = random.Next(2) == 1 ? "valid@email.com" : "invalid-email",
             ["Age"] = random.Next(-10, 200).ToString(), // Some invalid ages
-            ["RequiredField"] = random.Next(2) == 1 ? _fixture.Create<string>() : "",
+            ["RequiredField"] = random.Next(2) == 1 ? _fixture.Create<string>() : string.Empty,
             ["RangeField"] = random.Next(-100, 1000).ToString(), // Some out of range
         };
     }
@@ -540,9 +552,9 @@ public class EnhancedConfigurationBinderParameterTests
         var config = new Dictionary<string, string>();
 
         // Add some empty values
-        config["NullableString"] = "";
-        config["NullableInt"] = "";
-        config["NullableBool"] = "";
+        config["NullableString"] = string.Empty;
+        config["NullableInt"] = string.Empty;
+        config["NullableBool"] = string.Empty;
 
         // Add some whitespace-only values
         config["WhitespaceString"] = "   ";
@@ -599,7 +611,7 @@ public class EnhancedConfigurationBinderParameterTests
         return new Dictionary<string, string>
         {
             ["StringProperty"] = string.Join(
-                "",
+                string.Empty,
                 Enumerable.Range(0, 10).Select(_ => specialChars[random.Next(specialChars.Length)])
             ),
             ["IntProperty"] = random.Next(-1000, 1000).ToString(),
@@ -609,7 +621,7 @@ public class EnhancedConfigurationBinderParameterTests
         };
     }
 
-    private Dictionary<string, string> GenerateRandomLargeValueConfiguration(int size)
+    private static Dictionary<string, string> GenerateRandomLargeValueConfiguration(int size)
     {
         var random = new Random();
         var largeString = new string('x', size);
@@ -626,22 +638,34 @@ public class EnhancedConfigurationBinderParameterTests
     public class SimpleTestClass
     {
         public string StringProperty { get; set; } = string.Empty;
+
         public int IntProperty { get; set; }
+
         public bool BoolProperty { get; set; }
+
         public double DoubleProperty { get; set; }
+
         public DateTime DateTimeProperty { get; set; }
+
         public Guid GuidProperty { get; set; }
+
         public Uri UriProperty { get; set; } = new Uri("https://example.com");
+
         public decimal DecimalProperty { get; set; }
     }
 
     public class NullableTestClass
     {
         public string RequiredString { get; set; } = string.Empty;
+
         public int RequiredInt { get; set; }
+
         public string? NullableString { get; set; }
+
         public int? NullableInt { get; set; }
+
         public bool? NullableBool { get; set; }
+
         public double? NullableDouble { get; set; }
     }
 
@@ -653,6 +677,7 @@ public class EnhancedConfigurationBinderParameterTests
     public class CollectionItem
     {
         public string Name { get; set; } = string.Empty;
+
         public int Value { get; set; }
     }
 
@@ -664,13 +689,16 @@ public class EnhancedConfigurationBinderParameterTests
     public class NestedProperty
     {
         public string Name { get; set; } = string.Empty;
+
         public int Value { get; set; }
     }
 
     public class EnumTestClass
     {
         public TestEnum EnumProperty { get; set; }
+
         public UserStatus StatusProperty { get; set; }
+
         public TestEnum CaseInsensitiveEnum { get; set; }
     }
 

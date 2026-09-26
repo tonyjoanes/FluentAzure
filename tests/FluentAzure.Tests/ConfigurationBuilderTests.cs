@@ -64,7 +64,7 @@ public class ConfigurationBuilderTests
         var builder = new ConfigurationBuilder();
 
         // Act & Assert
-        builder.Invoking(b => b.FromJsonFile("")).Should().Throw<ArgumentException>();
+        builder.Invoking(b => b.FromJsonFile(string.Empty)).Should().Throw<ArgumentException>();
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public class ConfigurationBuilderTests
         var builder = new ConfigurationBuilder();
 
         // Act & Assert
-        builder.Invoking(b => b.Required("")).Should().Throw<ArgumentException>();
+        builder.Invoking(b => b.Required(string.Empty)).Should().Throw<ArgumentException>();
     }
 
     [Fact]
@@ -246,6 +246,7 @@ public class ConfigurationBuilderTests
                 {
                     return "Port must be <= 65535";
                 }
+
                 return null;
             });
 
@@ -274,6 +275,7 @@ public class ConfigurationBuilderTests
                 {
                     return "Port must be <= 65535";
                 }
+
                 return null;
             });
 
@@ -299,6 +301,7 @@ public class ConfigurationBuilderTests
                 {
                     transformed["Key1"] = transformed["Key1"].ToUpperInvariant();
                 }
+
                 return await Task.FromResult(
                     Result<Dictionary<string, string>>.Success(transformed)
                 );
@@ -341,7 +344,7 @@ public class ConfigurationBuilderTests
         // Arrange
         var builder = new ConfigurationBuilder()
             .Optional("Port", "99999")
-            .Optional("Name", "")
+            .Optional("Name", string.Empty)
             .Validate(config =>
             {
                 if (
@@ -352,6 +355,7 @@ public class ConfigurationBuilderTests
                 {
                     return "Port must be <= 65535";
                 }
+
                 return null;
             })
             .Validate(config =>
@@ -360,6 +364,7 @@ public class ConfigurationBuilderTests
                 {
                     return "Name cannot be empty";
                 }
+
                 return null;
             });
 
@@ -526,8 +531,10 @@ public class ConfigurationBuilderTests
     // Test helper class
     public class TestAppSettings
     {
-        public string AppName { get; set; } = "";
+        public string AppName { get; set; } = string.Empty;
+
         public bool Debug { get; set; }
+
         public int MaxConnections { get; set; }
     }
 }

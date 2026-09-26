@@ -240,6 +240,7 @@ public static class OptionBasedExamples
                 await Task.Delay(50);
                 return Option<Dictionary<string, string>>.Some(config);
             }
+
             return Option<Dictionary<string, string>>.None();
         });
 
@@ -254,7 +255,9 @@ public static class OptionBasedExamples
 public class AppConfig
 {
     public string Name { get; set; } = string.Empty;
+
     public string ApiKey { get; set; } = string.Empty;
+
     public int Timeout { get; set; }
 }
 
@@ -266,6 +269,7 @@ public class FeatureConfig
 public class DatabaseConnection
 {
     public string ConnectionString { get; }
+
     public bool IsValid { get; }
 
     public DatabaseConnection(string connectionString)
