@@ -96,6 +96,7 @@ public class EnhancedConfigurationBinderTests
         {
             Console.WriteLine("Binding errors: " + string.Join("; ", result.Errors));
         }
+
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();
         result.Value!.Name.Should().Be("Test Record");
@@ -138,7 +139,7 @@ public class EnhancedConfigurationBinderTests
         {
             ["Email"] = "invalid-email",
             ["Age"] = "150",
-            ["RequiredField"] = "",
+            ["RequiredField"] = string.Empty,
         };
 
         // Act
@@ -345,9 +346,9 @@ public class EnhancedConfigurationBinderTests
         var config = new Dictionary<string, string>
         {
             ["RequiredInt"] = "42",
-            ["OptionalInt"] = "",
+            ["OptionalInt"] = string.Empty,
             ["RequiredString"] = "required",
-            ["OptionalString"] = "",
+            ["OptionalString"] = string.Empty,
         };
 
         // Act
@@ -405,33 +406,41 @@ public class EnhancedConfigurationBinderTests
 }
 
 // Test configuration classes
-
 public class TestConfig
 {
     public string Name { get; set; } = string.Empty;
+
     public string Version { get; set; } = string.Empty;
+
     public int MaxConnections { get; set; }
+
     public bool EnableFeature { get; set; }
+
     public int IntValue { get; set; }
+
     public bool BoolValue { get; set; }
 }
 
 public class NestedConfig
 {
     public DatabaseConfig Database { get; set; } = new();
+
     public ApiConfig Api { get; set; } = new();
 }
 
 public class DatabaseConfig
 {
     public string Host { get; set; } = string.Empty;
+
     public int Port { get; set; }
+
     public string Name { get; set; } = string.Empty;
 }
 
 public class ApiConfig
 {
     public string BaseUrl { get; set; } = string.Empty;
+
     public int Timeout { get; set; }
 }
 
@@ -443,6 +452,7 @@ public class CollectionConfig
 public class CollectionItem
 {
     public string Name { get; set; } = string.Empty;
+
     public int Value { get; set; }
 }
 
@@ -463,12 +473,14 @@ public class RequiredConfig
 {
     [Required]
     public string RequiredField { get; set; } = string.Empty;
+
     public string OptionalField { get; set; } = string.Empty;
 }
 
 public class InitOnlyConfig
 {
     public string Name { get; init; } = string.Empty;
+
     public int Value { get; init; }
 }
 
@@ -480,25 +492,30 @@ public class ComplexConfig
 public class UserConfig
 {
     public UserProfile Profile { get; set; } = new();
+
     public UserSettings Settings { get; set; } = new();
 }
 
 public class UserProfile
 {
     public string FirstName { get; set; } = string.Empty;
+
     public string LastName { get; set; } = string.Empty;
+
     public int Age { get; set; }
 }
 
 public class UserSettings
 {
     public string Theme { get; set; } = string.Empty;
+
     public string Language { get; set; } = string.Empty;
 }
 
 public class EnumConfig
 {
     public UserStatus Status { get; set; }
+
     public UserType Type { get; set; }
 }
 
@@ -512,7 +529,10 @@ public enum UserType
 public class NullableConfig
 {
     public int RequiredInt { get; set; }
+
     public int? OptionalInt { get; set; }
+
     public string RequiredString { get; set; } = string.Empty;
+
     public string? OptionalString { get; set; }
 }

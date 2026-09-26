@@ -46,6 +46,10 @@ Upgrading from 0.2.0-rc.5? See the [upgrade guide](docs/upgrade-guide.md).
 - **AOT annotations:** reflection-based binding APIs (`BuildAsync<T>`, `Bind<T>`, `AddFluentAzure<T>`, `AddFluentAzureOptions<T>`, the binder classes) are annotated `[RequiresUnreferencedCode]` / `[RequiresDynamicCode]`.
 - **Dependencies:** Azure.Identity 1.21.0, Azure.Security.KeyVault.Secrets 4.11.1, Azure.Data.AppConfiguration 1.11.1, Polly 8.8.0 and Microsoft.Extensions.* 10.0.12. The current Azure SDK requires the 10.x Extensions packages, even on net8.0.
 - **New dependency:** `Microsoft.Extensions.Diagnostics.HealthChecks`.
+- **Logging:** Key Vault and App Configuration log messages are source-generated, with event IDs (1000–1099 Key Vault, 1100–1199 secret cache, 1200–1299 App Configuration). The Key Vault summary now reads "Loaded {Count} secrets from Key Vault with {ErrorCount} errors".
+- **`TypeExtensions` namespace:** `TypeExtensions.IsCollectionType()` moved from the global namespace to `FluentAzure.Extensions`, so it no longer appears on every `Type` in consuming projects.
+- **`KeyVaultSource` subclasses:** the protected `_disposed` field is replaced by a protected `IsDisposed` property.
+- **Build:** the library and analyzer projects build with warnings as errors. Tests and examples build without code warnings.
 
 ### Removed
 
@@ -59,6 +63,8 @@ Upgrading from 0.2.0-rc.5? See the [upgrade guide](docs/upgrade-guide.md).
 - **Enhanced binder key matching:** a property is now bound only from the key whose full path matches it. Before, the binder ignored separators when comparing (`Data:BaseHost` matched `Database:Host`) and fell back to any key with the property's bare name, so a nested `Database:Name` or a list element's `Name` could pick up a root `Name` key. `BindingOptions.CaseSensitive` is now honoured.
 - **Enhanced binder defaults:** a property with no configuration key now keeps its initial value (such as `Timeout { get; set; } = 30`) instead of being reset to `null`/`0`. This is what `BindingOptions.IgnoreMissingOptional` (default `true`) now controls; set it to `false` for the old reset behaviour.
 - **`BindJson` test shim:** `BindJson<T>()` no longer copies a root `Name` key into a `StringProperty` property; that code only existed for the test classes.
+- **Key Vault timeout:** `KeyVaultConfiguration.OperationTimeout` never cancelled a slow Key Vault call, because the retry pipeline's cancellation token wasn't passed to the SDK. A hanging read could block loading indefinitely.
+- **`ConfigureAwait`:** the async `Option` helpers and `JsonFileSource` now use `ConfigureAwait(false)`.
 - **Deadlock:** the synchronous `AddFluentAzure*` registrations could deadlock under a synchronization context.
 - **Key Vault race:** concurrent `KeyVaultSource.LoadAsync` / `ReloadAsync` calls could both run a full load.
 - **Culture:** values such as `1.5` were misread in cultures that use a decimal comma.

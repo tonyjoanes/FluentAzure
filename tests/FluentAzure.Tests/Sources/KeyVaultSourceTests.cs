@@ -11,8 +11,8 @@ namespace FluentAzure.Tests.Sources;
 /// </summary>
 public class KeyVaultSourceTests
 {
-    private readonly ILogger _logger;
     private const string TestVaultUrl = "https://test-keyvault.vault.azure.net/";
+    private readonly ILogger _logger;
 
     public KeyVaultSourceTests()
     {
@@ -250,7 +250,7 @@ public class KeyVaultSourceTests
     public void KeyVaultSource_WithManagedIdentity_ShouldConfigureCredential()
     {
         // Arrange
-        var config = new KeyVaultConfiguration { Credential = new ManagedIdentityCredential() };
+        var config = new KeyVaultConfiguration { Credential = new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned) };
 
         // Act
         var source = new MockKeyVaultSource(TestVaultUrl, config, new Dictionary<string, string>());

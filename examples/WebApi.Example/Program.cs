@@ -15,7 +15,10 @@ var buildResult = await FluentConfig
     .Create()
     .FromJsonFile("appsettings.json")
     .FromEnvironment()
-    .FromKeyVault(builder.Configuration["KeyVault:Url"])
+    .FromKeyVault(
+        builder.Configuration["KeyVault:Url"]
+            ?? throw new InvalidOperationException("The KeyVault:Url setting is required.")
+    )
     .Required("ConnectionStrings:DefaultConnection")
     .Required("ConnectionStrings:StorageConnection")
     .Required("ConnectionStrings:ServiceBusConnection")

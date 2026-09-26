@@ -6,7 +6,7 @@ root = true
 # All files
 [*]
 charset = utf-8
-end_of_line = crlf
+end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 
@@ -82,3 +82,29 @@ csharp_space_between_method_call_parameter_list_parentheses = false
 # Wrapping preferences
 csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
+
+# Tests and examples: they are not public API and are not shipped
+[{tests,examples}/**.cs]
+# XML documentation
+dotnet_diagnostic.SA1600.severity = none
+dotnet_diagnostic.SA1601.severity = none
+dotnet_diagnostic.SA1602.severity = none
+dotnet_diagnostic.SA1611.severity = none
+dotnet_diagnostic.SA1615.severity = none
+dotnet_diagnostic.SA1623.severity = none
+dotnet_diagnostic.SA1629.severity = none
+dotnet_diagnostic.SA1642.severity = none
+dotnet_diagnostic.SA1618.severity = none
+# Test files keep their fixture types next to the tests that use them
+dotnet_diagnostic.SA1402.severity = none
+dotnet_diagnostic.SA1649.severity = none
+# Tests exercise the synchronous AddFluentAzure entry points deliberately; samples use app.Run()
+dotnet_diagnostic.CA1849.severity = none
+# Inline test data (dictionaries, JSON) is easier to read as a multi-line argument
+dotnet_diagnostic.SA1118.severity = none
+# Tests and samples run without a synchronization context
+dotnet_diagnostic.CA2007.severity = none
+# Short-lived test objects
+dotnet_diagnostic.CA2000.severity = none
+# Random test data is not security sensitive
+dotnet_diagnostic.CA5394.severity = none

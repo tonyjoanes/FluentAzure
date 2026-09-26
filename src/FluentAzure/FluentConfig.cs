@@ -15,9 +15,10 @@ public static class FluentConfig
     /// Gets the current version information for FluentAzure.
     /// </summary>
     public static string CurrentVersion => Version.Full;
+
     /// <summary>
     /// Starts a new Azure configuration pipeline builder.
-    /// Main entry point - FluentConfig.Create()
+    /// Main entry point - FluentConfig.Create().
     /// </summary>
     /// <returns>A new configuration builder instance.</returns>
     public static Core.ConfigurationBuilder Create()
@@ -89,26 +90,5 @@ public static class FluentConfig
             configure,
             factory
         );
-    }
-}
-
-/// <summary>
-/// Extension methods for binding configuration results.
-/// These are available directly when using FluentAzure.
-/// </summary>
-public static class BindingExtensions
-{
-    /// <summary>
-    /// Binds configuration to a strongly-typed object.
-    /// </summary>
-    /// <typeparam name="T">The type to bind to</typeparam>
-    /// <param name="result">The configuration result</param>
-    /// <returns>A result containing the bound object or errors</returns>
-    [RequiresUnreferencedCode(AotMessages.ReflectionBinding)]
-    [RequiresDynamicCode(AotMessages.ReflectionBinding)]
-    public static Result<T> Bind<T>(this Result<Dictionary<string, string>> result)
-        where T : class, new()
-    {
-        return result.Bind(config => ConfigurationBinder.Bind<T>(config));
     }
 }

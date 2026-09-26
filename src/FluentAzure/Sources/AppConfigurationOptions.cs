@@ -46,7 +46,7 @@ public class AppConfigurationOptions
     public IList<string> TrimKeyPrefixes { get; } = new List<string>();
 
     /// <summary>
-    /// Gets or sets whether Key Vault references are resolved to their secret values.
+    /// Gets or sets a value indicating whether gets or sets whether Key Vault references are resolved to their secret values.
     /// When false, Key Vault references are skipped. Defaults to true.
     /// </summary>
     public bool ResolveKeyVaultReferences { get; set; } = true;
@@ -63,7 +63,7 @@ public class AppConfigurationOptions
     public int MaxConcurrentSecretResolutions { get; set; } = 8;
 
     /// <summary>
-    /// Gets or sets whether feature flags are loaded. Flags are exposed under <c>FeatureManagement:</c>
+    /// Gets or sets a value indicating whether gets or sets whether feature flags are loaded. Flags are exposed under <c>FeatureManagement:</c>
     /// in the schema read by Microsoft.FeatureManagement. Defaults to false.
     /// </summary>
     public bool IncludeFeatureFlags { get; set; }

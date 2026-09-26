@@ -1,3 +1,5 @@
+namespace FluentAzure.Extensions;
+
 /// <summary>
 /// Provides extension methods for type-related operations.
 /// </summary>

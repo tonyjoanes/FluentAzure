@@ -117,10 +117,10 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds FluentAzure configuration to the service collection with Option-based error handling.
     /// </summary>
-    /// <typeparam name="T">The configuration type</typeparam>
-    /// <param name="services">The service collection</param>
-    /// <param name="configure">The configuration builder action</param>
-    /// <returns>The service collection for chaining</returns>
+    /// <typeparam name="T">The configuration type.</typeparam>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The configuration builder action.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddFluentAzureOptional<T>(
         this IServiceCollection services,
         Func<ConfigurationBuilder, ConfigurationBuilder> configure
@@ -151,11 +151,11 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds FluentAzure configuration to the service collection with Option-based error handling and factory.
     /// </summary>
-    /// <typeparam name="T">The configuration type</typeparam>
-    /// <param name="services">The service collection</param>
-    /// <param name="configure">The configuration builder action</param>
-    /// <param name="factory">Factory method to create the configuration object</param>
-    /// <returns>The service collection for chaining</returns>
+    /// <typeparam name="T">The configuration type.</typeparam>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The configuration builder action.</param>
+    /// <param name="factory">Factory method to create the configuration object.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddFluentAzureOptional<T>(
         this IServiceCollection services,
         Func<ConfigurationBuilder, ConfigurationBuilder> configure,
@@ -188,11 +188,11 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds FluentAzure configuration to the service collection with fallback handling.
     /// </summary>
-    /// <typeparam name="T">The configuration type</typeparam>
-    /// <param name="services">The service collection</param>
-    /// <param name="configure">The configuration builder action</param>
-    /// <param name="fallback">The fallback configuration if binding fails</param>
-    /// <returns>The service collection for chaining</returns>
+    /// <typeparam name="T">The configuration type.</typeparam>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The configuration builder action.</param>
+    /// <param name="fallback">The fallback configuration if binding fails.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddFluentAzureWithFallback<T>(
         this IServiceCollection services,
         Func<ConfigurationBuilder, ConfigurationBuilder> configure,
@@ -215,11 +215,11 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds FluentAzure configuration to the service collection with fallback factory.
     /// </summary>
-    /// <typeparam name="T">The configuration type</typeparam>
-    /// <param name="services">The service collection</param>
-    /// <param name="configure">The configuration builder action</param>
-    /// <param name="fallbackFactory">The fallback factory if binding fails</param>
-    /// <returns>The service collection for chaining</returns>
+    /// <typeparam name="T">The configuration type.</typeparam>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The configuration builder action.</param>
+    /// <param name="fallbackFactory">The fallback factory if binding fails.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddFluentAzureWithFallback<T>(
         this IServiceCollection services,
         Func<ConfigurationBuilder, ConfigurationBuilder> configure,
@@ -242,12 +242,12 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds FluentAzure configuration to the service collection with conditional registration.
     /// </summary>
-    /// <typeparam name="T">The configuration type</typeparam>
-    /// <param name="services">The service collection</param>
-    /// <param name="configure">The configuration builder action</param>
-    /// <param name="condition">The condition that determines whether to register the configuration</param>
-    /// <param name="fallback">The fallback configuration if condition is false or binding fails</param>
-    /// <returns>The service collection for chaining</returns>
+    /// <typeparam name="T">The configuration type.</typeparam>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configure">The configuration builder action.</param>
+    /// <param name="condition">The condition that determines whether to register the configuration.</param>
+    /// <param name="fallback">The fallback configuration if condition is false or binding fails.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddFluentAzureConditional<T>(
         this IServiceCollection services,
         Func<ConfigurationBuilder, ConfigurationBuilder> configure,

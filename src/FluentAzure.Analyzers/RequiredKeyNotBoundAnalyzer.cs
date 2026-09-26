@@ -22,9 +22,11 @@ namespace FluentAzure.Analyzers
     {
         private const int MaxDepth = 6;
 
+        /// <inheritdoc />
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(Diagnostics.RequiredKeyNotBound);
 
+        /// <inheritdoc />
         public override void Initialize(AnalysisContext context)
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
@@ -82,12 +84,12 @@ namespace FluentAzure.Analyzers
 
         private static List<(string Path, bool OpenEnded)> CollectPropertyPaths(INamedTypeSymbol root)
         {
-            var paths = new List<(string, bool)>();
+            var paths = new List<(string Path, bool OpenEnded)>();
             Collect(root, string.Empty, 0, paths, new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default));
             return paths;
         }
 
-        private static void Collect(ITypeSymbol type, string prefix, int depth, List<(string, bool)> paths, HashSet<ITypeSymbol> visiting)
+        private static void Collect(ITypeSymbol type, string prefix, int depth, List<(string Path, bool OpenEnded)> paths, HashSet<ITypeSymbol> visiting)
         {
             if (depth > MaxDepth || !visiting.Add(type))
             {

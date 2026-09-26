@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using FluentAzure.Core;
+using FluentAzure.Logging;
 using Microsoft.Extensions.Logging;
 using Polly;
 
@@ -22,10 +23,15 @@ public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigur
     private readonly ConcurrentDictionary<string, string> _values = new(
         StringComparer.OrdinalIgnoreCase
     );
+
     private readonly List<string> _loadErrors = new();
     private volatile bool _isLoaded;
     private readonly SemaphoreSlim _loadLock = new(1, 1);
-    protected bool _disposed;
+
+    /// <summary>
+    /// Gets a value indicating whether this source has been disposed.
+    /// </summary>
+    protected bool IsDisposed { get; private set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="KeyVaultSource"/> class.
@@ -34,7 +40,9 @@ public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigur
     /// <param name="priority">The priority of this configuration source.</param>
     /// <param name="logger">Optional logger for debugging and monitoring.</param>
     public KeyVaultSource(string vaultUrl, int priority = 200, ILogger? logger = null)
-        : this(vaultUrl, new KeyVaultConfiguration(), priority, logger) { }
+        : this(vaultUrl, new KeyVaultConfiguration(), priority, logger)
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="KeyVaultSource"/> class with custom configuration.
@@ -49,7 +57,9 @@ public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigur
         int priority = 200,
         ILogger? logger = null
     )
-        : this(vaultUrl, configuration, priority, logger, true) { }
+        : this(vaultUrl, configuration, priority, logger, true)
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="KeyVaultSource"/> class with an existing client,
@@ -77,7 +87,7 @@ public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigur
     }
 
     /// <summary>
-    /// Protected constructor for testing and mocking purposes.
+    /// Initializes a new instance of the <see cref="KeyVaultSource"/> class without a client, for testing and mocking.
     /// </summary>
     /// <param name="vaultUrl">The URL of the Azure Key Vault.</param>
     /// <param name="configuration">The Key Vault configuration options.</param>
@@ -127,7 +137,7 @@ public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigur
 
         if (initializeClient)
         {
-            _logger?.LogInformation("KeyVaultSource initialized for vault: {VaultUrl}", _vaultUrl);
+            _logger?.KeyVaultInitialized(_vaultUrl);
         }
     }
 
@@ -162,7 +172,7 @@ public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigur
     /// <inheritdoc />
     public virtual async Task<Result<Dictionary<string, string>>> LoadAsync()
     {
-        if (_disposed)
+        if (IsDisposed)
         {
             return Result<Dictionary<string, string>>.Error("KeyVaultSource has been disposed");
         }
@@ -221,9 +231,9 @@ public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigur
     /// <returns>A task that represents the asynchronous reload operation.</returns>
     public async Task<Result<Dictionary<string, string>>> ReloadAsync()
     {
-        _logger?.LogInformation("Reloading secrets from Key Vault: {VaultUrl}", _vaultUrl);
+        _logger?.KeyVaultReloading(_vaultUrl);
 
-        if (_disposed)
+        if (IsDisposed)
         {
             return Result<Dictionary<string, string>>.Error("KeyVaultSource has been disposed");
         }
@@ -252,7 +262,7 @@ public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigur
     /// <returns>The secret value if found; otherwise, null.</returns>
     public virtual async Task<string?> GetSecretAsync(string secretName, string? version = null)
     {
-        if (_disposed)
+        if (IsDisposed)
         {
             return null;
         }
@@ -270,11 +280,10 @@ public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigur
             }
 
             // Load from Key Vault with retry
-            var secretResponse = await _retryPipeline.ExecuteAsync(async _ =>
+            // Pass the pipeline's token on so its timeout can cancel the call
+            var secretResponse = await _retryPipeline.ExecuteAsync(async ct =>
             {
-                return effectiveVersion != null
-                    ? await _client.GetSecretAsync(secretName, effectiveVersion).ConfigureAwait(false)
-                    : await _client.GetSecretAsync(secretName).ConfigureAwait(false);
+                return await _client.GetSecretAsync(secretName, effectiveVersion, ct).ConfigureAwait(false);
             }).ConfigureAwait(false);
 
             if (secretResponse?.Value?.Value != null)
@@ -288,7 +297,7 @@ public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigur
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "Failed to get secret '{SecretName}' from Key Vault", secretName);
+            _logger?.KeyVaultGetSecretFailed(ex, secretName);
             return null;
         }
     }
@@ -299,13 +308,13 @@ public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigur
     public void ClearCache()
     {
         _cache.Clear();
-        _logger?.LogInformation("Key Vault cache cleared");
+        _logger?.KeyVaultCacheCleared();
     }
 
     /// <inheritdoc />
     public void Dispose()
     {
-        if (!_disposed)
+        if (!IsDisposed)
         {
             // Drop references to secret values so they can be garbage collected. .NET strings are
             // immutable, so they cannot be overwritten in place; this does not scrub memory.
@@ -313,8 +322,8 @@ public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigur
             _values.Clear();
 
             _loadLock.Dispose();
-            _disposed = true;
-            _logger?.LogInformation("KeyVaultSource disposed");
+            IsDisposed = true;
+            _logger?.KeyVaultDisposed();
         }
     }
 
@@ -322,25 +331,22 @@ public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigur
     {
         try
         {
-            _logger?.LogInformation("Loading secrets from Key Vault: {VaultUrl}", _vaultUrl);
+            _logger?.KeyVaultLoading(_vaultUrl);
             _loadErrors.Clear();
 
             var loadedSecrets = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
             // Get all secret properties first
-            var secretProperties = await _retryPipeline.ExecuteAsync(async _ =>
+            var secretProperties = await _retryPipeline.ExecuteAsync(async ct =>
             {
                 var secrets = new List<SecretProperties>();
-                var secretsAsync = _client.GetPropertiesOfSecretsAsync();
+                var secretsAsync = _client.GetPropertiesOfSecretsAsync(ct);
 
                 await foreach (var secret in secretsAsync.ConfigureAwait(false))
                 {
                     if (!IsSecretActive(secret))
                     {
-                        _logger?.LogDebug(
-                            "Skipping disabled, expired or not-yet-active secret '{SecretName}'",
-                            secret.Name
-                        );
+                        _logger?.KeyVaultSecretSkipped(secret.Name);
                         continue;
                     }
 
@@ -391,11 +397,7 @@ public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigur
                 else
                 {
                     _loadErrors.Add(result.Error!);
-                    _logger?.LogWarning(
-                        "Failed to load secret '{SecretName}': {Error}",
-                        result.SecretName,
-                        result.Error
-                    );
+                    _logger?.KeyVaultSecretLoadFailed(result.SecretName, result.Error);
 
                     if (!_configuration.ContinueOnSecretFailure)
                     {
@@ -406,13 +408,7 @@ public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigur
 
             _isLoaded = true;
 
-            var message = $"Successfully loaded {loadedSecrets.Count} secrets from Key Vault";
-            if (_loadErrors.Count > 0)
-            {
-                message += $" (with {_loadErrors.Count} errors)";
-            }
-
-            _logger?.LogInformation("{Message}", message);
+            _logger?.KeyVaultLoaded(loadedSecrets.Count, _loadErrors.Count);
 
             return _loadErrors.Count == 0 || _configuration.ContinueOnSecretFailure
                 ? Result<Dictionary<string, string>>.Success(loadedSecrets)
@@ -421,7 +417,7 @@ public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigur
         catch (Exception ex)
         {
             var error = $"Failed to load secrets from Key Vault '{_vaultUrl}': {ex.Message}";
-            _logger?.LogError(ex, "Key Vault load operation failed");
+            _logger?.KeyVaultLoadFailed(ex);
             return Result<Dictionary<string, string>>.Error(error);
         }
     }
@@ -430,14 +426,11 @@ public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigur
     {
         try
         {
-            var secret = await _retryPipeline.ExecuteAsync(async _ =>
+            var secret = await _retryPipeline.ExecuteAsync(async ct =>
             {
-                return _configuration.SecretVersion != null
-                    ? await _client.GetSecretAsync(
-                        secretProperties.Name,
-                        _configuration.SecretVersion
-                    ).ConfigureAwait(false)
-                    : await _client.GetSecretAsync(secretProperties.Name).ConfigureAwait(false);
+                return await _client
+                    .GetSecretAsync(secretProperties.Name, _configuration.SecretVersion, ct)
+                    .ConfigureAwait(false);
             }).ConfigureAwait(false);
 
             if (secret?.Value?.Value != null)
@@ -481,11 +474,7 @@ public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigur
                     UseJitter = true,
                     OnRetry = args =>
                     {
-                        _logger?.LogWarning(
-                            "Retrying Key Vault operation (attempt {AttemptNumber}): {Exception}",
-                            args.AttemptNumber,
-                            args.Outcome.Exception?.Message
-                        );
+                        _logger?.KeyVaultRetrying(args.AttemptNumber, args.Outcome.Exception?.Message);
                         return ValueTask.CompletedTask;
                     },
                 }
@@ -509,7 +498,7 @@ public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigur
     private Dictionary<string, string> SnapshotValues() =>
         new(_values, StringComparer.OrdinalIgnoreCase);
 
-    private string GetOriginalSecretName(string configKey)
+    private static string GetOriginalSecretName(string configKey)
     {
         // Reverse the key mapping to find the original secret name
         return configKey.Replace(":", "--");
@@ -518,8 +507,11 @@ public class KeyVaultSource : IReloadableConfigurationSource, ISensitiveConfigur
     private record SecretLoadResult
     {
         public string SecretName { get; init; } = string.Empty;
+
         public string? Value { get; init; }
+
         public string? Error { get; init; }
+
         public bool IsSuccess { get; init; }
     }
 }

@@ -21,6 +21,7 @@ public class ConfigurationBuilder
     private readonly List<
         Func<Dictionary<string, string>, Task<Result<Dictionary<string, string>>>>
     > _transformations = new();
+
     private readonly List<Func<Dictionary<string, string>, Result<string>>> _validations = new();
     private readonly PipelineCredential _credential = new();
     private readonly HashSet<string> _markedSensitiveKeys = new(StringComparer.OrdinalIgnoreCase);
@@ -298,7 +299,7 @@ public class ConfigurationBuilder
         _validations.Add(config =>
         {
             var error = validate(config);
-            return error == null ? Result<string>.Success("") : Result<string>.Error(error);
+            return error == null ? Result<string>.Success(string.Empty) : Result<string>.Error(error);
         });
         return this;
     }
@@ -320,12 +321,12 @@ public class ConfigurationBuilder
             {
                 // Key doesn't exist, can't validate it
                 // This is not necessarily an error - the key might be optional
-                return Result<string>.Success("");
+                return Result<string>.Success(string.Empty);
             }
 
             var validationResult = validate(value);
             return validationResult.IsSuccess
-                ? Result<string>.Success("")
+                ? Result<string>.Success(string.Empty)
                 : Result<string>.Error(validationResult.Errors);
         });
         return this;
@@ -529,9 +530,9 @@ public class ConfigurationBuilder
     /// <summary>
     /// Specifies a configuration key that should be validated as an Option.
     /// </summary>
-    /// <param name="key">The configuration key to validate</param>
-    /// <param name="validator">The validation function that returns an Option</param>
-    /// <returns>The configuration builder for method chaining</returns>
+    /// <param name="key">The configuration key to validate.</param>
+    /// <param name="validator">The validation function that returns an Option.</param>
+    /// <returns>The configuration builder for method chaining.</returns>
     public ConfigurationBuilder ValidateOptional(string key, Func<string, Option<string>> validator)
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
@@ -542,12 +543,12 @@ public class ConfigurationBuilder
             if (!config.TryGetValue(key, out var value))
             {
                 // Key doesn't exist, can't validate it
-                return Result<string>.Success("");
+                return Result<string>.Success(string.Empty);
             }
 
             var validationOption = validator(value);
             return validationOption.Match(
-                some => Result<string>.Success(""),
+                some => Result<string>.Success(string.Empty),
                 () => Result<string>.Error($"Validation failed for key '{key}'")
             );
         });
@@ -557,10 +558,10 @@ public class ConfigurationBuilder
     /// <summary>
     /// Specifies a configuration key that should be validated with a predicate, returning an Option.
     /// </summary>
-    /// <param name="key">The configuration key to validate</param>
-    /// <param name="predicate">The validation predicate</param>
-    /// <param name="errorMessage">The error message if validation fails</param>
-    /// <returns>The configuration builder for method chaining</returns>
+    /// <param name="key">The configuration key to validate.</param>
+    /// <param name="predicate">The validation predicate.</param>
+    /// <param name="errorMessage">The error message if validation fails.</param>
+    /// <returns>The configuration builder for method chaining.</returns>
     public ConfigurationBuilder ValidateOptional(
         string key,
         Func<string, bool> predicate,
@@ -580,11 +581,12 @@ public class ConfigurationBuilder
     /// <summary>
     /// Specifies an optional configuration key that returns an Option.
     /// </summary>
-    /// <param name="key">The configuration key</param>
-    /// <returns>The configuration builder for method chaining</returns>
+    /// <param name="key">The configuration key.</param>
+    /// <returns>The configuration builder for method chaining.</returns>
     public ConfigurationBuilder Optional(string key)
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
+
         // For optional keys without defaults, we just track them but don't require them
         // This allows for Option-based access later
         return this;
@@ -593,9 +595,9 @@ public class ConfigurationBuilder
     /// <summary>
     /// Specifies a configuration key that should be transformed using an Option-based function.
     /// </summary>
-    /// <param name="key">The configuration key to transform</param>
-    /// <param name="transform">The transformation function that returns an Option</param>
-    /// <returns>The configuration builder for method chaining</returns>
+    /// <param name="key">The configuration key to transform.</param>
+    /// <param name="transform">The transformation function that returns an Option.</param>
+    /// <returns>The configuration builder for method chaining.</returns>
     public ConfigurationBuilder TransformOptional(
         string key,
         Func<string, Option<string>> transform
@@ -634,10 +636,10 @@ public class ConfigurationBuilder
     /// <summary>
     /// Specifies a configuration key that should be transformed with a fallback value.
     /// </summary>
-    /// <param name="key">The configuration key to transform</param>
-    /// <param name="transform">The transformation function</param>
-    /// <param name="fallback">The fallback value if transformation fails</param>
-    /// <returns>The configuration builder for method chaining</returns>
+    /// <param name="key">The configuration key to transform.</param>
+    /// <param name="transform">The transformation function.</param>
+    /// <param name="fallback">The fallback value if transformation fails.</param>
+    /// <returns>The configuration builder for method chaining.</returns>
     public ConfigurationBuilder TransformWithFallback(
         string key,
         Func<string, Option<string>> transform,

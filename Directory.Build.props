@@ -70,6 +70,17 @@
     </PackageReference>
     <!-- Version management is now handled in src/FluentAzure/Version.cs -->
   </ItemGroup>
+  <!-- Shipped projects (src/) must build without warnings. NuGet feed and advisory warnings stay warnings:
+       they depend on the network and on newly published advisories, which Snyk already gates. -->
+  <PropertyGroup Condition="$(MSBuildProjectDirectory.StartsWith('$(MSBuildThisFileDirectory)src'))">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1900;NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
+  </PropertyGroup>
+  <!-- Tests and examples: rules whose diagnostics are reported per project, so .editorconfig paths can't
+       scope them. Logging performance doesn't matter here, and fixture types are created by reflection. -->
+  <PropertyGroup Condition="$(MSBuildProjectDirectory.StartsWith('$(MSBuildThisFileDirectory)tests')) Or $(MSBuildProjectDirectory.StartsWith('$(MSBuildThisFileDirectory)examples'))">
+    <NoWarn>$(NoWarn);CA1848;CA1812</NoWarn>
+  </PropertyGroup>
   <!-- Test project specific settings -->
   <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
     <IsPackable>false</IsPackable>

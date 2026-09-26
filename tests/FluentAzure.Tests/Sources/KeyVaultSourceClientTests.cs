@@ -28,6 +28,31 @@ public class KeyVaultSourceClientTests
     }
 
     [Fact]
+    public async Task LoadAsync_WithHangingRead_IsCancelledByOperationTimeout()
+    {
+        // Arrange: a read that only finishes if its cancellation token fires
+        var vault = new FakeVaultClient { ReadDelay = TimeSpan.FromMinutes(10) };
+        vault.Add("Slow", "value");
+        var source = new KeyVaultSource(
+            vault,
+            new KeyVaultConfiguration
+            {
+                OperationTimeout = TimeSpan.FromMilliseconds(200),
+                MaxRetryAttempts = 1,
+                BaseRetryDelay = TimeSpan.FromMilliseconds(10),
+            });
+
+        // Act
+        var load = source.LoadAsync();
+        var completed = await Task.WhenAny(load, Task.Delay(TimeSpan.FromSeconds(15)));
+
+        // Assert
+        completed.Should().BeSameAs(load, "the operation timeout should cancel the Key Vault call");
+        var result = await load;
+        (result.IsFailure || !result.Value.ContainsKey("Slow")).Should().BeTrue();
+    }
+
+    [Fact]
     public async Task LoadAsync_SkipsDisabledExpiredAndNotYetActiveSecrets()
     {
         // Arrange

@@ -48,7 +48,7 @@ public class ConfigurationBinderTests
         result.Should().NotBeNull();
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeSameAs(instance);
-        result.Value.StringProperty.Should().Be("");
+        result.Value.StringProperty.Should().Be(string.Empty);
         result.Value.IntProperty.Should().Be(0);
         result.Value.BoolProperty.Should().BeFalse();
     }
@@ -179,7 +179,7 @@ public class ConfigurationBinderTests
     public void Bind_WithEmptyStringForNullable_ShouldSetToNull()
     {
         // Arrange
-        var config = new Dictionary<string, string> { ["NullableInt"] = "", ["NullableBool"] = "" };
+        var config = new Dictionary<string, string> { ["NullableInt"] = string.Empty, ["NullableBool"] = string.Empty };
         var instance = new NullableTestClass();
 
         // Act
@@ -385,33 +385,44 @@ public class ConfigurationBinderTests
     // Test helper classes
     public class SimpleTestClass
     {
-        public string StringProperty { get; set; } = "";
+        public string StringProperty { get; set; } = string.Empty;
+
         public int IntProperty { get; set; }
+
         public bool BoolProperty { get; set; }
     }
 
     public class NullableTestClass
     {
         public int? NullableInt { get; set; }
+
         public bool? NullableBool { get; set; }
     }
 
     public class AdvancedTestClass
     {
         public DateTime DateTimeProperty { get; set; }
+
         public TimeSpan TimeSpanProperty { get; set; }
+
         public Guid GuidProperty { get; set; }
+
         public Uri? UriProperty { get; set; }
+
         public TestEnum EnumProperty { get; set; }
+
         public decimal DecimalProperty { get; set; }
+
         public double DoubleProperty { get; set; }
+
         public long LongProperty { get; set; }
     }
 
     public class ReadOnlyTestClass
     {
         public string ReadOnlyProperty { get; } = "Default";
-        public string WritableProperty { get; set; } = "";
+
+        public string WritableProperty { get; set; } = string.Empty;
     }
 
     public enum TestEnum

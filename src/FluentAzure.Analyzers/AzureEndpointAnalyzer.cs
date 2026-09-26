@@ -13,9 +13,11 @@ namespace FluentAzure.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class AzureEndpointAnalyzer : DiagnosticAnalyzer
     {
+        /// <inheritdoc />
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(Diagnostics.InsecureEndpoint, Diagnostics.HardcodedConnectionStringSecret);
 
+        /// <inheritdoc />
         public override void Initialize(AnalysisContext context)
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);

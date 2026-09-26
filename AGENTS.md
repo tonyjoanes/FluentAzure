@@ -68,6 +68,7 @@ dotnet test FluentAzure.sln -c Release
 
 ## Style
 
-- StyleCop and .NET analyzers are enabled (`Directory.Build.props`, `FluentAzure.ruleset`).
+- StyleCop and .NET analyzers are enabled (`Directory.Build.props`, `FluentAzure.ruleset`, `.editorconfig`). Projects under `src/` build with warnings as errors; tests and examples relax documentation and test-only rules in `.editorconfig`. Keep the whole solution free of warnings.
+- Log from library code through the source-generated methods in `src/FluentAzure/Logging/Log.cs`, never with a value.
 - Follow the surrounding code: XML docs on public APIs and Arrange/Act/Assert comments in tests.
 - Update `README.md` and `docs/` when public behaviour changes, and list breaking or behaviour changes in the PR description for release notes.

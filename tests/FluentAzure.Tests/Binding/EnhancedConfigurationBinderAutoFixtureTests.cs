@@ -26,7 +26,7 @@ public class EnhancedConfigurationBinderAutoFixtureTests
             ["Name"] = name,
             ["Value"] = value.ToString(),
             ["Flag"] = flag.ToString(),
-            ["Number"] = number.ToString("F2")
+            ["Number"] = number.ToString("F2"),
         };
 
         // Act
@@ -50,6 +50,7 @@ public class EnhancedConfigurationBinderAutoFixtureTests
         {
             ["RequiredString"] = requiredString,
             ["RequiredInt"] = requiredInt.ToString(),
+
             // Leave nullable fields empty to test null handling
         };
 
@@ -76,7 +77,7 @@ public class EnhancedConfigurationBinderAutoFixtureTests
             ["Version"] = version,
             ["Environment"] = environment,
             ["MaxConnections"] = maxConnections.ToString(),
-            ["EnableFeature"] = enableFeature.ToString()
+            ["EnableFeature"] = enableFeature.ToString(),
         };
 
         // Act
@@ -109,7 +110,7 @@ public class EnhancedConfigurationBinderAutoFixtureTests
             ["Items:0:Name"] = item1Name,
             ["Items:0:Value"] = item1Value.ToString(),
             ["Items:1:Name"] = item2Name,
-            ["Items:1:Value"] = item2Value.ToString()
+            ["Items:1:Value"] = item2Value.ToString(),
         };
 
         // Act
@@ -135,7 +136,7 @@ public class EnhancedConfigurationBinderAutoFixtureTests
             ["Nested:Name"] = nestedName,
             ["Nested:Value"] = nestedValue.ToString(),
             ["Nested:Deep:Name"] = deepName,
-            ["Nested:Deep:Value"] = deepValue.ToString()
+            ["Nested:Deep:Value"] = deepValue.ToString(),
         };
 
         // Act
@@ -160,7 +161,7 @@ public class EnhancedConfigurationBinderAutoFixtureTests
         var config = new Dictionary<string, string>
         {
             ["EnumProperty"] = enumValue.ToString(),
-            ["StatusProperty"] = statusValue.ToString()
+            ["StatusProperty"] = statusValue.ToString(),
         };
 
         // Act
@@ -183,7 +184,7 @@ public class EnhancedConfigurationBinderAutoFixtureTests
             ["Email"] = validEmail,
             ["Age"] = validAge.ToString(),
             ["RequiredField"] = requiredField,
-            ["RangeField"] = "50" // Valid range value
+            ["RangeField"] = "50", // Valid range value
         };
 
         // Act
@@ -214,7 +215,7 @@ public class EnhancedConfigurationBinderAutoFixtureTests
         {
             ["name"] = name, // lowercase
             ["VALUE"] = value.ToString(), // uppercase
-            ["Flag"] = flag.ToString() // mixed case
+            ["Flag"] = flag.ToString(), // mixed case
         };
 
         // Act
@@ -236,7 +237,7 @@ public class EnhancedConfigurationBinderAutoFixtureTests
         var config = new Dictionary<string, string>
         {
             ["Nested:Name"] = name, // colon separator
-            ["Nested__Value"] = value.ToString() // underscore separator
+            ["Nested__Value"] = value.ToString(), // underscore separator
         };
 
         // Act
@@ -260,7 +261,7 @@ public class EnhancedConfigurationBinderAutoFixtureTests
             ["SpecialString"] = specialString,
             ["Value"] = value.ToString(),
             ["Key:With:Colons"] = "test",
-            ["Key__With__Underscores"] = "test"
+            ["Key__With__Underscores"] = "test",
         };
 
         // Act
@@ -281,7 +282,7 @@ public class EnhancedConfigurationBinderAutoFixtureTests
         var config = new Dictionary<string, string>
         {
             ["LargeString"] = largeString,
-            ["Value"] = value.ToString()
+            ["Value"] = value.ToString(),
         };
 
         // Act
@@ -303,10 +304,10 @@ public class EnhancedConfigurationBinderAutoFixtureTests
         {
             ["RequiredString"] = requiredString,
             ["RequiredInt"] = requiredInt.ToString(),
-            ["NullableString"] = "", // empty string
-            ["NullableInt"] = "", // empty string
+            ["NullableString"] = string.Empty, // empty string
+            ["NullableInt"] = string.Empty, // empty string
             ["WhitespaceString"] = "   ", // whitespace only
-            ["NullString"] = "null" // "null" string
+            ["NullString"] = "null", // "null" string
         };
 
         // Act
@@ -325,16 +326,22 @@ public class EnhancedConfigurationBinderAutoFixtureTests
     public class AutoFixtureTestClass
     {
         public string Name { get; set; } = string.Empty;
+
         public int Value { get; set; }
+
         public bool Flag { get; set; }
+
         public double Number { get; set; }
     }
 
     public class AutoFixtureNullableClass
     {
         public string RequiredString { get; set; } = string.Empty;
+
         public int RequiredInt { get; set; }
+
         public string? NullableString { get; set; }
+
         public int? NullableInt { get; set; }
     }
 
@@ -346,6 +353,7 @@ public class EnhancedConfigurationBinderAutoFixtureTests
     public class AutoFixtureCollectionItem
     {
         public string Name { get; set; } = string.Empty;
+
         public int Value { get; set; }
     }
 
@@ -357,19 +365,23 @@ public class EnhancedConfigurationBinderAutoFixtureTests
     public class AutoFixtureNestedProperty
     {
         public string Name { get; set; } = string.Empty;
+
         public int Value { get; set; }
+
         public AutoFixtureDeepProperty Deep { get; set; } = new();
     }
 
     public class AutoFixtureDeepProperty
     {
         public string Name { get; set; } = string.Empty;
+
         public int Value { get; set; }
     }
 
     public class AutoFixtureEnumClass
     {
         public TestEnum EnumProperty { get; set; }
+
         public UserStatus StatusProperty { get; set; }
     }
 
@@ -393,22 +405,29 @@ public class EnhancedConfigurationBinderAutoFixtureTests
     public class AutoFixtureSpecialCharsClass
     {
         public string SpecialString { get; set; } = string.Empty;
+
         public int Value { get; set; }
     }
 
     public class AutoFixtureLargeValueClass
     {
         public string LargeString { get; set; } = string.Empty;
+
         public int Value { get; set; }
     }
 
     public class AutoFixtureEmptyValueClass
     {
         public string RequiredString { get; set; } = string.Empty;
+
         public int RequiredInt { get; set; }
+
         public string? NullableString { get; set; }
+
         public int? NullableInt { get; set; }
+
         public string? WhitespaceString { get; set; }
+
         public string? NullString { get; set; }
     }
 }

@@ -33,8 +33,8 @@ public class NotificationService : INotificationService
                     To = to,
                     Subject = subject,
                     Body = body,
-                    Timestamp = DateTime.UtcNow
-                })
+                    Timestamp = DateTime.UtcNow,
+                }),
             };
 
             var sender = _serviceBusClient.CreateSender(_config.ServiceBus.DefaultTopic);
@@ -60,8 +60,8 @@ public class NotificationService : INotificationService
                 {
                     PhoneNumber = phoneNumber,
                     Message = message,
-                    Timestamp = DateTime.UtcNow
-                })
+                    Timestamp = DateTime.UtcNow,
+                }),
             };
 
             var sender = _serviceBusClient.CreateSender(_config.ServiceBus.DefaultTopic);
@@ -88,8 +88,8 @@ public class NotificationService : INotificationService
                     UserId = userId,
                     Title = title,
                     Message = message,
-                    Timestamp = DateTime.UtcNow
-                })
+                    Timestamp = DateTime.UtcNow,
+                }),
             };
 
             var sender = _serviceBusClient.CreateSender(_config.ServiceBus.DefaultTopic);

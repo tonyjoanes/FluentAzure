@@ -9,10 +9,15 @@ namespace AzureFunctions.Example.Configuration;
 public class FunctionConfiguration
 {
     public DatabaseConfig Database { get; set; } = new();
+
     public ServiceBusConfig ServiceBus { get; set; } = new();
+
     public StorageConfig Storage { get; set; } = new();
+
     public TelemetryConfig Telemetry { get; set; } = new();
+
     public RetryConfig Retry { get; set; } = new();
+
     public SecurityConfig Security { get; set; } = new();
 }
 
@@ -25,8 +30,11 @@ public class DatabaseConfig
     public string ConnectionString { get; set; } = string.Empty;
 
     public string Host => ParseConnectionString().Host;
+
     public int Port => ParseConnectionString().Port;
+
     public string Database => ParseConnectionString().Database;
+
     public string Username => ParseConnectionString().Username;
 
     private (string Host, int Port, string Database, string Username) ParseConnectionString()
@@ -56,6 +64,7 @@ public class ServiceBusConfig
     public string ConnectionString { get; set; } = string.Empty;
 
     public string Namespace => ParseConnectionString().Namespace;
+
     public string SharedAccessKeyName => ParseConnectionString().SharedAccessKeyName;
 
     [Range(1, 100)]
@@ -74,9 +83,9 @@ public class ServiceBusConfig
 
         return (
             Namespace: parts
-                .GetValueOrDefault("endpoint", "")
-                .Replace("sb://", "")
-                .Replace(".servicebus.windows.net", ""),
+                .GetValueOrDefault("endpoint", string.Empty)
+                .Replace("sb://", string.Empty)
+                .Replace(".servicebus.windows.net", string.Empty),
             SharedAccessKeyName: parts.GetValueOrDefault("sharedaccesskeyname", "unknown")
         );
     }
@@ -91,6 +100,7 @@ public class StorageConfig
     public string ConnectionString { get; set; } = string.Empty;
 
     public string AccountName => ParseConnectionString().AccountName;
+
     public string AccountKey => ParseConnectionString().AccountKey;
 
     [Range(1, 100)]

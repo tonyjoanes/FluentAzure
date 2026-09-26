@@ -19,7 +19,10 @@ var host = new HostBuilder()
             // Build configuration using FluentAzure
             var configResult = FluentConfig.Create()
                 .FromEnvironment()
-                .FromKeyVault(Environment.GetEnvironmentVariable("KeyVaultUrl"))
+                .FromKeyVault(
+                    Environment.GetEnvironmentVariable("KeyVaultUrl")
+                        ?? throw new InvalidOperationException("The KeyVaultUrl setting is required.")
+                )
                 .Required("DatabaseConnectionString")
                 .Required("ServiceBusConnectionString")
                 .Required("StorageConnectionString")

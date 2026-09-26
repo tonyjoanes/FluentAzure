@@ -129,6 +129,7 @@ public class IntegrationTests : IDisposable
                     {
                         return Result<string>.Success(port);
                     }
+
                     return Result<string>.Error($"Port must be between 1-65535, got {port}");
                 }
             )
@@ -140,6 +141,7 @@ public class IntegrationTests : IDisposable
                     {
                         return Result<string>.Success(connections);
                     }
+
                     return Result<string>.Error(
                         $"MaxConnections must be positive, got {connections}"
                     );
@@ -176,6 +178,7 @@ public class IntegrationTests : IDisposable
                         {
                             return Result<string>.Success(url.ToUpperInvariant());
                         }
+
                         return Result<string>.Error($"API_URL is not a valid URL: {url}");
                     }
                 )
@@ -404,27 +407,34 @@ public class IntegrationTests : IDisposable
     public class AppConfiguration
     {
         public AppSettings App { get; set; } = new();
+
         public DatabaseSettings Database { get; set; } = new();
+
         public FeatureSettings Features { get; set; } = new();
+
         public bool NewFeature { get; set; }
     }
 
     public class AppSettings
     {
-        public string Name { get; set; } = "";
-        public string Version { get; set; } = "";
+        public string Name { get; set; } = string.Empty;
+
+        public string Version { get; set; } = string.Empty;
+
         public bool Debug { get; set; }
     }
 
     public class DatabaseSettings
     {
-        public string ConnectionString { get; set; } = "";
+        public string ConnectionString { get; set; } = string.Empty;
+
         public int TimeoutSeconds { get; set; }
     }
 
     public class FeatureSettings
     {
         public bool EnableLogging { get; set; }
+
         public int MaxUsers { get; set; }
     }
 }
