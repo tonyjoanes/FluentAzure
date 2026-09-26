@@ -67,7 +67,7 @@ settings.Match(
 
 | Shape | Example keys |
 |---|---|
-| Nested objects, `:` or `__` separators, case-insensitive | `Database:Host`, `database__port` |
+| Nested objects, `:` or `__` separators, case-insensitive (unless `CaseSensitive`) | `Database:Host`, `database__port` |
 | Records (positional constructor parameters) | `Name`, `Version` for `record AppInfo(string Name, string Version)` |
 | Init-only properties | `ApiKey` for `public string ApiKey { get; init; }` |
 | Enums (case-insensitive) and nullables (empty string → `null`) | `Level=Warning`, `MaxItems=` |
@@ -87,7 +87,7 @@ var options = new BindingOptions
 {
     EnableValidation = true,        // Data Annotations (default: true)
     CaseSensitive = false,          // default: false
-    IgnoreMissingOptional = true,   // default: true
+    IgnoreMissingOptional = true,   // keep a property's current value when it has no key (default: true)
 };
 
 var settings = EnhancedConfigurationBinder.Bind<AppSettings>(values, options);
