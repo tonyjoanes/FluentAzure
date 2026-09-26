@@ -9,6 +9,7 @@ Upgrading from 0.2.0-rc.5 to 0.3.0-rc.1? See the [upgrade guide](docs/upgrade-gu
 ### Added
 
 - **Configuration guard:** `services.AddFluentAzureGuard(g => g.Required(...).Validate(...).Sensitive(...))` validates the application's final `IConfiguration` at host startup, whichever providers supplied it, including Microsoft's `AddAzureAppConfiguration()` and `AddAzureKeyVault()`. Startup fails with every failure listed by key, never by value. `AddHealthChecks().AddFluentAzureGuard()` re-runs the rules after reloads, and `ConfigurationGuard.Check()` / `ThrowIfInvalid()` work without a host. [Docs](docs/configuration-guard.md)
+- **Analyzers for Microsoft's APIs:** FAZ0002 (insecure endpoint) and FAZ0003 (hard-coded connection string secret) also check Microsoft's `AddAzureAppConfiguration(...)`, `options.Connect(...)` and `AddAzureKeyVault(...)`, and the Azure SDK's `new SecretClient(...)` and `new ConfigurationClient(...)`. [Docs](docs/analyzers.md)
 
 ### Fixed
 
