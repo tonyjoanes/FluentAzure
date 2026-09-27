@@ -9,10 +9,11 @@ Guard rails for .NET configuration on Azure: fail-fast validation, secret redact
 ![Fluent](https://img.shields.io/badge/Style-Fluent%20%7C%20Functional-purple.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-> **What's new:**
+> **What's new in 0.3.0-rc.1:**
 > - A configuration guard that validates, health-checks and redacts configuration from **any** provider, including Microsoft's `AddAzureAppConfiguration()` and `AddAzureKeyVault()`.
 > - Analyzers that check Microsoft's APIs and the Azure SDK clients as well as FluentAzure's.
-> - In 0.3.0-rc.1: an `IConfiguration` provider with `IOptionsMonitor<T>` reload, an App Configuration source, managed/workload identity, OpenTelemetry and .NET 10 / Native AOT support.
+> - An `IConfiguration` provider with `IOptionsMonitor<T>` reload, an App Configuration source, managed/workload identity, OpenTelemetry and .NET 10 / Native AOT support.
+> - One binder for every typed API, and deprecation of the build-once `AddFluentAzure<T>()` registrations in favour of the options pattern.
 >
 > See the [changelog](https://github.com/tonyjoanes/FluentAzure/blob/main/CHANGELOG.md) and the [upgrade guide](https://github.com/tonyjoanes/FluentAzure/blob/main/docs/upgrade-guide.md).
 

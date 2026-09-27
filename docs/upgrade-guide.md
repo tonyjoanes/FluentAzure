@@ -2,16 +2,7 @@
 
 Most applications upgrade without code changes. This page lists the changes that can affect existing code, and the new recommended setup. The full list is in the [changelog](../CHANGELOG.md).
 
-## Changes since 0.3.0-rc.1 (unreleased)
-
-| Change | What to check |
-|---|---|
-| **One binder for the typed APIs** | `BuildAsync<T>()`, `BuildOptionalAsync<T>()`, `Bind<T>()` and the dictionary binding helpers now use `EnhancedConfigurationBinder`. They now also bind collections, dictionaries and records, and they **run Data Annotations validation**: a type with `[Required]` or `[Range]` attributes can now fail to bind where it didn't before. Error messages start with `[BIND ERROR]`. |
-| **`ConfigurationBinder` is obsolete** | Replace direct calls to `ConfigurationBinder.Bind<T>()` with `EnhancedConfigurationBinder.Bind<T>()`. |
-| **Build-once DI registrations are obsolete** | `services.AddFluentAzure<T>()`, `AddFluentAzureAsync<T>()`, `AddFluentAzureOptional<T>()`, `AddFluentAzureWithFallback<T>()`, `AddFluentAzureConditional<T>()` and the `FluentConfig.AddFluentAzure*<T>()` wrappers produce a CS0618 warning and will be removed in 1.0. Use the options pattern (below). |
-| **`KeyVaultConfiguration.ReloadFailedSecrets` is obsolete** | Remove it: it never had an effect. |
-
-## Behaviour changes to check (0.2.0-rc.5 → 0.3.0-rc.1)
+## Behaviour changes to check
 
 | Change | What to check |
 |---|---|
@@ -20,11 +11,15 @@ Most applications upgrade without code changes. This page lists the changes that
 | **Environment and JSON `__` → `:` alias** | Keys from environment variables and JSON files that use `A__B` are now also available as `A:B`. If you already set both, the explicit `A:B` wins. |
 | **Disabled / expired Key Vault secrets are skipped** | If you relied on loading an expired or disabled secret, re-enable or renew it. |
 | **Errors no longer contain values** | Code or tests that parsed values out of binding error messages need updating. |
-| **Basic binder reads `:` keys** | `BuildAsync<T>()`, `Bind<T>()` and `AddFluentAzure<T>()` now bind nested properties from `Database:Host` as well as `Database__Host`. Nested Key Vault and App Configuration values that were silently ignored before are now bound, and override your class defaults. |
+| **One binder for the typed APIs** | `BuildAsync<T>()`, `BuildOptionalAsync<T>()`, `Bind<T>()` and the dictionary binding helpers now use `EnhancedConfigurationBinder`. They now also bind collections, dictionaries and records, and they **run Data Annotations validation**: a type with `[Required]` or `[Range]` attributes can now fail to bind where it didn't before. Error messages start with `[BIND ERROR]`. |
+| **Nested `:` keys are bound** | The typed APIs now bind nested properties from `Database:Host` as well as `Database__Host`. Nested Key Vault and App Configuration values that were silently ignored before are now bound, and override your class defaults. |
 | **Enhanced binder matches full key paths** | `EnhancedConfigurationBinder.Bind<T>()` binds a property only from its exact path (`Database:Name`), no longer from a root key with the same name or a key with the separators elsewhere. Missing keys now keep class defaults instead of resetting them (set `BindingOptions.IgnoreMissingOptional = false` for the old behaviour). |
 | **Custom sources that throw** | `BuildAsync()` now returns an error result instead of throwing, so check `IsFailure`. |
 | **Analyzers** | FAZ0001–FAZ0004 report warnings. With `TreatWarningsAsErrors`, fix them or set severities in `.editorconfig` ([docs](analyzers.md)). |
 | **Trimming/AOT warnings** | Projects with trimming or AOT analyzers enabled now see IL2026/IL3050 on reflection-based binding APIs, which are unsafe in those modes. See [Native AOT](configuration-integration.md#native-aot). |
+| **`ConfigurationBinder` is obsolete** | Replace direct calls to `ConfigurationBinder.Bind<T>()` with `EnhancedConfigurationBinder.Bind<T>()`. |
+| **Build-once DI registrations are obsolete** | `services.AddFluentAzure<T>()`, `AddFluentAzureAsync<T>()`, `AddFluentAzureOptional<T>()`, `AddFluentAzureWithFallback<T>()`, `AddFluentAzureConditional<T>()` and the `FluentConfig.AddFluentAzure*<T>()` wrappers produce a CS0618 warning and will be removed in 1.0. Use the options pattern (below). |
+| **`KeyVaultConfiguration.ReloadFailedSecrets` is obsolete** | Remove it: it never had an effect. |
 
 ## Dependency changes
 
