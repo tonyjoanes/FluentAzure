@@ -22,6 +22,6 @@ public static class BindingExtensions
     public static Result<T> Bind<T>(this Result<Dictionary<string, string>> result)
         where T : class, new()
     {
-        return result.Bind(config => ConfigurationBinder.Bind<T>(config));
+        return result.Bind(config => EnhancedConfigurationBinder.Bind<T>(config));
     }
 }

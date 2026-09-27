@@ -23,7 +23,7 @@ The pipeline enforces required keys, transforms and validations. It can be used 
 | `src/FluentAzure/Sources` | Environment, JSON, in-memory, Key Vault and App Configuration sources |
 | `src/FluentAzure/Configuration` | `IConfiguration` provider/source, `FluentAzureHealthCheck` |
 | `src/FluentAzure/Guard` | `ConfigurationGuard`: startup validation, health check and redaction for any `IConfiguration`, including Microsoft's Azure providers |
-| `src/FluentAzure/Binding` | Reflection-based binders (annotated `RequiresUnreferencedCode`/`RequiresDynamicCode`) |
+| `src/FluentAzure/Binding` | `EnhancedConfigurationBinder`, used by every typed API (annotated `RequiresUnreferencedCode`/`RequiresDynamicCode`). The basic `ConfigurationBinder` is obsolete |
 | `src/FluentAzure/FluentAzureDiagnostics.cs` | OpenTelemetry `ActivitySource`/`Meter` named `FluentAzure` |
 | `src/FluentAzure.Analyzers` | Roslyn analyzers FAZ0001–FAZ0004 (netstandard2.0, Roslyn 4.8), packed into the FluentAzure package |
 | `tests/FluentAzure.Tests` | xUnit tests (net8.0 + net10.0); fakes in `TestDoubles/`; emulator tests in `Integration/` |
@@ -54,6 +54,7 @@ dotnet test FluentAzure.sln -c Release
 - **AOT:** the library builds with `IsAotCompatible`. New reflection must be annotated (`RequiresUnreferencedCode`/`RequiresDynamicCode` using `AotMessages.ReflectionBinding`) or avoided. Never use reflection-based `System.Text.Json` serialization in sources.
 - **Identity:** Azure sources default to the pipeline credential (`ConfigurationBuilder.Credential`); per-source credentials take precedence. Use `ManagedIdentityId`, not the obsolete string constructor.
 - **Public API:** changes to the public API must be declared in `src/FluentAzure/PublicAPI.Unshipped.txt` (the build fails on RS0016/RS0017). Removing or changing a shipped API is a breaking change: call it out in the PR description and the changelog.
+- **Obsolete APIs:** `ConfigurationBinder` and the build-once `AddFluentAzure<T>()` family are obsolete until their removal in 1.0. Don't use them in new code or examples; only their own tests call them.
 - **Failure model:** sources return `Result<T>` errors rather than throwing. The pipeline also converts exceptions from custom sources into errors. The initial provider load fails fast (`FluentAzureConfigurationException`); failed reloads keep the last good values.
 
 ## Adding a configuration source

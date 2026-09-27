@@ -14,6 +14,7 @@ namespace FluentAzure.Binding;
 /// </summary>
 [RequiresUnreferencedCode(AotMessages.ReflectionBinding)]
 [RequiresDynamicCode(AotMessages.ReflectionBinding)]
+[Obsolete("The basic binder is replaced by EnhancedConfigurationBinder, which BuildAsync<T>(), Bind<T>() and the binding helpers now use. This class will be removed in 1.0.")]
 public static class ConfigurationBinder
 {
     /// <summary>

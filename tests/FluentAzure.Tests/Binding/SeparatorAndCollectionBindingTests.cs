@@ -1,3 +1,6 @@
+// These tests cover APIs that are obsolete until their removal in 1.0.
+#pragma warning disable CS0618
+
 using FluentAssertions;
 using FluentAzure.Binding;
 using FluentAzure.Core;

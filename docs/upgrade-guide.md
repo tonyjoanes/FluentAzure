@@ -2,7 +2,16 @@
 
 Most applications upgrade without code changes. This page lists the changes that can affect existing code, and the new recommended setup. The full list is in the [changelog](../CHANGELOG.md).
 
-## Behaviour changes to check
+## Changes since 0.3.0-rc.1 (unreleased)
+
+| Change | What to check |
+|---|---|
+| **One binder for the typed APIs** | `BuildAsync<T>()`, `BuildOptionalAsync<T>()`, `Bind<T>()` and the dictionary binding helpers now use `EnhancedConfigurationBinder`. They now also bind collections, dictionaries and records, and they **run Data Annotations validation**: a type with `[Required]` or `[Range]` attributes can now fail to bind where it didn't before. Error messages start with `[BIND ERROR]`. |
+| **`ConfigurationBinder` is obsolete** | Replace direct calls to `ConfigurationBinder.Bind<T>()` with `EnhancedConfigurationBinder.Bind<T>()`. |
+| **Build-once DI registrations are obsolete** | `services.AddFluentAzure<T>()`, `AddFluentAzureAsync<T>()`, `AddFluentAzureOptional<T>()`, `AddFluentAzureWithFallback<T>()`, `AddFluentAzureConditional<T>()` and the `FluentConfig.AddFluentAzure*<T>()` wrappers produce a CS0618 warning and will be removed in 1.0. Use the options pattern (below). |
+| **`KeyVaultConfiguration.ReloadFailedSecrets` is obsolete** | Remove it: it never had an effect. |
+
+## Behaviour changes to check (0.2.0-rc.5 → 0.3.0-rc.1)
 
 | Change | What to check |
 |---|---|
@@ -23,9 +32,9 @@ Most applications upgrade without code changes. This page lists the changes that
 - **Transitive packages removed:** FluentAzure no longer brings in `Microsoft.Extensions.Hosting`, `Microsoft.Extensions.Caching.Memory` or `Azure.Extensions.AspNetCore.Configuration.Secrets`. If your app used any of them without referencing it directly, add a `PackageReference`. ASP.NET Core and Functions apps already get Hosting from their framework.
 - **New dependency:** `Microsoft.Extensions.Diagnostics.HealthChecks`.
 
-## Recommended: move to the IConfiguration provider
+## Replacing `AddFluentAzure<T>()`
 
-Existing code keeps working. For ASP.NET Core, Functions and workers, the provider adds reload, `IOptionsMonitor<T>`, health checks and AOT support:
+The build-once registrations are obsolete. For ASP.NET Core, Functions and workers, move to the options pattern. If you load configuration with Microsoft's providers, add the [configuration guard](configuration-guard.md) for startup validation. If you use FluentAzure's own sources, feed them in with the provider, which adds reload, `IOptionsMonitor<T>`, health checks and AOT support:
 
 **Before**
 ```csharp
@@ -51,7 +60,7 @@ builder.Services.AddHealthChecks().AddFluentAzure();
 
 Consumers then inject `IOptions<AppSettings>`, or `IOptionsMonitor<AppSettings>` to see reloaded values, instead of `AppSettings`.
 
-Options binding also supports collections and dictionaries, which the basic binder used by `AddFluentAzure<T>` does not.
+Options binding also supports collections and dictionaries, which the basic binder used by the obsolete `AddFluentAzure<T>` does not.
 
 ## Also worth adopting
 

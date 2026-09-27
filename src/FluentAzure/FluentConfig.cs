@@ -37,6 +37,7 @@ public static class FluentConfig
     /// <exception cref="InvalidOperationException">Thrown when configuration binding fails.</exception>
     [RequiresUnreferencedCode(AotMessages.ReflectionBinding)]
     [RequiresDynamicCode(AotMessages.ReflectionBinding)]
+    [Obsolete("Builds configuration once and registers T as a singleton, with no reload. Use builder.Configuration.AddFluentAzure(...) with services.AddFluentAzureOptions<T>(), or Microsoft's providers with services.AddFluentAzureGuard(...). This method will be removed in 1.0.")]
     public static IServiceCollection AddFluentAzure<T>(
         this IServiceCollection services,
         Func<Core.ConfigurationBuilder, Core.ConfigurationBuilder> configure
@@ -57,6 +58,7 @@ public static class FluentConfig
     /// <exception cref="InvalidOperationException">Thrown when configuration binding fails.</exception>
     [RequiresUnreferencedCode(AotMessages.ReflectionBinding)]
     [RequiresDynamicCode(AotMessages.ReflectionBinding)]
+    [Obsolete("Builds configuration once and registers T as a singleton, with no reload. Use builder.Configuration.AddFluentAzure(...) with services.AddFluentAzureOptions<T>(), or Microsoft's providers with services.AddFluentAzureGuard(...). This method will be removed in 1.0.")]
     public static Task<IServiceCollection> AddFluentAzureAsync<T>(
         this IServiceCollection services,
         Func<Core.ConfigurationBuilder, Core.ConfigurationBuilder> configure
@@ -78,6 +80,7 @@ public static class FluentConfig
     /// <exception cref="InvalidOperationException">Thrown when configuration binding fails.</exception>
     [RequiresUnreferencedCode(AotMessages.ReflectionBinding)]
     [RequiresDynamicCode(AotMessages.ReflectionBinding)]
+    [Obsolete("Builds configuration once and registers T as a singleton, with no reload. Use builder.Configuration.AddFluentAzure(...) with services.AddFluentAzureOptions<T>(), or Microsoft's providers with services.AddFluentAzureGuard(...). This method will be removed in 1.0.")]
     public static IServiceCollection AddFluentAzure<T>(
         this IServiceCollection services,
         Func<Core.ConfigurationBuilder, Core.ConfigurationBuilder> configure,

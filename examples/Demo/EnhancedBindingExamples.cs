@@ -35,7 +35,7 @@ public static class EnhancedBindingExamples
         };
 
         var result = (await FluentConfig.Create().FromInMemory(config).BuildAsync()).Bind(config =>
-            ConfigurationBinder.Bind<AppConfiguration>(config)
+            EnhancedConfigurationBinder.Bind<AppConfiguration>(config)
         );
 
         result.Match(
@@ -79,7 +79,7 @@ public static class EnhancedBindingExamples
         };
 
         var result = (await FluentConfig.Create().FromInMemory(config).BuildAsync()).Bind(config =>
-            ConfigurationBinder.Bind<AppConfiguration>(config)
+            EnhancedConfigurationBinder.Bind<AppConfiguration>(config)
         );
 
         result.Match(
@@ -126,13 +126,13 @@ public static class EnhancedBindingExamples
         };
 
         var result = (await FluentConfig.Create().FromInMemory(config).BuildAsync()).Bind(config =>
-            ConfigurationBinder.Bind<ValidatedConfig>(config)
+            EnhancedConfigurationBinder.Bind<ValidatedConfig>(config)
         );
 
         result.Match(
             success =>
             {
-                Console.WriteLine("✅ Validation passed (unexpected)!");
+                Console.WriteLine("✅ Validation passed (unexpected: the annotations should reject this)!");
             },
             errors =>
             {
@@ -161,7 +161,7 @@ public static class EnhancedBindingExamples
         };
 
         var result = (await FluentConfig.Create().FromInMemory(config).BuildAsync())
-            .Bind(config => ConfigurationBinder.Bind<LoginConfig>(config))
+            .Bind(config => EnhancedConfigurationBinder.Bind<LoginConfig>(config))
             .Bind(login =>
             {
                 if (login.Password.Length < 8)

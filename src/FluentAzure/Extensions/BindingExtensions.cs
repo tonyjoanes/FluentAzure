@@ -24,7 +24,7 @@ public static class BindingExtensions
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
-        var result = ConfigurationBinder.Bind<T>(configuration);
+        var result = EnhancedConfigurationBinder.Bind<T>(configuration);
         return result.ToOption();
     }
 

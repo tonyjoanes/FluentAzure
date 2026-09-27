@@ -1,51 +1,36 @@
 ﻿# Configuration Binding
 
-FluentAzure can bind the flat key/value output of a pipeline to strongly typed objects. There are two binders with different capabilities; this page describes what each one actually supports.
+FluentAzure can bind the flat key/value output of a pipeline to strongly typed objects. Every typed API uses the same binder, `EnhancedConfigurationBinder`; this page describes what it supports.
 
-> **ASP.NET Core, Functions and workers:** prefer the [`IConfiguration` provider](configuration-integration.md) with `AddFluentAzureOptions<T>()` or `services.AddOptions<T>().Bind(...)`. That uses Microsoft's binder, which supports every standard shape (collections, dictionaries, nested objects), validation on start and reload through `IOptionsMonitor<T>`, and it works with Native AOT through the binding source generator.
+> **ASP.NET Core, Functions and workers:** prefer Microsoft's providers with the [configuration guard](configuration-guard.md), or FluentAzure's [`IConfiguration` provider](configuration-integration.md), and bind with the options pattern (`AddFluentAzureOptions<T>()` or `services.AddOptions<T>().Bind(...)`). That uses Microsoft's binder, which gives you validation on start, reload through `IOptionsMonitor<T>`, and Native AOT support through the binding source generator.
 >
-> Both FluentAzure binders use reflection. They are annotated `[RequiresUnreferencedCode]`/`[RequiresDynamicCode]`, so the compiler warns if you use them in trimmed or Native AOT apps.
+> FluentAzure's binder uses reflection. It is annotated `[RequiresUnreferencedCode]`/`[RequiresDynamicCode]`, so the compiler warns if you use it in trimmed or Native AOT apps.
 
-## Which binder am I using?
+## Which APIs use it
 
-| API | Binder |
+| API | Binding |
 |---|---|
-| `pipeline.BuildAsync<T>()`, `BuildOptionalAsync<T>()` | Basic |
-| `result.Bind<T>()` on a `Result<Dictionary<string, string>>` | Basic |
-| `dictionary.BindOptional<T>()`, `BindWithFallback`, `BindWithValidation`, `BindConditional`, `BindAndTransform` | Basic |
-| `EnhancedConfigurationBinder.Bind<T>(dictionary, options?)`, `dictionary.BindOptional<T>(options)` | Enhanced |
-| `EnhancedConfigurationBinder.BindJson<T>(dictionary, options?)`, `dictionary.BindJsonOptional<T>(options?)` | Enhanced (JSON) |
-
-## Basic binder
+| `pipeline.BuildAsync<T>()`, `BuildOptionalAsync<T>()` | Enhanced binder |
+| `result.Bind<T>()` on a `Result<Dictionary<string, string>>` | Enhanced binder |
+| `dictionary.BindOptional<T>()`, `BindWithFallback`, `BindWithValidation`, `BindConditional`, `BindAndTransform` | Enhanced binder (pass `BindingOptions` to change its settings) |
+| `EnhancedConfigurationBinder.Bind<T>(dictionary, options?)` | Enhanced binder, called directly |
+| `EnhancedConfigurationBinder.BindJson<T>(dictionary, options?)`, `dictionary.BindJsonOptional<T>(options?)` | JSON (see below) |
 
 ```csharp
 public class AppSettings
 {
     public string Name { get; set; } = "";
-    public int Timeout { get; set; }
     public DatabaseSettings Database { get; set; } = new();
-}
-
-public class DatabaseSettings
-{
-    public string Host { get; set; } = "";
-    public int Port { get; set; }
+    public List<string> Hosts { get; set; } = new();
 }
 
 var result = await FluentConfig.Create()
-    .FromEnvironment()                 // Name, Timeout, Database__Host (or Database:Host), Database__Port
+    .FromEnvironment()                 // Name, Database__Host (or Database:Host), Hosts__0, Hosts__1
     .Required("Name")
     .BuildAsync<AppSettings>();
 ```
 
-**What it supports**
-- **Types:** classes with a public parameterless constructor and public settable properties.
-- **Values:** `string`, numeric types, `bool`, `DateTime`, `TimeSpan`, `Guid`, `Uri`, enums (case-insensitive) and their nullable forms.
-- **Keys:** matched case-insensitively.
-- **Nesting:** nested objects via either separator: `Database:Host` (Key Vault's `Database--Host` and App Configuration keys) or `Database__Host`. If both forms of a key are present, the `:` key wins.
-
-**Limitations**
-- **Collections and dictionaries:** not bound. Use the enhanced binder or the `IConfiguration` provider.
+> **The basic binder is obsolete.** Before this release, the typed APIs used a simpler binder (`ConfigurationBinder`) that couldn't bind collections, dictionaries or records, and didn't run Data Annotations validation. It is marked `[Obsolete]` and will be removed in 1.0. If you called `ConfigurationBinder.Bind<T>()` directly, call `EnhancedConfigurationBinder.Bind<T>()` instead.
 
 ## Enhanced binder
 
@@ -136,7 +121,7 @@ var result = EnhancedConfigurationBinder.BindJson<AppSettings>(values, options);
 
 ## Dictionary helper methods
 
-These extension methods in `FluentAzure.Extensions` work on the `Dictionary<string, string>` from `BuildAsync()`. They use the basic binder unless you pass `BindingOptions`.
+These extension methods in `FluentAzure.Extensions` work on the `Dictionary<string, string>` from `BuildAsync()`. They all use the enhanced binder; the overloads that take `BindingOptions` let you change its settings.
 
 | Method | Returns |
 |---|---|

@@ -185,18 +185,19 @@ public static class UltraCleanExample
 
         var services = new ServiceCollection();
 
-        // Clean DI integration with the ultra-clean API
-        services.AddFluentAzure<AppSettings>(builder =>
-            builder
+        // Feed the pipeline into IConfiguration, then bind it with the options pattern
+        var configuration = new Microsoft.Extensions.Configuration.ConfigurationBuilder()
+            .AddFluentAzure(fluent => fluent
                 .FromEnvironment()
                 .Required("App:Name")
                 .Required("Database:ConnectionString")
                 .Optional("Debug", "false")
-                .Optional("Version", "2.0.0")
-        );
+                .Optional("Version", "2.0.0"))
+            .Build();
+        services.AddFluentAzureOptions<AppSettings>(configuration);
 
         var serviceProvider = services.BuildServiceProvider();
-        var config = serviceProvider.GetRequiredService<AppSettings>();
+        var config = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<AppSettings>>().Value;
 
         Console.WriteLine($"✅ DI Config - App: {config.AppName}");
         Console.WriteLine($"✅ DI Config - Version: {config.Version}");
