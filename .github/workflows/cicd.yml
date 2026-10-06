@@ -87,7 +87,7 @@ jobs:
     # Upload coverage reports to Codecov (Ubuntu only to avoid duplicates)
     - name: Upload coverage reports to Codecov
       if: matrix.os == 'ubuntu-latest'
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v7
       with:
         directory: ./coverage
         fail_ci_if_error: true
