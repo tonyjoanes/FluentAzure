@@ -200,7 +200,7 @@ jobs:
 
     # Upload security audit results as artifact
     - name: Upload security audit results
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v7
       if: always()
       with:
         name: security-audit-results
@@ -303,7 +303,7 @@ jobs:
 
     # Upload package artifacts for manual inspection
     - name: Upload package artifacts
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v7
       with:
         name: nuget-packages
         path: ./packages/*.nupkg
