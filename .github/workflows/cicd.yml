@@ -38,7 +38,7 @@ jobs:
     steps:
     # Checkout code with full history for MinVer to work properly
     - name: Checkout code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0  # Full history needed for MinVer to determine version from Git tags
 
@@ -113,7 +113,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v5
@@ -160,7 +160,7 @@ jobs:
     steps:
     # Checkout code
     - name: Checkout code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
 
@@ -213,7 +213,7 @@ jobs:
     steps:
     # Checkout code
     - name: Checkout code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
 
@@ -261,7 +261,7 @@ jobs:
     steps:
     # Checkout code with full history for MinVer
     - name: Checkout code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0  # Full history needed for MinVer versioning
 
@@ -322,7 +322,7 @@ jobs:
     steps:
     # Checkout code
     - name: Checkout code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
 
