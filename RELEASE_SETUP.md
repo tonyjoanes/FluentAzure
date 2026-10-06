@@ -48,9 +48,9 @@ This document summarizes the complete automated versioning, packaging, and publi
 ### GitHub Repository Secrets
 Add these secrets to your repository (Settings → Secrets and variables → Actions):
 
-1. **NUGET_API_KEY** (Required)
-   - Get from: https://www.nuget.org/account/apikeys
-   - Used for publishing packages to NuGet.org
+1. **NUGET_USER** (Required)
+   - Your nuget.org profile name (not your email address)
+   - Used with NuGet Trusted Publishing: add a trusted publishing policy on nuget.org for repository `tonyjoanes/FluentAzure` and workflow `cicd.yml`. The workflow then gets a one-hour API key on each run, so no long-lived key is stored.
 
 2. **CODECOV_TOKEN** (Optional)
    - Used for coverage reporting
@@ -153,7 +153,7 @@ dotnet pack --configuration Release --output ./packages
 ### Common Issues
 1. **Version not updating**: Ensure you're using the latest tag
 2. **Build failures**: Check Actions tab for error details
-3. **Publishing fails**: Verify `NUGET_API_KEY` secret is set
+3. **Publishing fails**: Check the nuget.org trusted publishing policy (repository `tonyjoanes/FluentAzure`, workflow `cicd.yml`) and the `NUGET_USER` secret
 4. **Package not found**: Wait for NuGet.org indexing
 
 ### Debugging
@@ -170,4 +170,4 @@ dotnet pack --configuration Release --output ./packages
 
 ---
 
-**Next Steps**: Set up your `NUGET_API_KEY` secret and create your first release tag to test the pipeline! 
+**Next Steps**: Set up the trusted publishing policy and `NUGET_USER` secret and create your first release tag to test the pipeline! 

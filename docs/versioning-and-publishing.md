@@ -29,10 +29,10 @@ Examples:
 
 ### Prerequisites
 
-1. **NuGet API Key**: Add `NUGET_API_KEY` to your GitHub repository secrets
-   - Go to [NuGet.org](https://www.nuget.org/account/apikeys)
-   - Create a new API key
-   - Add it to your repository: Settings â†’ Secrets and variables â†’ Actions â†’ New repository secret
+1. **NuGet Trusted Publishing** (no API key is stored):
+   - On nuget.org, open your account's **Trusted Publishing** page and add a policy for repository owner `tonyjoanes`, repository `FluentAzure` and workflow file `cicd.yml` (leave the environment empty).
+   - Add a `NUGET_USER` repository secret (Settings → Secrets and variables → Actions) containing your nuget.org profile name, not your email address.
+   - On each tag build, the `NuGet/login` action exchanges the workflow's OIDC token for an API key that is valid for one hour.
 
 2. **Codecov Token** (optional): Add `CODECOV_TOKEN` for coverage reporting
 
@@ -134,7 +134,7 @@ The workflow includes:
 
 1. **Version not updating**: Ensure you're using the latest tag
 2. **Build failures**: Check the Actions tab for error details
-3. **Publishing fails**: Verify `NUGET_API_KEY` secret is set
+3. **Publishing fails**: Check that the nuget.org trusted publishing policy names this repository and `cicd.yml`, and that the `NUGET_USER` secret is your nuget.org profile name
 4. **Package not found**: Wait for NuGet.org indexing (can take 5-10 minutes)
 
 #### Debugging
